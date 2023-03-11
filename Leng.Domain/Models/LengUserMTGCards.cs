@@ -12,5 +12,6 @@ namespace Leng.Data.Models {
         public MTGCards MTGCards { get; set; }
 
         public int count { get; set; }
+        public int countFoil { get; set; }
     }
 }
