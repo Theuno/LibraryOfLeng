@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Leng.Function.MtgJsonToDb",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Leng.Application", "Leng.Application\Leng.Application.csproj", "{A1B1BFD1-4808-4C11-A917-68D473FB12B1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Leng.Domain", "Leng.Domain\Leng.Domain.csproj", "{1A98AB7D-114E-4720-A8A1-A8860785AB76}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{A1B1BFD1-4808-4C11-A917-68D473FB12B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1B1BFD1-4808-4C11-A917-68D473FB12B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A1B1BFD1-4808-4C11-A917-68D473FB12B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A98AB7D-114E-4720-A8A1-A8860785AB76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A98AB7D-114E-4720-A8A1-A8860785AB76}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A98AB7D-114E-4720-A8A1-A8860785AB76}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A98AB7D-114E-4720-A8A1-A8860785AB76}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
