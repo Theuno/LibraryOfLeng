@@ -3,15 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.6.33417.168
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Leng.BlazorServer", "Leng.BlazorServer\Leng.BlazorServer.csproj", "{BFF77611-EF15-4796-9E07-426173D505A0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Leng.Function.MtgJsonToDb", "Leng.Function.MtgJsonToDb\Leng.Function.MtgJsonToDb.csproj", "{E3776BB0-46F2-4747-BC0B-FADA1CEBF42F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Leng.Function.MtgJsonToDb", "Leng.Function.MtgJsonToDb\Leng.Function.MtgJsonToDb.csproj", "{E3776BB0-46F2-4747-BC0B-FADA1CEBF42F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Leng.Application", "Leng.Application\Leng.Application.csproj", "{A1B1BFD1-4808-4C11-A917-68D473FB12B1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Leng.Application", "Leng.Application\Leng.Application.csproj", "{A1B1BFD1-4808-4C11-A917-68D473FB12B1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Leng.Domain", "Leng.Domain\Leng.Domain.csproj", "{1A98AB7D-114E-4720-A8A1-A8860785AB76}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Leng.Domain", "Leng.Domain\Leng.Domain.csproj", "{1A98AB7D-114E-4720-A8A1-A8860785AB76}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Leng.Infrastructure", "Leng.Infrastructure\Leng.Infrastructure.csproj", "{89EA1766-8C72-4580-BB3B-722C3650B7EC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Leng.Infrastructure", "Leng.Infrastructure\Leng.Infrastructure.csproj", "{89EA1766-8C72-4580-BB3B-722C3650B7EC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Leng.BlazorServer", "Leng.BlazorServer\Leng.BlazorServer.csproj", "{C35F6291-BCC7-4137-8CDE-06E8C56B9524}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,10 +19,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{BFF77611-EF15-4796-9E07-426173D505A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BFF77611-EF15-4796-9E07-426173D505A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BFF77611-EF15-4796-9E07-426173D505A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BFF77611-EF15-4796-9E07-426173D505A0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E3776BB0-46F2-4747-BC0B-FADA1CEBF42F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E3776BB0-46F2-4747-BC0B-FADA1CEBF42F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E3776BB0-46F2-4747-BC0B-FADA1CEBF42F}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -39,6 +35,10 @@ Global
 		{89EA1766-8C72-4580-BB3B-722C3650B7EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{89EA1766-8C72-4580-BB3B-722C3650B7EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{89EA1766-8C72-4580-BB3B-722C3650B7EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C35F6291-BCC7-4137-8CDE-06E8C56B9524}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C35F6291-BCC7-4137-8CDE-06E8C56B9524}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C35F6291-BCC7-4137-8CDE-06E8C56B9524}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C35F6291-BCC7-4137-8CDE-06E8C56B9524}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
