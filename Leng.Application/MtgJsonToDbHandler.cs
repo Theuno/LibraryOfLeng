@@ -3,6 +3,5 @@
         public async Task Handle() {
             Console.WriteLine("Handling");
         }
-
     }
 }
