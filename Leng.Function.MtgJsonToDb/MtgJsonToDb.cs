@@ -1,23 +1,47 @@
 using System;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Host;
+using Leng.Application;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 
 namespace Leng.Function.MtgJsonToDb
 {
     public class MtgJsonToDb
     {
-        [FunctionName("MtgJsonToDb")]
-        public async Task Run([TimerTrigger("0 */5 * * * *"
+        private readonly ILogger _logger;
+
+        public MtgJsonToDb(ILoggerFactory loggerFactory)
+        {
+            _logger = loggerFactory.CreateLogger<MtgJsonToDb>();
+        }
+
+        [Function("MtgJsonToDb")]
+        public void Run([TimerTrigger("0 */5 * * * *"
             #if DEBUG
                 ,RunOnStartup=true
             #endif
-            )]TimerInfo myTimer, ILogger log)
+            )] MyInfo myTimer)
         {
-            log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
-            var _handler = new Leng.Application.MtgJsonToDbHandler();
-            await _handler.Handle();
+            _logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
+            _logger.LogInformation($"Next timer schedule at: {myTimer.ScheduleStatus.Next}");
+
+            MtgJsonToDbHandler mtgJsonToDbHandler = new MtgJsonToDbHandler();
+            mtgJsonToDbHandler.Handle();
         }
+    }
+
+    public class MyInfo
+    {
+        public MyScheduleStatus ScheduleStatus { get; set; }
+
+        public bool IsPastDue { get; set; }
+    }
+
+    public class MyScheduleStatus
+    {
+        public DateTime Last { get; set; }
+
+        public DateTime Next { get; set; }
+
+        public DateTime LastUpdated { get; set; }
     }
 }
