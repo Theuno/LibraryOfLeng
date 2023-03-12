@@ -1,10 +1,8 @@
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Leng.BlazorServer.Data;
-using MudBlazor.Services;
 using Leng.Infrastructure;
+using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.EntityFrameworkCore;
+using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +16,7 @@ builder.Services.AddMudServices();
 
 // Add Database context
 builder.Services.AddDbContext<LengDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultDbConnection")));
 
 var app = builder.Build();
 
