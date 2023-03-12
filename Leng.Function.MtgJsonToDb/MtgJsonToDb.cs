@@ -1,17 +1,20 @@
-using System;
-using Leng.Application;
+using Leng.Application.FunctionHandlers;
+using Leng.Infrastructure;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace Leng.Function.MtgJsonToDb
-{
+namespace Leng.Function.MtgJsonToDb {
     public class MtgJsonToDb
     {
         private readonly ILogger _logger;
+        private readonly IDbContextFactory<LengDbContext> _contextFactory;
 
-        public MtgJsonToDb(ILoggerFactory loggerFactory)
+
+        public MtgJsonToDb(ILoggerFactory loggerFactory, IDbContextFactory<LengDbContext> dbContextFactory)
         {
             _logger = loggerFactory.CreateLogger<MtgJsonToDb>();
+            _contextFactory = dbContextFactory;
         }
 
         [Function("MtgJsonToDb")]
@@ -24,7 +27,7 @@ namespace Leng.Function.MtgJsonToDb
             _logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
             _logger.LogInformation($"Next timer schedule at: {myTimer.ScheduleStatus.Next}");
 
-            MtgJsonToDbHandler mtgJsonToDbHandler = new MtgJsonToDbHandler();
+            MtgJsonToDbHandler mtgJsonToDbHandler = new MtgJsonToDbHandler(_contextFactory.CreateDbContext());
             mtgJsonToDbHandler.Handle();
         }
     }
