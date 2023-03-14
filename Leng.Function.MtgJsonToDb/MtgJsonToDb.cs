@@ -18,7 +18,7 @@ namespace Leng.Function.MtgJsonToDb {
         }
 
         [Function("MtgJsonToDb")]
-        public void Run([TimerTrigger("0 */5 * * * *"
+        public void Run([TimerTrigger("0 30 3 * * 1-5"
             #if DEBUG
                 ,RunOnStartup=true
             #endif
