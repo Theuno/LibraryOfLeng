@@ -97,7 +97,9 @@ namespace Leng.Application.FunctionHandlers
                         // Dead?  El-Hajjâj134†
 
                         MTGCards card = JsonSerializer.Deserialize<MTGCards>(mtgCards[i].ToString());
-                        await dbService.AddCardAsync(card);
+                        if(!card.isOnlineOnly) {
+                            await dbService.AddCardAsync(card);
+                        }
                     }
                 }
 

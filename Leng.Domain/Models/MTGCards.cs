@@ -128,7 +128,7 @@ namespace Leng.Data.Models
         //isAlternative TINYINT(1) NOT NULL DEFAULT 0,
         //isFullArt TINYINT(1) NOT NULL DEFAULT 0,
         //isFunny TINYINT(1) NOT NULL DEFAULT 0,
-        public bool? isOnlineOnly { get; set; }
+        public bool isOnlineOnly { get; set; }
         //isOversized TINYINT(1) NOT NULL DEFAULT 0,
         //isPromo TINYINT(1) NOT NULL DEFAULT 0,
         //isRebalanced TINYINT(1) NOT NULL DEFAULT 0,
