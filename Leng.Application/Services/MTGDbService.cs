@@ -37,8 +37,8 @@ namespace Leng.Application.Services {
                     c =>
                         (c.name == card.name) &&
                         (c.number == card.number) &&
-                        (c.setCode == card.setCode)
-                        ).SingleOrDefaultAsync();
+                        (c.setCode == card.setCode) &&
+                        (card.side == "a" || card.side == null)).SingleOrDefaultAsync();
 
                 if (dbCard == null) {
                     set.Cards.Add(card);
@@ -58,6 +58,35 @@ namespace Leng.Application.Services {
                 //    _dbContext.SaveChanges();
                 //}
             }
+        }
+
+        internal async Task AddCardsAsync(List<MTGCards> setCards) {
+            var set = _dbContext.MTGSets.Where(r => r.setCode == setCards.FirstOrDefault().setCode).SingleOrDefault();
+            if (set != null) {
+                if (set.Cards == null) {
+                    set.Cards = new List<MTGCards>();
+                }
+            }
+
+            foreach (MTGCards card in setCards) {
+                if (card.name != null &&
+                    card.number != null && 
+                    card.setCode != null && 
+                    (card.side == "a" || card.side == null)) {
+
+                    MTGCards dbCard = await _dbContext.MTGCard.Where(
+                        c =>
+                        (c.name == card.name) &&
+                        (c.number == card.number) &&
+                        (c.setCode == card.setCode)
+                        ).SingleOrDefaultAsync();
+
+                    if (dbCard == null) {
+                        set.Cards.Add(card);
+                    }
+                }
+            }
+            await _dbContext.SaveChangesAsync();
         }
     }
 }

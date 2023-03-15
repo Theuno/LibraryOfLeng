@@ -124,6 +124,9 @@ namespace Leng.Infrastructure.Migrations
                         .HasColumnType("varchar(8)")
                         .HasAnnotation("Relational:JsonPropertyName", "setCode");
 
+                    b.Property<string>("side")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("text")
                         .HasColumnType("nvarchar(max)");
 

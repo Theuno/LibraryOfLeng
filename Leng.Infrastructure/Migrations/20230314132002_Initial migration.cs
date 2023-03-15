@@ -88,7 +88,7 @@ namespace Leng.Infrastructure.Migrations
                     edhrecSaltiness = table.Column<float>(type: "real", nullable: false),
                     hasFoil = table.Column<bool>(type: "bit", nullable: true),
                     hasNonFoil = table.Column<bool>(type: "bit", nullable: true),
-                    isOnlineOnly = table.Column<bool>(type: "bit", nullable: true),
+                    isOnlineOnly = table.Column<bool>(type: "bit", nullable: false),
                     mcmId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     number = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     originalText = table.Column<string>(type: "nvarchar(max)", nullable: true),

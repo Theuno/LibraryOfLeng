@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Leng.Infrastructure.Migrations
 {
     [DbContext(typeof(LengDbContext))]
-    [Migration("20230313200754_Initial migration")]
-    partial class Initialmigration
+    [Migration("20230315091246_MTGCard add side")]
+    partial class MTGCardaddside
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -99,7 +99,7 @@ namespace Leng.Infrastructure.Migrations
                     b.Property<bool?>("hasNonFoil")
                         .HasColumnType("bit");
 
-                    b.Property<bool?>("isOnlineOnly")
+                    b.Property<bool>("isOnlineOnly")
                         .HasColumnType("bit");
 
                     b.Property<string>("mcmId")
@@ -126,6 +126,9 @@ namespace Leng.Infrastructure.Migrations
                     b.Property<string>("setCode")
                         .HasColumnType("varchar(8)")
                         .HasAnnotation("Relational:JsonPropertyName", "setCode");
+
+                    b.Property<string>("side")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("text")
                         .HasColumnType("nvarchar(max)");

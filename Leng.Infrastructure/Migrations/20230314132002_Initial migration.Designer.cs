@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Leng.Infrastructure.Migrations
 {
     [DbContext(typeof(LengDbContext))]
-    [Migration("20230313202244_Update card.isOnlineOnly to non nullable")]
-    partial class UpdatecardisOnlineOnlytononnullable
+    [Migration("20230314132002_Initial migration")]
+    partial class Initialmigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

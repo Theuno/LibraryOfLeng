@@ -92,14 +92,20 @@ namespace Leng.Application.FunctionHandlers
 
                     // Add cards
                     JsonArray mtgCards = mtgNodes["data"]["cards"]!.AsArray();
+                    List<MTGCards> setCards = new List<MTGCards>();
+
                     for (int i = 0; i < mtgCards.Count; i++) {
                         // Foils? Forest317★
                         // Dead?  El-Hajjâj134†
 
                         MTGCards card = JsonSerializer.Deserialize<MTGCards>(mtgCards[i].ToString());
                         if(!card.isOnlineOnly) {
-                            await dbService.AddCardAsync(card);
+                            setCards.Add(card);
                         }
+                    }
+
+                    if (setCards.Count > 0) {
+                        await dbService.AddCardsAsync(setCards);
                     }
                 }
 
