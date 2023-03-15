@@ -172,7 +172,7 @@ namespace Leng.Data.Models
         //scryfallIllustrationId TEXT,
         //scryfallOracleId TEXT,
         //securityStamp TEXT,
-        //side TEXT,
+        public string? side { get; set; }
         //signature TEXT,
         //subset TEXT,
         //subtypes TEXT,
