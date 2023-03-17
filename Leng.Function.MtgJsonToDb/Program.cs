@@ -13,8 +13,10 @@ var host = new HostBuilder()
     })
     .ConfigureFunctionsWorkerDefaults()
     .ConfigureServices(services => {
-        services.AddDbContextFactory<LengDbContext>(options =>
-                   options.UseSqlServer(Environment.GetEnvironmentVariable("DefaultDbConnection")));
+        services.AddDbContextFactory<LengDbContext>(options => options
+                    .EnableSensitiveDataLogging()
+                    .UseSqlServer(Environment.GetEnvironmentVariable("DefaultDbConnection"))
+                    );
     })
     .Build();
 
