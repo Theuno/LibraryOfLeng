@@ -1,9 +1,8 @@
-using Leng.Application.Services;
 using Leng.BlazorServer.Data;
 using Leng.Infrastructure;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
+using Microsoft.Identity.Web;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +19,14 @@ builder.Services.AddMudServices();
 builder.Services.AddDbContextFactory<LengDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultDbConnection")));
 
+builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAdB2C");
+builder.Services.AddAuthorization(options => {
+    //options.AddPolicy("Admin", policy => policy.RequireClaim("groups", "Admin"));
+    //options.AddPolicy("User", policy => policy.RequireClaim("groups", "User"));
+    // By default, all incoming requests will be authorized according to the default policy
+    options.FallbackPolicy = options.DefaultPolicy;
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -34,6 +41,9 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
