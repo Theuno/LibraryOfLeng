@@ -68,13 +68,13 @@ namespace Leng.Application.Services {
             return null;
         }
 
-        public async Task<List<MTGSets>> SearchSetsAsync(string mtgset) {
+        public async Task<List<MTGSets>> SearchSetsContainingCardsAsync(string mtgset) {
             // if text is null or empty, show complete list
             if (string.IsNullOrEmpty(mtgset)) {
                 return await GetAllSetsAsync();
             }
             else {
-                List<MTGSets> list = await _dbContext.MTGSets.Where(x => x.name.Contains(mtgset)).ToListAsync();
+                List<MTGSets> list = await _dbContext.MTGSets.Where(x => x.name.Contains(mtgset) && x.Cards.Count != 0).ToListAsync();
                 return list;
             }
         }

@@ -62,7 +62,7 @@ namespace Leng.BlazorServer.Pages {
         private async Task<IEnumerable<string>> SetSearch(string set) {
             var dbService = new MTGDbService(cf.CreateDbContext());
 
-            var sets = await dbService.SearchSetsAsync(set);
+            var sets = await dbService.SearchSetsContainingCardsAsync(set);
             return await Task.FromResult(sets.Select(x => x.name).ToArray());
         }
 
