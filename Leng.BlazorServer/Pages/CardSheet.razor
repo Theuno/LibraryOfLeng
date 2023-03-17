@@ -1,0 +1,49 @@
+﻿@page "/cardsheet"
+<PageTitle>CardSheet</PageTitle>
+
+@using Leng.Data
+@using Leng.Data.Models
+
+
+@using MudBlazor
+
+
+<h3>CardSheet</h3>
+
+<MudGrid>
+    <MudItem xs="12" sm="6" md="4">
+        <MudAutocomplete T="string" 
+            Label="MTG Sets" 
+            SearchFunc="@SetSearch" 
+            Margin="Margin.Dense" 
+            Dense="true" 
+            Variant="Variant.Outlined" 
+            ResetValueOnEmptyText="true" 
+            CoerceText="true" 
+            Value="selectedSet" 
+            ValueChanged="OnSetSelected">
+
+            <ProgressIndicatorTemplate>
+                <MudProgressLinear Size="Size.Medium" Indeterminate="true" Color="Color.Default" />
+            </ProgressIndicatorTemplate>
+
+        </MudAutocomplete>
+    </MudItem>
+</MudGrid>
+
+
+@if (selectedSet != null)
+{
+    <p>Selected set: @selectedSet</p>
+
+    @if (cards != null)
+    {
+        <MudDataGrid Items="@sheet" FixedHeader=true SortMode="SortMode.Multiple" EditMode="DataGridEditMode.Cell" EditTrigger="DataGridEditTrigger.OnRowClick" T="cardSheet" ReadOnly=false CommittedItemChanges="CommittedItemChanges">
+            <Columns>
+                <Column T="cardSheet" Field="number" Title="Nr" IsEditable="false" /> <!-- @*SortBy="@SortBySetNumber"*@ -->
+                <Column T="cardSheet" Field="name" Title="Name" IsEditable="false" />
+                <Column T="cardSheet" Field="count" Title="Count" />
+            </Columns>
+        </MudDataGrid>
+    }
+}

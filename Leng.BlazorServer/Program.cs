@@ -1,7 +1,9 @@
+using Leng.Application.Services;
 using Leng.BlazorServer.Data;
 using Leng.Infrastructure;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,7 +17,7 @@ builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddMudServices();
 
 // Add Database context
-builder.Services.AddDbContext<LengDbContext>(options =>
+builder.Services.AddDbContextFactory<LengDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultDbConnection")));
 
 var app = builder.Build();
