@@ -71,6 +71,9 @@ namespace Leng.BlazorServer.Pages {
             if (selectedSet == null) {
                 return;
             }
+            else {
+                sheet.Clear();
+            }
 
             var dbService = new MTGDbService(cf.CreateDbContext());
 
