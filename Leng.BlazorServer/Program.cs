@@ -3,6 +3,7 @@ using Leng.Infrastructure;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
+using Microsoft.Identity.Web.UI;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,7 +12,8 @@ StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configurat
 
 // Add services to the container.
 builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor();
+builder.Services.AddServerSideBlazor()
+                .AddMicrosoftIdentityConsentHandler();
 builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddMudServices();
 
@@ -19,13 +21,33 @@ builder.Services.AddMudServices();
 builder.Services.AddDbContextFactory<LengDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultDbConnection")));
 
-builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAdB2C");
-builder.Services.AddAuthorization(options => {
-    //options.AddPolicy("Admin", policy => policy.RequireClaim("groups", "Admin"));
-    //options.AddPolicy("User", policy => policy.RequireClaim("groups", "User"));
+// Add Auth - Azure AD
+builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd")
+    .EnableTokenAcquisitionToCallDownstreamApi()
+    .AddMicrosoftGraph(o =>
+    {
+        o.Scopes = "user.read profile";
+        o.BaseUrl = "https://graph.microsoft.com/v1.0";
+    })
+    .AddInMemoryTokenCaches();
+
+// Add Auth - Azure AD B2C
+//var initialScopes = builder.Configuration.GetValue<string>("AzureAdB2C:Scopes")?.Split(' ');
+
+//builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+//        .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"))
+//        .EnableTokenAcquisitionToCallDownstreamApi(initialScopes)
+//        .AddMicrosoftGraph()
+//        .AddInMemoryTokenCaches();
+
+builder.Services.AddAuthorization(options =>
+{
     // By default, all incoming requests will be authorized according to the default policy
     options.FallbackPolicy = options.DefaultPolicy;
 });
+
+builder.Services.AddControllersWithViews()
+    .AddMicrosoftIdentityUI();
 
 var app = builder.Build();
 

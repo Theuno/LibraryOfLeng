@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Leng.Infrastructure", "Leng
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Leng.BlazorServer", "Leng.BlazorServer\Leng.BlazorServer.csproj", "{C35F6291-BCC7-4137-8CDE-06E8C56B9524}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Leng.Function.MtgJsonToDb", "Leng.Function.MtgJsonToDb\Leng.Function.MtgJsonToDb.csproj", "{CEAA375B-ADA6-4120-A080-AC164814C8B7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Leng.Function.MtgJsonToDb", "Leng.Function.MtgJsonToDb\Leng.Function.MtgJsonToDb.csproj", "{CEAA375B-ADA6-4120-A080-AC164814C8B7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
