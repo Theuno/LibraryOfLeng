@@ -1,4 +1,4 @@
-﻿using Leng.Data.Models;
+﻿using Leng.Domain.Models;
 using Leng.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -181,6 +181,16 @@ namespace Leng.Application.Services {
             }
 
             return null;
+        }
+
+        public async Task<IEnumerable<LengUserMTGCards>> GetCardFromUserCollectionAsync(string cardName) {
+            var cards = await _dbContext.LengUserMTGCards
+                .Include(c => c.MTGCards)
+                .Where(c => c.MTGCards.name == cardName)
+                //.Where(c => c.MTGCards.name.Contains(cardName, StringComparison.OrdinalIgnoreCase))
+                .ToListAsync();
+
+            return cards;
         }
 
         public async Task<IEnumerable<MTGCards>> GetCardsForUser(LengUser user, string setCode) {

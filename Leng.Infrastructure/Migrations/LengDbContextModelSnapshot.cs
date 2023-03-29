@@ -17,12 +17,12 @@ namespace Leng.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.3")
+                .HasAnnotation("ProductVersion", "7.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Leng.Data.Models.LengUser", b =>
+            modelBuilder.Entity("Leng.Domain.Models.LengUser", b =>
                 {
                     b.Property<string>("LengUserID")
                         .ValueGeneratedOnAdd()
@@ -36,7 +36,22 @@ namespace Leng.Infrastructure.Migrations
                     b.ToTable("LengUser");
                 });
 
-            modelBuilder.Entity("Leng.Data.Models.LengUserMTGCards", b =>
+            modelBuilder.Entity("Leng.Domain.Models.LengUserDeck", b =>
+                {
+                    b.Property<string>("LengUserID")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("MTGDeckID")
+                        .HasColumnType("int");
+
+                    b.HasKey("LengUserID", "MTGDeckID");
+
+                    b.HasIndex("MTGDeckID");
+
+                    b.ToTable("LengUserDeck");
+                });
+
+            modelBuilder.Entity("Leng.Domain.Models.LengUserMTGCards", b =>
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
@@ -46,7 +61,13 @@ namespace Leng.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("LengUserID1")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<int>("MTGCardsID")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MTGCardsID1")
                         .HasColumnType("int");
 
                     b.Property<int>("count")
@@ -59,21 +80,22 @@ namespace Leng.Infrastructure.Migrations
 
                     b.HasIndex("LengUserID");
 
+                    b.HasIndex("LengUserID1");
+
                     b.HasIndex("MTGCardsID");
+
+                    b.HasIndex("MTGCardsID1");
 
                     b.ToTable("LengUserMTGCards");
                 });
 
-            modelBuilder.Entity("Leng.Data.Models.MTGCards", b =>
+            modelBuilder.Entity("Leng.Domain.Models.MTGCards", b =>
                 {
                     b.Property<int>("MTGCardsID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MTGCardsID"));
-
-                    b.Property<string>("LengUserID")
-                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("MTGSetsID")
                         .HasColumnType("int");
@@ -135,8 +157,6 @@ namespace Leng.Infrastructure.Migrations
 
                     b.HasKey("MTGCardsID");
 
-                    b.HasIndex("LengUserID");
-
                     b.HasIndex("MTGSetsID");
 
                     b.HasIndex("name", "setCode", "number")
@@ -146,7 +166,35 @@ namespace Leng.Infrastructure.Migrations
                     b.ToTable("MTGCard");
                 });
 
-            modelBuilder.Entity("Leng.Data.Models.MTGSets", b =>
+            modelBuilder.Entity("Leng.Domain.Models.MTGDeck", b =>
+                {
+                    b.Property<int>("MTGDeckID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MTGDeckID"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Format")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("FormatID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("MTGDeckID");
+
+                    b.ToTable("MTGDeck");
+                });
+
+            modelBuilder.Entity("Leng.Domain.Models.MTGSets", b =>
                 {
                     b.Property<int>("MTGSetsID")
                         .ValueGeneratedOnAdd()
@@ -220,7 +268,7 @@ namespace Leng.Infrastructure.Migrations
                     b.ToTable("MTGSets");
                 });
 
-            modelBuilder.Entity("Leng.Data.Models.MTGTranslations", b =>
+            modelBuilder.Entity("Leng.Domain.Models.MTGTranslations", b =>
                 {
                     b.Property<int>("MTGTranslationsID")
                         .ValueGeneratedOnAdd()
@@ -245,32 +293,55 @@ namespace Leng.Infrastructure.Migrations
                     b.ToTable("MTGTranslations");
                 });
 
-            modelBuilder.Entity("Leng.Data.Models.LengUserMTGCards", b =>
+            modelBuilder.Entity("Leng.Domain.Models.LengUserDeck", b =>
                 {
-                    b.HasOne("Leng.Data.Models.LengUser", "LengUser")
-                        .WithMany("LengUserMTGCards")
+                    b.HasOne("Leng.Domain.Models.LengUser", "LengUser")
+                        .WithMany("LengUserDecks")
                         .HasForeignKey("LengUserID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Leng.Data.Models.MTGCards", "MTGCards")
-                        .WithMany("LengUserMTGCards")
-                        .HasForeignKey("MTGCardsID")
+                    b.HasOne("Leng.Domain.Models.MTGDeck", "MTGDeck")
+                        .WithMany()
+                        .HasForeignKey("MTGDeckID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("LengUser");
+
+                    b.Navigation("MTGDeck");
+                });
+
+            modelBuilder.Entity("Leng.Domain.Models.LengUserMTGCards", b =>
+                {
+                    b.HasOne("Leng.Domain.Models.LengUser", "LengUser")
+                        .WithMany()
+                        .HasForeignKey("LengUserID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Leng.Domain.Models.LengUser", null)
+                        .WithMany("LengUserMTGCards")
+                        .HasForeignKey("LengUserID1");
+
+                    b.HasOne("Leng.Domain.Models.MTGCards", "MTGCards")
+                        .WithMany()
+                        .HasForeignKey("MTGCardsID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Leng.Domain.Models.MTGCards", null)
+                        .WithMany("LengUserMTGCards")
+                        .HasForeignKey("MTGCardsID1");
 
                     b.Navigation("LengUser");
 
                     b.Navigation("MTGCards");
                 });
 
-            modelBuilder.Entity("Leng.Data.Models.MTGCards", b =>
+            modelBuilder.Entity("Leng.Domain.Models.MTGCards", b =>
                 {
-                    b.HasOne("Leng.Data.Models.LengUser", null)
-                        .WithMany()
-                        .HasForeignKey("LengUserID");
-
-                    b.HasOne("Leng.Data.Models.MTGSets", "MTGSets")
+                    b.HasOne("Leng.Domain.Models.MTGSets", "MTGSets")
                         .WithMany("Cards")
                         .HasForeignKey("MTGSetsID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -279,26 +350,28 @@ namespace Leng.Infrastructure.Migrations
                     b.Navigation("MTGSets");
                 });
 
-            modelBuilder.Entity("Leng.Data.Models.MTGSets", b =>
+            modelBuilder.Entity("Leng.Domain.Models.MTGSets", b =>
                 {
-                    b.HasOne("Leng.Data.Models.MTGTranslations", "translations")
+                    b.HasOne("Leng.Domain.Models.MTGTranslations", "translations")
                         .WithMany()
                         .HasForeignKey("translationsMTGTranslationsID");
 
                     b.Navigation("translations");
                 });
 
-            modelBuilder.Entity("Leng.Data.Models.LengUser", b =>
+            modelBuilder.Entity("Leng.Domain.Models.LengUser", b =>
+                {
+                    b.Navigation("LengUserDecks");
+
+                    b.Navigation("LengUserMTGCards");
+                });
+
+            modelBuilder.Entity("Leng.Domain.Models.MTGCards", b =>
                 {
                     b.Navigation("LengUserMTGCards");
                 });
 
-            modelBuilder.Entity("Leng.Data.Models.MTGCards", b =>
-                {
-                    b.Navigation("LengUserMTGCards");
-                });
-
-            modelBuilder.Entity("Leng.Data.Models.MTGSets", b =>
+            modelBuilder.Entity("Leng.Domain.Models.MTGSets", b =>
                 {
                     b.Navigation("Cards");
                 });

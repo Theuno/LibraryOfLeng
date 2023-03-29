@@ -1,5 +1,5 @@
 ﻿using Leng.Application.Services;
-using Leng.Data.Models;
+using Leng.Domain.Models;
 using System.ComponentModel;
 using System.IO.Compression;
 using System.Net;

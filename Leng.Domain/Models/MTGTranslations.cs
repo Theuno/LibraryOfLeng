@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Leng.Data.Models
+namespace Leng.Domain.Models
 {
     public class MTGTranslations
     {

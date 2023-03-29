@@ -1,13 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Leng.Domain.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection.Metadata;
 using System.Security.Policy;
 using System.Text.Json.Serialization;
-using static Leng.Data.Models.MTGTranslations;
+using static Leng.Domain.Models.MTGTranslations;
 
-namespace Leng.Data.Models
+namespace Leng.Domain.Models
 {
     public class LengUser
     {
@@ -17,5 +18,7 @@ namespace Leng.Data.Models
         public string? aduuid { get; set; }
 
         public ICollection<LengUserMTGCards> LengUserMTGCards { get; set; }
+        public ICollection<LengUserDeck> LengUserDecks { get; set; }
+
     }
 }

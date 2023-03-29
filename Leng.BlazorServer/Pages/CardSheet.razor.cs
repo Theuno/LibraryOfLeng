@@ -1,4 +1,4 @@
-﻿using Leng.Data.Models;
+﻿using Leng.Domain.Models;
 using Leng.Application.Services;
 using Leng.Infrastructure;
 using Microsoft.AspNetCore.Components;
