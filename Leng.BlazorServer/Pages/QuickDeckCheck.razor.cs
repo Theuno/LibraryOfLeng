@@ -50,7 +50,7 @@ namespace Leng.BlazorServer.Pages {
 
                 int missingCount = count;
                 foreach (var card in collectedCards) {
-                    // if missingcount is 0, we have enough of this card
+                    // If missingcount is 0, we have enough of this card
                     missingCount = missingCount - card.count - card.countFoil;
                     
                     if (missingCount <= 0) {
@@ -74,10 +74,7 @@ namespace Leng.BlazorServer.Pages {
             _resultList += "Missing cards: \r";
             _resultList += missingCards;
 
-            InvokeAsync(() =>
-            {
-                StateHasChanged();
-            });
+            await InvokeAsync(StateHasChanged);
         }
     }
 }
