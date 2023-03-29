@@ -9,7 +9,7 @@ using System.Threading;
 using System.Text.RegularExpressions;
 using System.Collections;
 
-namespace Leng.Data.Models
+namespace Leng.Domain.Models
 { 
     [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
     [Index(nameof(name), nameof(setCode), nameof(number), IsUnique = true)]

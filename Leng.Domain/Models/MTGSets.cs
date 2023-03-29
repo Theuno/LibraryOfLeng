@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Security.Policy;
 using System.Text.Json.Serialization;
-using static Leng.Data.Models.MTGTranslations;
+using static Leng.Domain.Models.MTGTranslations;
 
-namespace Leng.Data.Models
+namespace Leng.Domain.Models
 {
     [Index(nameof(setCode), IsUnique = true)]
     public class MTGSets

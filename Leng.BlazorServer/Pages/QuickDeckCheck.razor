@@ -1,0 +1,13 @@
+﻿@page "/quickdeckcheck"
+<PageTitle>QuickDeckCheck</PageTitle>
+@using MudBlazor
+
+
+<h3>QuickDeckCheck</h3>
+
+<MudTextField T="string" Label="Deck List" Variant="Variant.Filled" Multiline="true" DebounceInterval="500"
+              ValueChanged="HandleDeckListChange" Lines="30"/>
+
+<MudTextField T="string" Label="Deck List" Variant="Variant.Filled" Multiline="true" DebounceInterval="500"
+              @bind-Value="@_resultList" Lines="30" />
+
