@@ -1,27 +1,26 @@
-﻿@page "/cardsheet"
-<PageTitle>CardSheet</PageTitle>
+﻿@page "/cardsearch"
+<PageTitle>CardSearch</PageTitle>
 
+@using MudBlazor
 @using Leng.Domain
 @using Leng.Domain.Models
 
 
-@using MudBlazor
+<h3>CardSearch</h3>
 
-
-<h3>CardSheet</h3>
 
 <MudGrid>
     <MudItem xs="12" sm="6" md="4">
-        <MudAutocomplete T="string" 
-            Label="MTG Sets" 
-            SearchFunc="@SetSearch" 
-            Margin="Margin.Dense" 
-            Dense="true" 
-            Variant="Variant.Outlined" 
-            ResetValueOnEmptyText="true" 
-            CoerceText="true" 
-            Value="selectedSet" 
-            ValueChanged="OnSetSelected">
+        <MudAutocomplete T="string"
+                         Label="MTGCard"
+                         SearchFunc="@SearchForCard"
+                         Margin="Margin.Dense"
+                         Dense="true"
+                         Variant="Variant.Outlined"
+                         ResetValueOnEmptyText="true"
+                         CoerceText="true"
+                         Value="_selectedCard"
+                         ValueChanged="OnCardSelected">
 
             <ProgressIndicatorTemplate>
                 <MudProgressLinear Size="Size.Medium" Indeterminate="true" Color="Color.Default" />
@@ -31,13 +30,10 @@
     </MudItem>
 </MudGrid>
 
+@if (_selectedCard != null) {
+    <p>Selected set: @_selectedCard</p>
 
-@if (selectedSet != null)
-{
-    <p>Selected set: @selectedSet</p>
-
-    @if (cards != null)
-    {
+    @if (cards != null) {
         <MudDataGrid Items="@sheet" FixedHeader=true SortMode="SortMode.Multiple" EditMode="DataGridEditMode.Cell" EditTrigger="DataGridEditTrigger.OnRowClick" T="ShowSheet" ReadOnly=false CommittedItemChanges="CommittedItemChanges">
             <Columns>
                 <Column T="ShowSheet" Field="number" Title="Nr" IsEditable="false" /> <!-- @*SortBy="@SortBySetNumber"*@ -->
