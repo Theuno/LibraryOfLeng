@@ -9,7 +9,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="ErikEJ.EntityFrameworkCore.DgmlBuilder" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.10.1" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.13.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Timer" Version="4.1.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.7.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.4" />
