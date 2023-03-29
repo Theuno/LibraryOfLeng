@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -77,6 +78,13 @@ namespace Leng.Application.Services {
                 List<MTGSets> list = await _dbContext.MTGSets.Where(x => x.name.Contains(mtgset) && x.Cards.Count != 0).ToListAsync();
                 return list;
             }
+        }
+
+        public async Task<IEnumerable<MTGCards>> getCardsAsync(string cardName) {
+            var cards = await _dbContext.MTGCard
+                .Where(c => c.name.Contains(cardName))
+                .ToListAsync();
+            return cards;
         }
 
         public async Task AddCardAsync(MTGCards card) {
@@ -194,7 +202,17 @@ namespace Leng.Application.Services {
             return cards;
         }
 
-        public async Task<IEnumerable<MTGCards>> GetCardsForUser(LengUser user, string setCode) {
+        public async Task<IEnumerable<MTGCards>> GetCardsForUser(LengUser user, string cardName) {
+            List<MTGCards> cardsList = await _dbContext.MTGCard
+                .Where(cards => cards.name == cardName)
+                .Include(cards => cards.LengUserMTGCards)
+                .ToListAsync();
+
+            cardsList.Sort();
+            return cardsList;
+        }
+
+        public async Task<IEnumerable<MTGCards>> GetCardsInSetForUser(LengUser user, string setCode) {
             var set = await _dbContext.MTGSets.FirstOrDefaultAsync(set => set.setCode == setCode);
 
             if (set != null) {
