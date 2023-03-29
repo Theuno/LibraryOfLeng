@@ -68,8 +68,7 @@ namespace Leng.BlazorServer.Pages {
             _resultList = "";
             _resultList += "Available cards: \r";
             foreach (var card in cards) {
-                // TODO: card.MTGSets.name is not reverse navigated
-                _resultList += $"{card.name} {card.MTGSets.setCode} {card.number}\r"; // {card.MTGSets.name}\r";
+                _resultList += $"{card.name} {card.MTGSets.setCode} {card.number}\r";
             }
             _resultList += "\r";
             _resultList += "Missing cards: \r";
