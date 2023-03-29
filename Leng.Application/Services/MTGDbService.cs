@@ -186,6 +186,7 @@ namespace Leng.Application.Services {
         public async Task<IEnumerable<LengUserMTGCards>> GetCardFromUserCollectionAsync(string cardName) {
             var cards = await _dbContext.LengUserMTGCards
                 .Include(c => c.MTGCards)
+                .Include(s => s.MTGCards.MTGSets)
                 .Where(c => c.MTGCards.name == cardName)
                 //.Where(c => c.MTGCards.name.Contains(cardName, StringComparison.OrdinalIgnoreCase))
                 .ToListAsync();
