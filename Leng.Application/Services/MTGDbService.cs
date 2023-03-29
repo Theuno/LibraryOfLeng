@@ -225,16 +225,17 @@ namespace Leng.Application.Services {
             return null;
         }
 
-        public async Task updateCardOfUserAsync(string number, string name, string setName, int count, LengUser user) {
+        public async Task updateCardOfUserAsync(string number, string name, string setName, int count, int countFoil, LengUser user) {
             var set = await getSetFromNameAsync(setName);
             var card = await getCardAsync(name, set, number);
 
             var dbCard = _dbContext.LengUserMTGCards.Where(c => c.LengUser == user && c.MTGCards == card).SingleOrDefault();
             if (dbCard != null) {
                 dbCard.count = count;
+                dbCard.countFoil = countFoil;
             }
             else {
-                await _dbContext.LengUserMTGCards.AddAsync(new LengUserMTGCards { LengUser = user, MTGCards = card, count = count });
+                await _dbContext.LengUserMTGCards.AddAsync(new LengUserMTGCards { LengUser = user, MTGCards = card, count = count, countFoil = countFoil });
             }
 
             await _dbContext.SaveChangesAsync();

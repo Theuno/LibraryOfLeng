@@ -19,6 +19,7 @@ namespace Leng.BlazorServer.Pages {
             public string name { get; set; }
             public string number { get; set; }
             public int count { get; set; }
+            public int countFoil { get; set; }
         }
 
         private async void CommittedItemChanges(cardSheet context) {
@@ -29,7 +30,7 @@ namespace Leng.BlazorServer.Pages {
             LengUser.Wait();
 
             if (selectedSet != null) {
-                await dbService.updateCardOfUserAsync(card.number, card.name, selectedSet, card.count, LengUser.Result);
+                await dbService.updateCardOfUserAsync(card.number, card.name, selectedSet, card.count, card.countFoil, LengUser.Result);
             }
 
             Console.WriteLine(card.name);
@@ -85,10 +86,10 @@ namespace Leng.BlazorServer.Pages {
                 var usersCard = card.LengUserMTGCards
                     .Where(u => u.LengUserID == LengUser.LengUserID && u.MTGCardsID == card.MTGCardsID).SingleOrDefault();
                 if (usersCard == null) {
-                    sheet.Add(new cardSheet { name = card.name, number = card.number, count = 0 });
+                    sheet.Add(new cardSheet { name = card.name, number = card.number, count = 0, countFoil = 0 });
                 }
                 else {
-                    sheet.Add(new cardSheet { name = card.name, number = card.number, count = usersCard.count });
+                    sheet.Add(new cardSheet { name = card.name, number = card.number, count = usersCard.count, countFoil = usersCard.countFoil });
                 }
                 Console.WriteLine(card.name);
             }
