@@ -57,17 +57,10 @@ namespace Leng.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("LengUserID")
-                        .IsRequired()
+                    b.Property<string>("Id.LengUserID")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("LengUserID1")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("MTGCardsID")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("MTGCardsID1")
+                    b.Property<int>("Id.MTGCardsID")
                         .HasColumnType("int");
 
                     b.Property<int>("count")
@@ -76,15 +69,17 @@ namespace Leng.Infrastructure.Migrations
                     b.Property<int>("countFoil")
                         .HasColumnType("int");
 
+                    b.Property<int>("want")
+                        .HasColumnType("int");
+
+                    b.Property<int>("wantFoil")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("LengUserID");
+                    b.HasIndex("Id.LengUserID");
 
-                    b.HasIndex("LengUserID1");
-
-                    b.HasIndex("MTGCardsID");
-
-                    b.HasIndex("MTGCardsID1");
+                    b.HasIndex("Id.MTGCardsID");
 
                     b.ToTable("LengUserMTGCards");
                 });
@@ -315,24 +310,14 @@ namespace Leng.Infrastructure.Migrations
             modelBuilder.Entity("Leng.Domain.Models.LengUserMTGCards", b =>
                 {
                     b.HasOne("Leng.Domain.Models.LengUser", "LengUser")
-                        .WithMany()
-                        .HasForeignKey("LengUserID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Leng.Domain.Models.LengUser", null)
                         .WithMany("LengUserMTGCards")
-                        .HasForeignKey("LengUserID1");
+                        .HasForeignKey("Id.LengUserID");
 
                     b.HasOne("Leng.Domain.Models.MTGCards", "MTGCards")
-                        .WithMany()
-                        .HasForeignKey("MTGCardsID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Leng.Domain.Models.MTGCards", null)
                         .WithMany("LengUserMTGCards")
-                        .HasForeignKey("MTGCardsID1");
+                        .HasForeignKey("Id.MTGCardsID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("LengUser");
 

@@ -5,7 +5,7 @@
 namespace Leng.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class Initialmigration : Migration
+    public partial class NewInitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -23,6 +23,22 @@ namespace Leng.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "MTGDeck",
+                columns: table => new
+                {
+                    MTGDeckID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FormatID = table.Column<int>(type: "int", nullable: false),
+                    Format = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MTGDeck", x => x.MTGDeckID);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "MTGTranslations",
                 columns: table => new
                 {
@@ -36,6 +52,30 @@ namespace Leng.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_MTGTranslations", x => x.MTGTranslationsID);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "LengUserDeck",
+                columns: table => new
+                {
+                    LengUserID = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    MTGDeckID = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LengUserDeck", x => new { x.LengUserID, x.MTGDeckID });
+                    table.ForeignKey(
+                        name: "FK_LengUserDeck_LengUser_LengUserID",
+                        column: x => x.LengUserID,
+                        principalTable: "LengUser",
+                        principalColumn: "LengUserID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_LengUserDeck_MTGDeck_MTGDeckID",
+                        column: x => x.MTGDeckID,
+                        principalTable: "MTGDeck",
+                        principalColumn: "MTGDeckID",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -95,18 +135,13 @@ namespace Leng.Infrastructure.Migrations
                     originalType = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     power = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     scryfallId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    side = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     text = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    type = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    LengUserID = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    type = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_MTGCard", x => x.MTGCardsID);
-                    table.ForeignKey(
-                        name: "FK_MTGCard_LengUser_LengUserID",
-                        column: x => x.LengUserID,
-                        principalTable: "LengUser",
-                        principalColumn: "LengUserID");
                     table.ForeignKey(
                         name: "FK_MTGCard_MTGSets_MTGSetsID",
                         column: x => x.MTGSetsID,
@@ -120,42 +155,43 @@ namespace Leng.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    LengUserID = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    MTGCardsID = table.Column<int>(type: "int", nullable: false),
+                    IdLengUserID = table.Column<string>(name: "Id.LengUserID", type: "nvarchar(450)", nullable: true),
+                    IdMTGCardsID = table.Column<int>(name: "Id.MTGCardsID", type: "int", nullable: false),
                     count = table.Column<int>(type: "int", nullable: false),
-                    countFoil = table.Column<int>(type: "int", nullable: false)
+                    countFoil = table.Column<int>(type: "int", nullable: false),
+                    want = table.Column<int>(type: "int", nullable: false),
+                    wantFoil = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_LengUserMTGCards", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_LengUserMTGCards_LengUser_LengUserID",
-                        column: x => x.LengUserID,
+                        name: "FK_LengUserMTGCards_LengUser_Id.LengUserID",
+                        column: x => x.IdLengUserID,
                         principalTable: "LengUser",
-                        principalColumn: "LengUserID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "LengUserID");
                     table.ForeignKey(
-                        name: "FK_LengUserMTGCards_MTGCard_MTGCardsID",
-                        column: x => x.MTGCardsID,
+                        name: "FK_LengUserMTGCards_MTGCard_Id.MTGCardsID",
+                        column: x => x.IdMTGCardsID,
                         principalTable: "MTGCard",
                         principalColumn: "MTGCardsID",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_LengUserMTGCards_LengUserID",
-                table: "LengUserMTGCards",
-                column: "LengUserID");
+                name: "IX_LengUserDeck_MTGDeckID",
+                table: "LengUserDeck",
+                column: "MTGDeckID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_LengUserMTGCards_MTGCardsID",
+                name: "IX_LengUserMTGCards_Id.LengUserID",
                 table: "LengUserMTGCards",
-                column: "MTGCardsID");
+                column: "Id.LengUserID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_MTGCard_LengUserID",
-                table: "MTGCard",
-                column: "LengUserID");
+                name: "IX_LengUserMTGCards_Id.MTGCardsID",
+                table: "LengUserMTGCards",
+                column: "Id.MTGCardsID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MTGCard_MTGSetsID",
@@ -185,13 +221,19 @@ namespace Leng.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "LengUserDeck");
+
+            migrationBuilder.DropTable(
                 name: "LengUserMTGCards");
 
             migrationBuilder.DropTable(
-                name: "MTGCard");
+                name: "MTGDeck");
 
             migrationBuilder.DropTable(
                 name: "LengUser");
+
+            migrationBuilder.DropTable(
+                name: "MTGCard");
 
             migrationBuilder.DropTable(
                 name: "MTGSets");
