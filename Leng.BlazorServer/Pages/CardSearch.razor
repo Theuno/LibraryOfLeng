@@ -36,10 +36,11 @@
     @if (cards != null) {
         <MudDataGrid Items="@sheet" FixedHeader=true SortMode="SortMode.Multiple" EditMode="DataGridEditMode.Cell" EditTrigger="DataGridEditTrigger.OnRowClick" T="ShowSheet" ReadOnly=false CommittedItemChanges="CommittedItemChanges">
             <Columns>
+                <Column T="ShowSheet" Field="setCode" Title="SetCode" IsEditable="false" />
                 <Column T="ShowSheet" Field="number" Title="Nr" IsEditable="false" /> <!-- @*SortBy="@SortBySetNumber"*@ -->
                 <Column T="ShowSheet" Field="name" Title="Name" IsEditable="false" />
                 <Column T="ShowSheet" Field="count" Title="Count" />
-                <Column T="ShowSheet" Field="count" Title="CountFoil" />
+                <Column T="ShowSheet" Field="countFoil" Title="CountFoil" />
             </Columns>
         </MudDataGrid>
     }

@@ -23,7 +23,7 @@ namespace Leng.BlazorServer.Pages {
             LengUser.Wait();
 
             if (selectedSet != null) {
-                await dbService.updateCardOfUserAsync(card.number, card.name, selectedSet, card.count, card.countFoil, LengUser.Result);
+                await dbService.updateCardOfUserAsync(card.number, card.name, card.setCode, card.count, card.countFoil, LengUser.Result);
             }
 
             Console.WriteLine(card.name);
@@ -73,16 +73,16 @@ namespace Leng.BlazorServer.Pages {
 
             var LengUser = await dbService.GetLengUserAsync("123TODOUSER");
             var setCode = await dbService.getSetCodeAsync(set);
-            cards = await dbService.GetCardsInSetForUser(LengUser, setCode);
+            cards = await dbService.GetCardsInSetForUserAsync(LengUser, setCode);
 
             foreach (var card in cards) {
                 var usersCard = card.LengUserMTGCards
-                    .Where(u => u.LengUserID == LengUser.LengUserID && u.MTGCardsID == card.MTGCardsID).SingleOrDefault();
+                    .Where(u => u.LengUser == LengUser && u.MTGCards == card).SingleOrDefault();
                 if (usersCard == null) {
-                    sheet.Add(new ShowSheet { name = card.name, number = card.number, count = 0, countFoil = 0 });
+                    sheet.Add(new ShowSheet { setCode = card.MTGSets.setCode, name = card.name, number = card.number, count = 0, countFoil = 0 });
                 }
                 else {
-                    sheet.Add(new ShowSheet { name = card.name, number = card.number, count = usersCard.count, countFoil = usersCard.countFoil });
+                    sheet.Add(new ShowSheet { setCode = card.MTGSets.setCode, name = card.name, number = card.number, count = usersCard.count, countFoil = usersCard.countFoil });
                 }
                 Console.WriteLine(card.name);
             }

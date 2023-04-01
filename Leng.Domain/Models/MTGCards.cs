@@ -93,7 +93,9 @@ namespace Leng.Domain.Models
         [ForeignKey("FK_MTGSets")]
         public int MTGSetsID { get; set; }
 
-        public MTGSets? MTGSets { get; set; }
+        [ForeignKey("MTGSetsID")]
+        public MTGSets MTGSets { get; set; }
+
         public string? asciiName { get; set; }
         //attractionLights TEXT,
         //availability TEXT,

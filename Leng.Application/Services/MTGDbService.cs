@@ -59,14 +59,16 @@ namespace Leng.Application.Services {
 
         public async Task<MTGSets?> GetSetAsync(string setCode) {
             if (!string.IsNullOrEmpty(setCode) && _dbContext.MTGSets != null) {
-                if (setCode.Length != 3 && setCode.Length != 4) {
-                    throw new ArgumentException("Value must be 3 or 4 characters.", nameof(setCode));
+                if (setCode.Length >= 3 && setCode.Length <= 5) {
+                    var set = await _dbContext.MTGSets.Where(set => set.setCode == setCode).FirstOrDefaultAsync();
+                    return set;
                 }
-                var set = await _dbContext.MTGSets.Where(set => set.setCode == setCode).FirstOrDefaultAsync();
-                return set;
+                else {
+                    throw new ArgumentException("Value must be between 3 and 5 characters.", nameof(setCode));
+                }
             }
 
-            return null;
+            return new MTGSets();
         }
 
         public async Task<List<MTGSets>> SearchSetsContainingCardsAsync(string mtgset) {
@@ -80,10 +82,20 @@ namespace Leng.Application.Services {
             }
         }
 
+        // Todo, rename to getCardsForUserAsync or so?
         public async Task<IEnumerable<MTGCards>> getCardsAsync(string cardName) {
             var cards = await _dbContext.MTGCard
-                .Where(c => c.name.Contains(cardName))
+                .Where(c => c.name.StartsWith(cardName))
+                .Include(cards => cards.LengUserMTGCards)
                 .ToListAsync();
+
+            // if no cards match, do a contains match.
+            if (cards.Count == 0) {
+                cards = await _dbContext.MTGCard
+                    .Where(c => c.name.Contains(cardName))
+                    .Include(cards => cards.LengUserMTGCards)
+                    .ToListAsync();
+            }
             return cards;
         }
 
@@ -202,38 +214,24 @@ namespace Leng.Application.Services {
             return cards;
         }
 
-        public async Task<IEnumerable<MTGCards>> GetCardsForUser(LengUser user, string cardName) {
+        public async Task<IEnumerable<MTGCards>> GetCardsForUserAsync(LengUser user, string cardName) {
             List<MTGCards> cardsList = await _dbContext.MTGCard
                 .Where(cards => cards.name == cardName)
                 .Include(cards => cards.LengUserMTGCards)
+                .Include(set => set.MTGSets)
                 .ToListAsync();
-
             cardsList.Sort();
             return cardsList;
         }
 
-        public async Task<IEnumerable<MTGCards>> GetCardsInSetForUser(LengUser user, string setCode) {
+        public async Task<IEnumerable<MTGCards>> GetCardsInSetForUserAsync(LengUser user, string setCode) {
             var set = await _dbContext.MTGSets.FirstOrDefaultAsync(set => set.setCode == setCode);
 
             if (set != null) {
-                // Get cards for user, with set joined
-                //IEnumerable<KeyValuePair<MTGCards, int>> cards = new List<KeyValuePair<MTGCards, int>>();
-
                 List<MTGCards> cardsList = await _dbContext.MTGCard
                     .Where(cards => cards.setCode == setCode)
                     .Include(cards => cards.LengUserMTGCards)
                     .ToListAsync();
-
-                //foreach(MTGCards card in cardsList) {
-                //int count = card.LengUserMTGCards.count;
-
-
-                //card.LengUserMTGCards = card.LengUserMTGCards.Where(x => x.LengUser == user).ToList();
-                //}
-
-                //private IEnumerable<KeyValuePair<MTGCards, int>>? cards = new List<KeyValuePair<MTGCards, int>>();
-
-                //cards = cardsList, cardList.count;
 
                 cardsList.Sort();
                 return cardsList;
@@ -243,8 +241,8 @@ namespace Leng.Application.Services {
             return null;
         }
 
-        public async Task updateCardOfUserAsync(string number, string name, string setName, int count, int countFoil, LengUser user) {
-            var set = await getSetFromNameAsync(setName);
+        public async Task updateCardOfUserAsync(string number, string name, string setCode, int count, int countFoil, LengUser user) {
+            var set = await GetSetAsync(setCode);
             var card = await getCardAsync(name, set, number);
 
             var dbCard = _dbContext.LengUserMTGCards.Where(c => c.LengUser == user && c.MTGCards == card).SingleOrDefault();
