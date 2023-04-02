@@ -9,7 +9,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Identity.Web;
 
-namespace Leng.BlazorServer.Pages {
+namespace Leng.BlazorServer.Pages
+{
     public partial class CardSearch {
 
         [Inject] IDbContextFactory<LengDbContext> cf { get; set; } = default!;
@@ -42,34 +43,42 @@ namespace Leng.BlazorServer.Pages {
             }
         }
 
-        private async Task<IEnumerable<string>> SearchForCard(string card) {
-            if (card == null) {
+        private async Task<IEnumerable<string>> SearchForCard(string card)
+        {
+            if (card == null)
+            {
                 return null;
             }
-            else {
+            else
+            {
                 sheet.Clear();
             }
 
             var dbService = new MTGDbService(cf.CreateDbContext());
 
-            try {
+            try
+            {
                 var cards = await dbService.getCardsAsync(card);
                 cards = cards.DistinctBy(c => c.name);
                 return await Task.FromResult(cards.Select(x => x.name).ToArray());
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 Console.WriteLine(ex.ToString());
             }
 
             return null;
         }
 
-        public async Task OnCardSelected(string selectedCard) {
+        public async Task OnCardSelected(string selectedCard)
+        {
             _selectedCard = selectedCard;
-            if (_selectedCard == null) {
+            if (_selectedCard == null)
+            {
                 return;
             }
-            else {
+            else
+            {
                 sheet.Clear();
             }
 
@@ -91,24 +100,27 @@ namespace Leng.BlazorServer.Pages {
 
             cards = await dbService.GetCardsForUserAsync(LengUser, _selectedCard);
 
-            foreach (var card in cards) {
+            foreach (var card in cards)
+            {
                 var usersCard = card.LengUserMTGCards
                     .Where(u => u.LengUser == LengUser && u.MTGCards == card).SingleOrDefault();
-                if (usersCard == null) {
+                if (usersCard == null)
+                {
                     sheet.Add(new ShowSheet { setCode = card.MTGSets.setCode, name = card.name, number = card.number, count = 0, countFoil = 0 });
                 }
-                else {
+                else
+                {
                     sheet.Add(new ShowSheet { setCode = card.MTGSets.setCode, name = card.name, number = card.number, count = usersCard.count, countFoil = usersCard.countFoil });
                 }
                 Console.WriteLine(card.name);
             }
         }
 
-        private async void CommittedItemChanges(ShowSheet contextCard) {
+        private async void CommittedItemChanges(ShowSheet contextCard)
+        {
             var dbService = new MTGDbService(cf.CreateDbContext());
 
             var card = contextCard;
-
 
             // Trying authStuff
             var authState = await authenticationState;
@@ -122,7 +134,8 @@ namespace Leng.BlazorServer.Pages {
             // Trying authStuff
             var LengUser = await dbService.GetLengUserAsync(_msalId);
 
-            if (_selectedCard != null) {
+            if (_selectedCard != null)
+            {
                 await dbService.updateCardOfUserAsync(card.number, card.name, card.setCode, card.count, card.countFoil, LengUser);
             }
 
