@@ -1,4 +1,5 @@
 using Leng.Infrastructure;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
@@ -20,23 +21,23 @@ builder.Services.AddDbContextFactory<LengDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultDbConnection")));
 
 // Add Auth - Azure AD
-builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd")
-    .EnableTokenAcquisitionToCallDownstreamApi()
-    .AddMicrosoftGraph(o =>
-    {
-        o.Scopes = "user.read profile";
-        o.BaseUrl = "https://graph.microsoft.com/v1.0";
-    })
-    .AddInMemoryTokenCaches();
+//builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd")
+//    .EnableTokenAcquisitionToCallDownstreamApi()
+//    .AddMicrosoftGraph(o =>
+//    {
+//        o.Scopes = "user.read profile";
+//        o.BaseUrl = "https://graph.microsoft.com/v1.0";
+//    })
+//    .AddInMemoryTokenCaches();
 
 // Add Auth - Azure AD B2C
-//var initialScopes = builder.Configuration.GetValue<string>("AzureAdB2C:Scopes")?.Split(' ');
+var initialScopes = builder.Configuration.GetValue<string>("AzureAdB2C:Scopes")?.Split(' ');
 
-//builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-//        .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"))
-//        .EnableTokenAcquisitionToCallDownstreamApi(initialScopes)
-//        .AddMicrosoftGraph()
-//        .AddInMemoryTokenCaches();
+builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+        .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAdB2C"))
+        .EnableTokenAcquisitionToCallDownstreamApi(initialScopes)
+        .AddMicrosoftGraph()
+        .AddInMemoryTokenCaches();
 
 builder.Services.AddAuthorization(options =>
 {
