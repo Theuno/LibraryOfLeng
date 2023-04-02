@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Identity.Web;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -15,6 +16,8 @@ namespace Leng.BlazorServer.Pages {
 
         protected string _authMessage;
         protected IEnumerable<Claim> _claims = Enumerable.Empty<Claim>();
+
+        private string _msalId { get; set; } = string.Empty;
 
         // Defines list of claim types that will be displayed after successfull sign-in.
         //private string[] printClaims = { "name", "idp", "oid", "jobTitle", "emails" };
@@ -37,7 +40,10 @@ namespace Leng.BlazorServer.Pages {
 
             // Checks if the user has been authenticated.
             if (user.Identity.IsAuthenticated) {
-                _authMessage = $"{user.Identity.Name} is authenticated.";
+                _msalId = user.GetMsalAccountId();
+                var displayName = user.GetDisplayName();
+
+                _authMessage = $"{_msalId} is authenticated.";
 
                 // Sets the claims value in _claims variable.
                 // The claims mentioned in printClaims variable are selected only.
