@@ -11,8 +11,8 @@ using Microsoft.Identity.Web;
 
 namespace Leng.BlazorServer.Pages
 {
-    public partial class CardSearch {
-
+    public partial class CardSearch 
+    {
         [Inject] IDbContextFactory<LengDbContext> cf { get; set; } = default!;
         [CascadingParameter] private Task<AuthenticationState>? authenticationState { get; set; }
 
