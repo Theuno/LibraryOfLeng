@@ -2,6 +2,12 @@
 param location string = resourceGroup().location
 param appName string = 'libraryofleng'
 
+// Database parameters
+param databaseLogin string
+param databaseSid string
+param databaseTid string
+
+
 // Create app service plan
 resource asp 'Microsoft.Web/serverfarms@2021-02-01' = {
   name: '${appName}-asp'
@@ -23,6 +29,17 @@ resource web 'Microsoft.Web/sites@2021-02-01' = {
   }
 }
 
+// Create function app
+resource function 'Microsoft.Web/sites@2021-02-01' = {
+  name: '${appName}-function'
+  location: location
+  kind: 'functionapp'
+  properties: {
+    serverFarmId: asp.id
+    httpsOnly: true
+  }
+}
+
 // Create SQL Server
 resource sqlServer 'Microsoft.Sql/servers@2022-05-01-preview' = {
   name: '${appName}-sql'
@@ -31,10 +48,10 @@ resource sqlServer 'Microsoft.Sql/servers@2022-05-01-preview' = {
     administrators: {
       administratorType: 'ActiveDirectory'
       azureADOnlyAuthentication: true
-      login: 'string'
+      login: '${databaseLogin}'
       principalType: 'User'
-      sid: 'string'
-      tenantId: 'string'
+      sid: '${databaseSid}'
+      tenantId: '${databaseTid}'
     }
 
   }
