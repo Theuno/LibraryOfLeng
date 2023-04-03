@@ -46,9 +46,9 @@ resource sqlServer 'Microsoft.Sql/servers@2022-05-01-preview' = {
     administrators: {
       administratorType: 'ActiveDirectory'
       azureADOnlyAuthentication: true
-      login: '${databaseLogin}'
+      login: databaseLogin
       principalType: 'User'
-      sid: '${databaseSid}'
+      sid: databaseSid
       tenantId: subscription().tenantId
     }
   }
