@@ -13,8 +13,8 @@ resource asp 'Microsoft.Web/serverfarms@2021-02-01' = {
   name: '${appName}-asp'
   location: location
   sku: {
-    name: 'F1'
-    tier: 'Free'
+    name: 'B1'
+    tier: 'Basic'
   }
 }
 
