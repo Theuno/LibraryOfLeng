@@ -5,8 +5,6 @@ param appName string = 'libraryofleng'
 // Database parameters
 param databaseLogin string
 param databaseSid string
-param databaseTid string
-
 
 // Create app service plan
 resource asp 'Microsoft.Web/serverfarms@2021-02-01' = {
@@ -51,9 +49,8 @@ resource sqlServer 'Microsoft.Sql/servers@2022-05-01-preview' = {
       login: '${databaseLogin}'
       principalType: 'User'
       sid: '${databaseSid}'
-      tenantId: '${databaseTid}'
+      tenantId: subscription().tenantId
     }
-
   }
 }
 
