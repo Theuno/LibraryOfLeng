@@ -5,6 +5,9 @@ param appName string = 'libraryofleng'
 // Database parameters
 param databaseLogin string
 param databaseSid string
+param databaseAdminLogin string
+@secure()
+param databaseAdminPassword string
 
 // Create app service plan
 resource asp 'Microsoft.Web/serverfarms@2021-02-01' = {
@@ -43,6 +46,8 @@ resource sqlServer 'Microsoft.Sql/servers@2022-05-01-preview' = {
   name: '${appName}-sql'
   location: location
   properties: {
+    administratorLogin: databaseAdminLogin
+    administratorLoginPassword: databaseAdminPassword
     administrators: {
       administratorType: 'ActiveDirectory'
       azureADOnlyAuthentication: true
@@ -78,27 +83,3 @@ resource sqlDB 'Microsoft.Sql/servers/databases@2022-05-01-preview' = {
   }
 }
 
-// Create key vault
-// resource keyVault 'Microsoft.KeyVault/vaults@2021-04-01-preview' = {
-//   name: '${appName}-kv'
-//   location: location
-//   properties: {
-//     sku: {
-//       family: 'A'
-//       name: 'standard'
-//     }
-//     tenantId: subscription().tenantId
-//     accessPolicies: [
-//       {
-//         tenantId: subscription().tenantId
-//         objectId: reference(resourceGroup().id, '2021-04-01', 'Full').outputs.objectId
-//         permissions: {
-//           secrets: [
-//             'get'
-//             'set'
-//           ]
-//         }
-//       }
-//     ]
-//   }
-// }
