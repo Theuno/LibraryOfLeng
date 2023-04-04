@@ -3,8 +3,6 @@ param location string = resourceGroup().location
 param appName string = 'libraryofleng'
 
 // Database parameters
-param databaseLogin string
-param databaseSid string
 param databaseAdminLogin string
 @secure()
 param databaseAdminPassword string
@@ -48,14 +46,6 @@ resource sqlServer 'Microsoft.Sql/servers@2022-05-01-preview' = {
   properties: {
     administratorLogin: databaseAdminLogin
     administratorLoginPassword: databaseAdminPassword
-    administrators: {
-      administratorType: 'ActiveDirectory'
-      azureADOnlyAuthentication: true
-      login: databaseLogin
-      principalType: 'User'
-      sid: databaseSid
-      tenantId: subscription().tenantId
-    }
   }
 }
 
