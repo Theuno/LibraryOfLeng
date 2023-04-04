@@ -26,7 +26,7 @@ jobs:
               "value": "${{ secrets.BICEP_DATABASE_ADMIN }}"
             },
             "databaseAdminPassword": {
-              "value": "${{ Uri.EscapeDataString(secrets.BICEP_DATABASE_ADMIN_PASSWORD) }}"
+              "value": "${{ secrets.BICEP_DATABASE_ADMIN_PASSWORD | urlencode }}"
             }
           }
         failOnStdErr: false
