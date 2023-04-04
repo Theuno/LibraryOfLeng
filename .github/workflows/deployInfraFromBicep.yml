@@ -20,5 +20,5 @@ jobs:
         subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION }}
         resourceGroupName: ${{ secrets.AZURE_RG }}
         template: ./infra-as-code/bicep/leng.bicep
-        parameters: 'databaseLogin=BICEP_DATABASE_LOGIN databaseAdminPassword=BICEP_DATABASE_ADMIN_PASSWORD'
+        parameters: 'databaseAdminLogin=BICEP_DATABASE_ADMIN databaseAdminPassword=BICEP_DATABASE_ADMIN_PASSWORD'
         failOnStdErr: false
