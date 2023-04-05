@@ -40,7 +40,7 @@ namespace Leng.Application.Services {
 
         // Get SetCode for set
         public async Task<string>? getSetCodeAsync(string setName) {
-            string setCode = null;
+            string? setCode = null;
             try {
                 var set = await _dbContext.MTGSets.Where(set => set.name == setName).FirstOrDefaultAsync();
                 setCode = set.setCode;
@@ -208,7 +208,6 @@ namespace Leng.Application.Services {
                 .Include(c => c.MTGCards)
                 .Include(s => s.MTGCards.MTGSets)
                 .Where(c => c.MTGCards.name == cardName)
-                //.Where(c => c.MTGCards.name.Contains(cardName, StringComparison.OrdinalIgnoreCase))
                 .ToListAsync();
 
             return cards;
