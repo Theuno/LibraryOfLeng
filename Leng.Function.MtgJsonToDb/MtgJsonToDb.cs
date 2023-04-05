@@ -2,6 +2,7 @@ using Leng.Application.FunctionHandlers;
 using Leng.Infrastructure;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
 
 namespace Leng.Function.MtgJsonToDb {
@@ -15,6 +16,8 @@ namespace Leng.Function.MtgJsonToDb {
         {
             _logger = loggerFactory.CreateLogger<MtgJsonToDb>();
             _contextFactory = dbContextFactory;
+
+            _contextFactory.CreateDbContext().Database.Migrate();
         }
 
         [Function("MtgJsonToDb")]

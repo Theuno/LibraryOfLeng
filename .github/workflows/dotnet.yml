@@ -19,10 +19,33 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 7.0.x
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
+    # Run dotnet build and publish
+    - name: dotnet build and publish
+      run: |
+        cd Leng.BlazorServer
+        dotnet build --configuration Release
+        dotnet publish -c Release -o './Output'
+        cd ../Leng.Function.MtgJsonToDb
+        dotnet build --configuration Release
+        dotnet publish -c Release -o './Output'
+    - name: 'Login via Azure CLI'
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: Publish LengFunctionMtgJsonToDb
+      uses: Azure/functions-action@v1
+      with:
+        app-name: libraryofleng-function
+        package: ./Leng.Function.MtgJsonToDb/Output
+    - name: Publish LengBlazorServer
+      uses: Azure/webapps-deploy@v2
+      with:
+        app-name: libraryofleng-web
+        package: ./Leng.BlazorServer/Output
