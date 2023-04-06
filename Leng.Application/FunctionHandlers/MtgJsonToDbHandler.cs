@@ -8,6 +8,7 @@ using System.Text.Json;
 using Leng.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Leng.Application.FunctionHandlers
 {
@@ -15,8 +16,12 @@ namespace Leng.Application.FunctionHandlers
     {
         MTGDbService dbService = null;
         string fileName = "AllSetFiles.zip";
+        private readonly ILogger _logger;
 
-        public MtgJsonToDbHandler(LengDbContext lengDbContext) {
+
+        public MtgJsonToDbHandler(ILogger logger, LengDbContext lengDbContext) {
+            _logger = logger;
+
             // This doesn't work from the Function, it will return that the migrations are already done.
             lengDbContext.Database.Migrate();
 
@@ -25,7 +30,7 @@ namespace Leng.Application.FunctionHandlers
 
         public async Task Handle()
         {
-            Console.WriteLine("Handling");
+            _logger.LogInformation($"Handling MtgJsonToDbHandler");
             await DownloadFileFromURLAsync();
             ExtractDownloadedJson();
             await ImportFiles();
@@ -60,14 +65,15 @@ namespace Leng.Application.FunctionHandlers
 
             foreach (var file in filesToImport)
             {
-                Console.WriteLine("Importing file: " + file);
+                _logger.LogInformation("Importing file: " + file);
+
                 await ImportMTGSet(file);
             }
         }
 
         private void DownloadProgressCallback(object sender, DownloadProgressChangedEventArgs e)
         {
-            Console.WriteLine($"Downloaded {e.BytesReceived} of {e.TotalBytesToReceive} bytes. " +
+            _logger.LogInformation($"Downloaded {e.BytesReceived} of {e.TotalBytesToReceive} bytes. " +
                 $"{e.ProgressPercentage}% complete...");
         }
 
@@ -75,11 +81,11 @@ namespace Leng.Application.FunctionHandlers
         {
             if (e.Cancelled)
             {
-                Console.WriteLine("Download has been cancelled.");
+                _logger.LogInformation("Download has been cancelled.");
             }
             else
             {
-                Console.WriteLine("Download completed!");
+                _logger.LogInformation("Download completed!");
             }
         }
 
@@ -116,7 +122,7 @@ namespace Leng.Application.FunctionHandlers
 
             }
             catch (Exception ex) {
-                Console.WriteLine("Error: " + ex.Message);
+                _logger.LogInformation("Error: " + ex.Message);
             }
         }
     }
