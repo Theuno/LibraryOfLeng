@@ -32,8 +32,9 @@ namespace Leng.Function.MtgJsonToDb {
             _logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
             _logger.LogInformation($"Next timer schedule at: {myTimer.ScheduleStatus.Next}");
 
-            MtgJsonToDbHandler mtgJsonToDbHandler = new MtgJsonToDbHandler(_contextFactory.CreateDbContext());
-            mtgJsonToDbHandler.Handle();
+            MtgJsonToDbHandler mtgJsonToDbHandler = new MtgJsonToDbHandler(_logger, _contextFactory.CreateDbContext());
+            Task handlerTask = mtgJsonToDbHandler.Handle();
+            handlerTask.Wait();
         }
     }
 
