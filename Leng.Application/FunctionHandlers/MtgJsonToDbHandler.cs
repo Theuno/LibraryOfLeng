@@ -6,6 +6,8 @@ using System.Net;
 using System.Text.Json.Nodes;
 using System.Text.Json;
 using Leng.Infrastructure;
+using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.EntityFrameworkCore;
 
 namespace Leng.Application.FunctionHandlers
 {
@@ -15,6 +17,9 @@ namespace Leng.Application.FunctionHandlers
         string fileName = "AllSetFiles.zip";
 
         public MtgJsonToDbHandler(LengDbContext lengDbContext) {
+            // This doesn't work from the Function, it will return that the migrations are already done.
+            lengDbContext.Database.Migrate();
+
             dbService = new MTGDbService(lengDbContext);
         }
 
