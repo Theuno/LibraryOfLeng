@@ -16,8 +16,6 @@ namespace Leng.Function.MtgJsonToDb {
         {
             _logger = loggerFactory.CreateLogger<MtgJsonToDb>();
             _contextFactory = dbContextFactory;
-
-            _contextFactory.CreateDbContext().Database.Migrate();
         }
 
         [Function("MtgJsonToDb")]
