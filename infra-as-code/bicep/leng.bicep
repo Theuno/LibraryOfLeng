@@ -55,14 +55,19 @@ resource web 'Microsoft.Web/sites@2021-02-01' = {
         {
           name: 'AzureAdB2C:TestSetting'
           value: '1234567890'
-        }, {
+        }
+        {
           name: 'sqlConnectionString'
           value: '@Microsoft.KeyVault(SecretUri=${keyVaultSecretDatabaseConnectionString.properties.secretUriWithVersion})'
         }
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
           value: appInsights.properties.InstrumentationKey
-        }        
+        }
+        {
+          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: appInsights.properties.ConnectionString
+        }
       ]
     }
   }
@@ -88,6 +93,10 @@ resource function 'Microsoft.Web/sites@2021-02-01' = {
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
           value: appInsights.properties.InstrumentationKey
+        }
+        {
+          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: appInsights.properties.ConnectionString
         }
         {
           name: 'AzureWebJobsStorage'
