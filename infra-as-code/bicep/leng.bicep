@@ -83,7 +83,7 @@ resource function 'Microsoft.Web/sites@2021-02-01' = {
   }  
   properties: {
     serverFarmId: asp.id
-    httpsOnly: true
+    httpsOnly: true  
     siteConfig: {
       appSettings: [
         {
@@ -104,7 +104,7 @@ resource function 'Microsoft.Web/sites@2021-02-01' = {
         }
         {
           name: 'FUNCTIONS_WORKER_RUNTIME'
-          value: 'dotnet'
+          value: 'dotnet-isolated'
         }
         {
           name: 'FUNCTIONS_EXTENSION_VERSION'

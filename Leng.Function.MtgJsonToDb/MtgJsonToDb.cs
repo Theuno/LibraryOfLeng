@@ -20,11 +20,15 @@ namespace Leng.Function.MtgJsonToDb {
 
         [Function("MtgJsonToDb")]
         public void Run([TimerTrigger("0 30 3 * * 1-5"
+            ,RunOnStartup=true
+            )] MyInfo myTimer)
+        {
+/*
             #if DEBUG
                 ,RunOnStartup=true
             #endif
-            )] MyInfo myTimer)
-        {
+ */
+
             _logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
             _logger.LogInformation($"Next timer schedule at: {myTimer.ScheduleStatus.Next}");
 
