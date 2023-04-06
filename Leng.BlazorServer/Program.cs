@@ -18,7 +18,7 @@ builder.Services.AddMudServices();
 
 // Add Database context
 builder.Services.AddDbContextFactory<LengDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultDbConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("sqlConnectionString")));
 
 // Add Auth - Azure AD
 //builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd")

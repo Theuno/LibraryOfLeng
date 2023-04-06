@@ -14,7 +14,7 @@ var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
     .ConfigureServices(services => {
         services.AddDbContextFactory<LengDbContext>(options => options
-                    .UseSqlServer(Environment.GetEnvironmentVariable("DefaultDbConnection"))
+                    .UseSqlServer(Environment.GetEnvironmentVariable("sqlConnectionString"))
                     );
     })
     .Build();
