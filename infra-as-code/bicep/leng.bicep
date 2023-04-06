@@ -59,6 +59,10 @@ resource web 'Microsoft.Web/sites@2021-02-01' = {
           name: 'sqlConnectionString'
           value: '@Microsoft.KeyVault(SecretUri=${keyVaultSecretDatabaseConnectionString.properties.secretUriWithVersion})'
         }
+        {
+          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+          value: appInsights.properties.InstrumentationKey
+        }        
       ]
     }
   }
