@@ -7,6 +7,19 @@ param databaseAdminLogin string
 @secure()
 param databaseAdminPassword string
 
+// Create appInsights
+resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
+  name: '${appName}-Insights'
+  kind: 'web'
+  location: location
+  properties: {
+    Application_Type: 'web'
+    publicNetworkAccessForIngestion: 'Enabled'
+    publicNetworkAccessForQuery: 'Enabled'
+  }
+}
+
+// Create storage account
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   name: '${appName}storage'
   location: location
@@ -67,6 +80,10 @@ resource function 'Microsoft.Web/sites@2021-02-01' = {
         {
           name: 'sqlConnectionString'
           value: '@Microsoft.KeyVault(SecretUri=${keyVaultSecretDatabaseConnectionString.properties.secretUriWithVersion})'
+        }        
+        {
+          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+          value: appInsights.properties.InstrumentationKey
         }
         {
           name: 'AzureWebJobsStorage'
