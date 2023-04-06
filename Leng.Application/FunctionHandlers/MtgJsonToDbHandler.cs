@@ -22,9 +22,6 @@ namespace Leng.Application.FunctionHandlers
         public MtgJsonToDbHandler(ILogger logger, LengDbContext lengDbContext) {
             _logger = logger;
 
-            // This doesn't work from the Function, it will return that the migrations are already done.
-            lengDbContext.Database.Migrate();
-
             dbService = new MTGDbService(lengDbContext);
         }
 
