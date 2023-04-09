@@ -30,7 +30,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
 }
 
 // Create app service plan
-resource asp 'Microsoft.Web/serverfarms@2021-02-01' = {
+resource asp 'Microsoft.Web/serverfarms@2022-03-01' = {
   name: '${appName}-asp'
   location: location
   sku: {
@@ -40,21 +40,35 @@ resource asp 'Microsoft.Web/serverfarms@2021-02-01' = {
 }
 
 // Create app service - add appsetting with reference to keyvault to read database admin login and password
-resource web 'Microsoft.Web/sites@2021-02-01' = {
+resource web 'Microsoft.Web/sites@2022-03-01' = {
   name: '${appName}-web'
   location: location
   kind: 'app'
+
   identity: {
     type: 'SystemAssigned'
   }
   properties: {
     serverFarmId: asp.id
-    httpsOnly: true  
+    httpsOnly: true
     siteConfig: {
+      alwaysOn: true
       appSettings: [
         {
-          name: 'AzureAdB2C:TestSetting'
-          value: '1234567890'
+          name: 'AzureAdB2C:Domain'
+          value: '@Microsoft.KeyVault(SecretUri=${keyVaultSecretDomain.properties.secretUriWithVersion})'
+        }
+        {
+          name: 'AzureAdB2C:TenantId'
+          value: '@Microsoft.KeyVault(SecretUri=${keyVaultSecretTenantId.properties.secretUriWithVersion})'
+        }
+        {
+          name: 'AzureAdB2C:ClientId'
+          value: '@Microsoft.KeyVault(SecretUri=${keyVaultSecretClientId.properties.secretUriWithVersion})'
+        }
+        {
+          name: 'AzureAdB2C:ClientSecret'
+          value: '@Microsoft.KeyVault(SecretUri=${keyVaultSecretClientSecret.properties.secretUriWithVersion})'
         }
         {
           name: 'sqlConnectionString'
@@ -71,10 +85,22 @@ resource web 'Microsoft.Web/sites@2021-02-01' = {
       ]
     }
   }
+
+  resource config 'config' = {
+    name: 'logs'
+    properties: {
+      applicationLogs: {
+        azureBlobStorage: {
+          level: 'Information'
+          sasUrl: ''
+        }  
+      }
+    }
+  }
 }
 
 // Create function app
-resource function 'Microsoft.Web/sites@2021-02-01' = {
+resource function 'Microsoft.Web/sites@2022-03-01' = {
   name: '${appName}-function'
   location: location
   kind: 'functionapp'
@@ -85,6 +111,7 @@ resource function 'Microsoft.Web/sites@2021-02-01' = {
     serverFarmId: asp.id
     httpsOnly: true  
     siteConfig: {
+      alwaysOn: true
       appSettings: [
         {
           name: 'sqlConnectionString'
@@ -221,5 +248,37 @@ resource keyVaultSecretDatabaseConnectionString 'Microsoft.KeyVault/vaults/secre
   parent: keyVault
   properties: {
     value: 'Server=tcp:${sqlServer.properties.fullyQualifiedDomainName},1433;Initial Catalog=${sqlDB.name};Persist Security Info=False;User ID=${databaseAdminLogin};Password=${databaseAdminPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
+  }
+}
+
+resource keyVaultSecretDomain 'Microsoft.KeyVault/vaults/secrets@2021-04-01-preview' = {
+  name: 'Domain'
+  parent: keyVault
+  properties: {
+    value: '*'
+  }
+}
+
+resource keyVaultSecretTenantId 'Microsoft.KeyVault/vaults/secrets@2021-04-01-preview' = {
+  name: 'TenantId'
+  parent: keyVault
+  properties: {
+    value: '*'
+  }
+}
+
+resource keyVaultSecretClientId 'Microsoft.KeyVault/vaults/secrets@2021-04-01-preview' = {
+  name: 'ClientId'
+  parent: keyVault
+  properties: {
+    value: '*'
+  }
+}
+
+resource keyVaultSecretClientSecret 'Microsoft.KeyVault/vaults/secrets@2021-04-01-preview' = {
+  name: 'ClientSecret'
+  parent: keyVault
+  properties: {
+    value: '*'
   }
 }
