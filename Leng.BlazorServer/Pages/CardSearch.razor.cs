@@ -8,6 +8,7 @@ using Leng.Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Identity.Web;
+using Microsoft.AspNetCore.Authentication;
 
 namespace Leng.BlazorServer.Pages
 {
@@ -21,25 +22,18 @@ namespace Leng.BlazorServer.Pages
         private List<ShowSheet>? sheet = new List<ShowSheet>();
         private IEnumerable<MTGCards>? cards = new List<MTGCards>();
 
+
+
         protected override async Task OnInitializedAsync()
         {
             var dbService = new MTGDbService(cf.CreateDbContext());
 
-            // Trying authStuff
-            var authState = await authenticationState;
-            var _msalId = string.Empty;
+            var msalId = LengAuthenticationService.getMsalId(await authenticationState);
 
-            // Checks if the user has been authenticated.
-            if (authState.User.Identity.IsAuthenticated)
-            {
-                _msalId = authState.User.GetMsalAccountId();
-            }
-            // Trying authStuff
-
-            var LengUser = await dbService.GetLengUserAsync(_msalId);
+            var LengUser = await dbService.GetLengUserAsync(msalId);
             if (LengUser == null)
             {
-                await dbService.AddLengUserAsync(_msalId);
+                await dbService.AddLengUserAsync(msalId);
             }
         }
 
@@ -84,19 +78,9 @@ namespace Leng.BlazorServer.Pages
 
             var dbService = new MTGDbService(cf.CreateDbContext());
 
+            var msalId = LengAuthenticationService.getMsalId(await authenticationState);
 
-            // Trying authStuff
-            var authState = await authenticationState;
-            var _msalId = string.Empty;
-
-            // Checks if the user has been authenticated.
-            if (authState.User.Identity.IsAuthenticated)
-            {
-                _msalId = authState.User.GetMsalAccountId();
-            }
-            // Trying authStuff
-
-            var LengUser = await dbService.GetLengUserAsync(_msalId);
+            var LengUser = await dbService.GetLengUserAsync(msalId);
 
             cards = await dbService.GetCardsForUserAsync(LengUser, _selectedCard);
 
@@ -122,17 +106,9 @@ namespace Leng.BlazorServer.Pages
 
             var card = contextCard;
 
-            // Trying authStuff
-            var authState = await authenticationState;
-            var _msalId = string.Empty;
+            var msalId = LengAuthenticationService.getMsalId(await authenticationState);
 
-            // Checks if the user has been authenticated.
-            if (authState.User.Identity.IsAuthenticated)
-            {
-                _msalId = authState.User.GetMsalAccountId();
-            }
-            // Trying authStuff
-            var LengUser = await dbService.GetLengUserAsync(_msalId);
+            var LengUser = await dbService.GetLengUserAsync(msalId);
 
             if (_selectedCard != null)
             {

@@ -4,6 +4,7 @@ using Leng.Infrastructure;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Leng.BlazorServer.Shared;
+using Microsoft.AspNetCore.Components.Authorization;
 
 namespace Leng.BlazorServer.Pages {
     public partial class CardSheet {
@@ -12,14 +13,16 @@ namespace Leng.BlazorServer.Pages {
         private List<ShowSheet>? sheet = new List<ShowSheet>();
 
         [Inject] IDbContextFactory<LengDbContext> cf { get; set; } = default!;
+        [CascadingParameter] private Task<AuthenticationState>? authenticationState { get; set; }
 
 
 
         private async void CommittedItemChanges(ShowSheet contextCard) {
             var dbService = new MTGDbService(cf.CreateDbContext());
-
             var card = contextCard;
-            var LengUser = dbService.GetLengUserAsync("123TODOUSER");
+
+            var msalId = LengAuthenticationService.getMsalId(await authenticationState);
+            var LengUser = dbService.GetLengUserAsync(msalId);
             LengUser.Wait();
 
             if (selectedSet != null) {
@@ -71,7 +74,9 @@ namespace Leng.BlazorServer.Pages {
 
             var dbService = new MTGDbService(cf.CreateDbContext());
 
-            var LengUser = await dbService.GetLengUserAsync("123TODOUSER");
+            var msalId = LengAuthenticationService.getMsalId(await authenticationState);
+            var LengUser = await dbService.GetLengUserAsync(msalId);
+
             var setCode = await dbService.getSetCodeAsync(set);
             cards = await dbService.GetCardsInSetForUserAsync(LengUser, setCode);
 
@@ -90,10 +95,12 @@ namespace Leng.BlazorServer.Pages {
 
         protected override async Task OnInitializedAsync() {
             var dbService = new MTGDbService(cf.CreateDbContext());
-            var LengUser = await dbService.GetLengUserAsync("123TODOUSER");
+
+            var msalId = LengAuthenticationService.getMsalId(await authenticationState);
+            var LengUser = await dbService.GetLengUserAsync(msalId);
             if (LengUser == null) {
-                await dbService.AddLengUserAsync("123TODOUSER");
-                LengUser = await dbService.GetLengUserAsync("123TODOUSER");
+                await dbService.AddLengUserAsync(msalId);
+                _ = await dbService.GetLengUserAsync(msalId);
             }
         }
     }
