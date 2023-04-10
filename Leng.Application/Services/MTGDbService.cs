@@ -196,7 +196,7 @@ namespace Leng.Application.Services {
 
         public async Task<LengUser> GetLengUserAsync(string aduuid) {
             if (!string.IsNullOrEmpty(aduuid)) {
-                var user = _dbContext.LengUser.Where(u => u.aduuid == aduuid).SingleOrDefault();
+                var user = await _dbContext.LengUser.Where(u => u.aduuid == aduuid).SingleOrDefaultAsync();
                 return user;
             }
 
