@@ -13,12 +13,17 @@ namespace Leng.Application.Services
     {
         public static string getMsalId(AuthenticationState authState)
         {
-            var _msalId = string.Empty;
+            string? _msalId = string.Empty;
 
             // Checks if the user has been authenticated.
-            if (authState.User.Identity.IsAuthenticated)
+            if (authState.User.Identity != null && authState.User.Identity.IsAuthenticated)
             {
                 _msalId = authState.User.GetMsalAccountId();
+            }
+
+            if (_msalId == null)
+            {
+                _msalId = string.Empty;
             }
 
             return _msalId;
