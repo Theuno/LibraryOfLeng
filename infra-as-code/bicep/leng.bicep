@@ -251,34 +251,22 @@ resource keyVaultSecretDatabaseConnectionString 'Microsoft.KeyVault/vaults/secre
   }
 }
 
-resource keyVaultSecretDomain 'Microsoft.KeyVault/vaults/secrets@2021-04-01-preview' = {
+resource keyVaultSecretDomain 'Microsoft.KeyVault/vaults/secrets@2021-04-01-preview' existing = {
   name: 'Domain'
   parent: keyVault
-  properties: {
-    value: '*'
-  }
 }
 
-resource keyVaultSecretTenantId 'Microsoft.KeyVault/vaults/secrets@2021-04-01-preview' = {
+resource keyVaultSecretTenantId 'Microsoft.KeyVault/vaults/secrets@2021-04-01-preview' existing = {
   name: 'TenantId'
   parent: keyVault
-  properties: {
-    value: '*'
-  }
 }
 
-resource keyVaultSecretClientId 'Microsoft.KeyVault/vaults/secrets@2021-04-01-preview' = {
+resource keyVaultSecretClientId 'Microsoft.KeyVault/vaults/secrets@2021-04-01-preview' existing = {
   name: 'ClientId'
   parent: keyVault
-  properties: {
-    value: '*'
-  }
 }
 
-resource keyVaultSecretClientSecret 'Microsoft.KeyVault/vaults/secrets@2021-04-01-preview' = {
+resource keyVaultSecretClientSecret 'Microsoft.KeyVault/vaults/secrets@2021-04-01-preview' existing = {
   name: 'ClientSecret'
   parent: keyVault
-  properties: {
-    value: '*'
-  }
 }
