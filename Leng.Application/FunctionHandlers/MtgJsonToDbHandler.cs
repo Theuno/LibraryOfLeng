@@ -44,6 +44,7 @@ namespace Leng.Application.FunctionHandlers
                 client.DownloadFileCompleted += new AsyncCompletedEventHandler(DownloadFileCompletedCallback);
 
                 await client.DownloadFileTaskAsync(url, target);
+                client.Dispose();
             }
         }
 
