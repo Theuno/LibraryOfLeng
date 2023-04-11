@@ -82,7 +82,8 @@ namespace Leng.Application.Services {
             }
         }
 
-        // Todo, rename to getCardsForUserAsync or so?
+        // This function gets the cards from the database mathcing a part of the name
+        // It has preference for cards that start with the name, but if there are no matches, it will return cards that contain the name
         public async Task<IEnumerable<MTGCards>> getCardsAsync(string cardName) {
             var cards = await _dbContext.MTGCard
                 .Where(c => c.name.StartsWith(cardName))
