@@ -22,11 +22,10 @@ namespace Leng.BlazorServer.Pages {
             var card = contextCard;
 
             var msalId = LengAuthenticationService.getMsalId(await authenticationState);
-            var LengUser = dbService.GetLengUserAsync(msalId);
-            LengUser.Wait();
+            var lengUser = await dbService.GetLengUserAsync(msalId);
 
             if (selectedSet != null) {
-                await dbService.updateCardOfUserAsync(card.number, card.name, card.setCode, card.count, card.countFoil, LengUser.Result);
+                await dbService.updateCardOfUserAsync(card.number, card.name, card.setCode, card.count, card.countFoil, lengUser);
             }
 
             Console.WriteLine(card.name);
