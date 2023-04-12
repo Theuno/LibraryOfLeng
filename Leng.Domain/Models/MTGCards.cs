@@ -108,7 +108,14 @@ namespace Leng.Domain.Models
         //cardsphereId TEXT,
         //colorIdentity TEXT,
         //colorIndicator TEXT,
-        //colors TEXT,
+
+        // colors TEXT, - array of colors (W, U, B, R, G)
+        //public virtual ICollection<MTGColor> colors { get; set; } = new List<MTGColor>();
+        //[NotMapped]
+
+        //[NotMapped]
+        //public virtual ICollection<MTGColor> colors { get; set; } = new List<MTGColor>();
+
         //convertedManaCost FLOAT,
         //duelDeck TEXT,
         public int edhrecRank { get; set; }
