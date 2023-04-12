@@ -84,18 +84,20 @@ namespace Leng.Application.Services {
 
         // This function gets the cards from the database mathcing a part of the name
         // It has preference for cards that start with the name, but if there are no matches, it will return cards that contain the name
-        public async Task<IEnumerable<MTGCards>> getCardsAsync(string cardName) {
+        public async Task<IEnumerable<MTGCards>> getCardsAsync(string cardName, CancellationToken cancellationToken) {
             var cards = await _dbContext.MTGCard
                 .Where(c => c.name.StartsWith(cardName))
                 .Include(cards => cards.LengUserMTGCards)
-                .ToListAsync();
+                .Take(20) // Limit the results to a certain number
+                .ToListAsync(cancellationToken);
 
             // if no cards match, do a contains match.
             if (cards.Count == 0) {
                 cards = await _dbContext.MTGCard
                     .Where(c => c.name.Contains(cardName))
                     .Include(cards => cards.LengUserMTGCards)
-                    .ToListAsync();
+                    .Take(20) // Limit the results to a certain number
+                    .ToListAsync(cancellationToken);
             }
             return cards;
         }
@@ -160,6 +162,11 @@ namespace Leng.Application.Services {
                     if (dbCard == null) {
                         set.Cards.Add(card);
                     }
+                    //else
+                    //{
+                    //    // Update the dbCard with values from card
+                    //    dbCard.colors = card.colors;
+                    //}
                 }
             }
             await _dbContext.SaveChangesAsync();
@@ -254,7 +261,14 @@ namespace Leng.Application.Services {
                 await _dbContext.LengUserMTGCards.AddAsync(new LengUserMTGCards { LengUser = user, MTGCards = card, count = count, countFoil = countFoil });
             }
 
-            await _dbContext.SaveChangesAsync();
+            try
+            {
+                await _dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
         }
     }
 }

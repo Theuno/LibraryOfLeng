@@ -31,7 +31,7 @@
 </MudGrid>
 
 @if (_selectedCard != null) {
-    <p>Selected set: @_selectedCard</p>
+    <p>Selected card: @_selectedCard</p>
 
     @if (cards != null) {
         <MudDataGrid Items="@sheet" FixedHeader=true SortMode="SortMode.Multiple" EditMode="DataGridEditMode.Cell" EditTrigger="DataGridEditTrigger.OnRowClick" T="ShowSheet" ReadOnly=false CommittedItemChanges="CommittedItemChanges">

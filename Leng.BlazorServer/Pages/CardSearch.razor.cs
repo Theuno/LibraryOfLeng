@@ -20,26 +20,33 @@ namespace Leng.BlazorServer.Pages
         private string? _selectedCard = string.Empty;
         private List<ShowSheet>? sheet = new List<ShowSheet>();
         private IEnumerable<MTGCards>? cards = new List<MTGCards>();
+        
+        private CancellationTokenSource _searchCancellationTokenSource = new CancellationTokenSource();
 
-        private MTGDbService? _dbService { get; set; }
+        //private MTGDbService? _dbService { get; set; }
         private LengUser? _lengUser { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
-            _dbService = new MTGDbService(cf.CreateDbContext());
+            //_dbService = new MTGDbService(cf.CreateDbContext());
+            var dbService = new MTGDbService(cf.CreateDbContext());
+
 
             var msalId = LengAuthenticationService.getMsalId(await authenticationState);
-            _lengUser = await _dbService.GetLengUserAsync(msalId);
+            _lengUser = await dbService.GetLengUserAsync(msalId);
 
             if (_lengUser == null)
             {
-                await _dbService.AddLengUserAsync(msalId);
-                _lengUser = await _dbService.GetLengUserAsync(msalId);
+                await dbService.AddLengUserAsync(msalId);
+                _lengUser = await dbService.GetLengUserAsync(msalId);
             }
         }
 
         private async Task<IEnumerable<string>> SearchForCard(string card)
         {
+            // Debounce the search input
+            await Task.Delay(300, _searchCancellationTokenSource.Token);
+
             if (card == null)
             {
                 return null;
@@ -51,9 +58,19 @@ namespace Leng.BlazorServer.Pages
 
             try
             {
-                var cards = await _dbService.getCardsAsync(card);
+                // Cancel any previous searches
+                _searchCancellationTokenSource.Cancel();
+                _searchCancellationTokenSource = new CancellationTokenSource();
+
+                var dbService = new MTGDbService(cf.CreateDbContext());
+
+                var cards = await dbService.getCardsAsync(card, _searchCancellationTokenSource.Token);
                 cards = cards.DistinctBy(c => c.name);
                 return await Task.FromResult(cards.Select(x => x.name).ToArray());
+            }
+            catch (OperationCanceledException)
+            {
+                // Search was canceled, do nothing
             }
             catch (Exception ex)
             {
@@ -75,7 +92,8 @@ namespace Leng.BlazorServer.Pages
                 sheet.Clear();
             }
 
-            cards = await _dbService.GetCardsForUserAsync(_lengUser, _selectedCard);
+            var dbService = new MTGDbService(cf.CreateDbContext());
+            cards = await dbService.GetCardsForUserAsync(_lengUser, _selectedCard);
 
             foreach (var card in cards)
             {
@@ -99,7 +117,12 @@ namespace Leng.BlazorServer.Pages
 
             if (_selectedCard != null)
             {
-                await _dbService.updateCardOfUserAsync(card.number, card.name, card.setCode, card.count, card.countFoil, _lengUser);
+                var dbService = new MTGDbService(cf.CreateDbContext());
+
+                //var msalId = LengAuthenticationService.getMsalId(await authenticationState);
+                _lengUser = await dbService.GetLengUserAsync(_lengUser.aduuid);
+
+                await dbService.updateCardOfUserAsync(card.number, card.name, card.setCode, card.count, card.countFoil, _lengUser);
             }
 
             Console.WriteLine(card.name);
