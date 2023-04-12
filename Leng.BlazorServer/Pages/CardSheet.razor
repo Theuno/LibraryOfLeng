@@ -38,12 +38,15 @@
 
     @if (cards != null)
     {
-        <MudDataGrid Items="@sheet" FixedHeader=true SortMode="SortMode.Multiple" EditMode="DataGridEditMode.Cell" EditTrigger="DataGridEditTrigger.OnRowClick" T="ShowSheet" ReadOnly=false CommittedItemChanges="CommittedItemChanges">
+        <MudDataGrid Items="@sheet" Virtualize="true" Height="500px" Hover=true Dense=true FixedHeader=true SortMode="SortMode.Multiple" EditMode="DataGridEditMode.Cell" EditTrigger="DataGridEditTrigger.OnRowClick" T="ShowSheet" ReadOnly=false CommittedItemChanges="CommittedItemChanges">
             <Columns>
-                <Column T="ShowSheet" Field="number" Title="Nr" IsEditable="false" /> <!-- @*SortBy="@SortBySetNumber"*@ -->
-                <Column T="ShowSheet" Field="name" Title="Name" IsEditable="false" />
-                <Column T="ShowSheet" Field="count" Title="Count" />
-                <Column T="ShowSheet" Field="countFoil" Title="CountFoil" />
+                <Column T="ShowSheet" Field="setCode" Title="SetCode" IsEditable="false" />
+                <Column T="ShowSheet" Field="number" Title="Nr" IsEditable="false" CellStyle="max-width: 70px" /> <!-- @*SortBy="@SortBySetNumber"*@ -->
+                <Column T="ShowSheet" Field="name" Title="Name" IsEditable="false" /> <!-- TODO: Add CellStyleFunc="@_cellStyleFunc" to color the cell according to the cards colors. -->
+                <Column T="ShowSheet" Field="count" Title="Count" CellStyle="max-width: 70px" />
+                <Column T="ShowSheet" Field="countFoil" Title="CountFoil" CellStyle="max-width: 70px" />
+                <Column T="ShowSheet" Field="want" Title="want" CellStyle="max-width: 70px" />
+                <Column T="ShowSheet" Field="wantFoil" Title="wantFoil" CellStyle="max-width: 70px" />
             </Columns>
         </MudDataGrid>
     }
