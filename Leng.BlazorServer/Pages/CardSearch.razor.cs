@@ -1,14 +1,10 @@
 ﻿using Leng.Application.Services;
+using Leng.BlazorServer.Shared;
+using Leng.Domain.Models;
 using Leng.Infrastructure;
 using Microsoft.AspNetCore.Components;
-using Microsoft.EntityFrameworkCore;
-using Leng.BlazorServer.Shared;
-using static MudBlazor.CategoryTypes;
-using Leng.Domain.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.Identity.Web;
-using Microsoft.AspNetCore.Authentication;
+using Microsoft.EntityFrameworkCore;
 
 namespace Leng.BlazorServer.Pages
 {
