@@ -90,14 +90,16 @@ namespace Leng.BlazorServer.Pages
 
             var dbService = new MTGDbService(cf.CreateDbContext());
             cards = await dbService.GetCardsForUserAsync(_lengUser, _selectedCard);
-
+           
             foreach (var card in cards)
             {
-                var usersCard = card.LengUserMTGCards
-                    .Where(u => u.LengUser == _lengUser && u.MTGCards == card).SingleOrDefault();
+                //var usersCard = card.LengUserMTGCards
+                //    .Where(u => u.LengUser == _lengUser && u.MTGCards == card).SingleOrDefault();
+                var usersCard = card.LengUserMTGCards.Where(c => c.MTGCards.MTGCardsID == card.MTGCardsID).SingleOrDefault();
+
                 if (usersCard == null)
                 {
-                    sheet.Add(new ShowSheet { setCode = card.MTGSets.setCode, name = card.name, number = card.number, count = 0, countFoil = 0 });
+                    sheet.Add(new ShowSheet { setCode = card.MTGSets.setCode, name = card.name, number = card.number, count = 0, countFoil = 0, want = 0, wantFoil = 0 });
                 }
                 else
                 {

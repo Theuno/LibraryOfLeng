@@ -14,6 +14,7 @@ namespace Leng.BlazorServer.Pages
         [CascadingParameter] private Task<AuthenticationState>? authenticationState { get; set; }
 
         private string _resultList = "";
+
         [Inject] IDbContextFactory<LengDbContext> cf { get; set; } = default!;
         private readonly Regex arenaCardLineRegex = new Regex(@"^(?<count>\d+)\s+(?<name>[\w\s',!\?\.]+)\s*(?<isFoil>\(Foil\))?");
         private readonly Regex mtgoCardLineRegex = new Regex(@"^(?<count>\d+)\s+(?<name>[\w\s',!\?\.]+)\s+\[(?<setCode>[A-Za-z0-9]+)\]\s+\[(?<cardNumber>\d+)\]");
@@ -29,16 +30,13 @@ namespace Leng.BlazorServer.Pages
         private async void HandleDeckListChange(string deckList)
         {
             var dbService = new MTGDbService(cf.CreateDbContext());
-
-            _resultList = "";
-            _resultList += "Available cards: \r";
-
-            // Parse the deck list here
-            Console.WriteLine(deckList);
-
             var cards = new List<MTGCards>();
 
-            string missingCards = "";
+            _resultList = "Available cards: \r";
+            
+            string missingCards = "Missing cards: \r";
+            string _errorList = "Problems found: \r";
+
             var lines = deckList.Split('\n', '\r')
                                 .Select(line => line.Trim())
                                 .Where(line => !string.IsNullOrEmpty(line));
@@ -61,15 +59,14 @@ namespace Leng.BlazorServer.Pages
                 }
                 else
                 {
-                    Console.WriteLine($"Invalid line format: {line}");
+                    _errorList += $"Invalid line format: {line}";
                     continue;
-                    //throw new Exception($"Invalid line format: {line}");
                 }
 
                 var collectedCards = await dbService.GetCardFromUserCollectionAsync(_lengUser, name); // .GetCardFromUserCollectionAsync(name);
                 if (collectedCards == null)
                 {
-                    throw new Exception($"Card not found: {name}");
+                    //throw new Exception($"Card not found: {name}");
                     missingCards += $"{name}\r";
                 }
 
@@ -94,8 +91,8 @@ namespace Leng.BlazorServer.Pages
             }
 
             _resultList += "\r";
-            _resultList += "Missing cards: \r";
             _resultList += missingCards;
+            _resultList += _errorList;
 
             await InvokeAsync(StateHasChanged);
         }
