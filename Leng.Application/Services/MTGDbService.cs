@@ -211,11 +211,12 @@ namespace Leng.Application.Services {
             return null;
         }
 
-        public async Task<IEnumerable<LengUserMTGCards>> GetCardFromUserCollectionAsync(string cardName) {
+        public async Task<IEnumerable<LengUserMTGCards>> GetCardFromUserCollectionAsync(LengUser user, string cardName)
+        {
             var cards = await _dbContext.LengUserMTGCards
                 .Include(c => c.MTGCards)
                 .Include(s => s.MTGCards.MTGSets)
-                .Where(c => c.MTGCards.name == cardName)
+                .Where(c => c.MTGCards.name == cardName && c.LengUser.LengUserID == user.LengUserID)
                 .ToListAsync();
 
             return cards;
