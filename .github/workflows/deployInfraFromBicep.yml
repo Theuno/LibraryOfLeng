@@ -28,6 +28,8 @@ jobs:
         
     - name: Analyze with PSRule
       uses: microsoft/ps-rule@latest
+      with:
+        modules: 'PSRule.Rules.Azure'
 
   deploy:
     needs: validate
