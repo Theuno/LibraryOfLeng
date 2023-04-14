@@ -31,7 +31,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
 
 // Create storage account
 resource TestSTorage 'Microsoft.Storage/storageAccounts@2022-09-01' = {
-  name: '${appName}PSROOLST-o@rage'
+  name: '${appName}PSROOLST-orage'
   location: location
   kind: 'StorageV2'
   sku: {
