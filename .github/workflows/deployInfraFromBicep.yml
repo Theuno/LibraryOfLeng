@@ -15,6 +15,7 @@ jobs:
       uses: microsoft/ps-rule@latest
       with:
         modules: 'PSRule.Rules.Azure'
+        inputPath: ./infra-as-code/bicep/
 
     - name: Run Bicep linter
       run: az bicep build --file infra-as-code/bicep/leng.bicep
