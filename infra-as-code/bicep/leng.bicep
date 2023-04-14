@@ -29,6 +29,16 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   }
 }
 
+// Create storage account
+resource TestSTorage 'Microsoft.Storage/storageAccounts@2022-09-01' = {
+  name: '${appName}PSROOLST-o@rage'
+  location: location
+  kind: 'StorageV2'
+  sku: {
+    name: 'Standard_LRS'
+  }
+}
+
 // Create app service plan
 resource asp 'Microsoft.Web/serverfarms@2022-03-01' = {
   name: '${appName}-asp'
