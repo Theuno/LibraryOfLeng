@@ -25,6 +25,9 @@ jobs:
           databaseAdminLogin=${{ secrets.BICEP_DATABASE_ADMIN }}
           databaseAdminPassword=${{ secrets.BICEP_DATABASE_ADMIN_PASSWORD }}
         failOnStdErr: false
+        
+    - name: Analyze with PSRule
+      uses: microsoft/ps-rule@latest
 
   deploy:
     needs: validate
