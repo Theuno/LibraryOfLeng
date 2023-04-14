@@ -11,6 +11,11 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+    - name: Analyze with PSRule
+      uses: microsoft/ps-rule@latest
+      with:
+        modules: 'PSRule.Rules.Azure'
+
     - name: Run Bicep linter
       run: az bicep build --file infra-as-code/bicep/leng.bicep
 
@@ -26,10 +31,7 @@ jobs:
           databaseAdminPassword=${{ secrets.BICEP_DATABASE_ADMIN_PASSWORD }}
         failOnStdErr: false
         
-    - name: Analyze with PSRule
-      uses: microsoft/ps-rule@latest
-      with:
-        modules: 'PSRule.Rules.Azure'
+
 
   deploy:
     needs: validate
