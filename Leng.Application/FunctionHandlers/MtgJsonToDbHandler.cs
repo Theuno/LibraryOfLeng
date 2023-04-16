@@ -9,6 +9,7 @@ using Leng.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Text.Json.Serialization;
 
 namespace Leng.Application.FunctionHandlers
 {
@@ -17,7 +18,6 @@ namespace Leng.Application.FunctionHandlers
         MTGDbService dbService = null;
         string fileName = "AllSetFiles.zip";
         private readonly ILogger _logger;
-
 
         public MtgJsonToDbHandler(ILogger logger, LengDbContext lengDbContext) {
             _logger = logger;
@@ -108,7 +108,12 @@ namespace Leng.Application.FunctionHandlers
                         // Dead?  El-Hajjâj134†
 
                         MTGCards card = JsonSerializer.Deserialize<MTGCards>(mtgCards[i].ToString());
-                        if(!card.isOnlineOnly) {
+                        if (!card.isOnlineOnly)
+                        {
+                            // Set the colors property to a list of MTGColor objects
+                            JsonArray colorArray = mtgCards[i]["colors"].AsArray();
+
+                            //card.Colors = colors;
                             setCards.Add(card);
                         }
                     }

@@ -116,6 +116,24 @@ namespace Leng.Domain.Models
         //[NotMapped]
         //public virtual ICollection<MTGColor> colors { get; set; } = new List<MTGColor>();
 
+        // many-to-many relationship with colors
+        //public ICollection<MTGColor> Colors { get; set; } = new List<MTGColor>();
+
+
+        //[NotMapped]
+        //public List<string>? colors { get; set; }
+
+        //public MTGColor ToMTGColor()
+        //{
+        //    if (colors == null || colors.Count == 0)
+        //    {
+        //        return null;
+        //    }
+
+        //    return new MTGColor { Color = colors[0] };
+        //}
+
+
         //convertedManaCost FLOAT,
         //duelDeck TEXT,
         public int edhrecRank { get; set; }

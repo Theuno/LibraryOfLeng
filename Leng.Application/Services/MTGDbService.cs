@@ -162,11 +162,14 @@ namespace Leng.Application.Services {
                     if (dbCard == null) {
                         set.Cards.Add(card);
                     }
-                    //else
-                    //{
-                    //    // Update the dbCard with values from card
+                    else
+                    {
+                        // Update properties
+                        //dbCard.Colors = card.Colors;
+                        dbCard.scryfallId = card.scryfallId;
+
                     //    dbCard.colors = card.colors;
-                    //}
+                    }
                 }
             }
             await _dbContext.SaveChangesAsync();
