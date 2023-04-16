@@ -112,6 +112,8 @@ namespace Leng.Application.FunctionHandlers
                         {
                             // Set the colors property to a list of MTGColor objects
                             JsonArray colorArray = mtgCards[i]["colors"].AsArray();
+                            var identifiers = mtgCards[i]["identifiers"].AsObject();
+                            card.scryfallId = identifiers["scryfallId"].ToString();
 
                             //card.Colors = colors;
                             setCards.Add(card);
