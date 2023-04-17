@@ -96,14 +96,15 @@ namespace Leng.BlazorServer.Pages
                 //var usersCard = card.LengUserMTGCards
                 //    .Where(u => u.LengUser == _lengUser && u.MTGCards == card).SingleOrDefault();
                 var usersCard = card.LengUserMTGCards.Where(c => c.MTGCards.MTGCardsID == card.MTGCardsID).SingleOrDefault();
+                var imageUrl = $"https://api.scryfall.com/cards/{card.scryfallId}?format=image&version=small";
 
                 if (usersCard == null)
                 {
-                    sheet.Add(new ShowSheet { setCode = card.MTGSets.setCode, name = card.name, number = card.number, count = 0, countFoil = 0, want = 0, wantFoil = 0 });
+                    sheet.Add(new ShowSheet { setCode = card.MTGSets.setCode, cardImageUrl = imageUrl, name = card.name, number = card.number, count = 0, countFoil = 0, want = 0, wantFoil = 0 });
                 }
                 else
                 {
-                    sheet.Add(new ShowSheet { setCode = card.MTGSets.setCode, name = card.name, number = card.number, count = usersCard.count, countFoil = usersCard.countFoil });
+                    sheet.Add(new ShowSheet { setCode = card.MTGSets.setCode, cardImageUrl = imageUrl, name = card.name, number = card.number, count = usersCard.count, countFoil = usersCard.countFoil });
                 }
                 Console.WriteLine(card.name);
             }
