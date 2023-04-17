@@ -89,6 +89,7 @@ namespace Leng.Application.Services {
                 .Where(c => c.name.StartsWith(cardName))
                 .Include(cards => cards.LengUserMTGCards)
                 .Take(20) // Limit the results to a certain number
+                .OrderBy(c => c.name)
                 .ToListAsync(cancellationToken);
 
             // if no cards match, do a contains match.
@@ -97,6 +98,7 @@ namespace Leng.Application.Services {
                     .Where(c => c.name.Contains(cardName))
                     .Include(cards => cards.LengUserMTGCards)
                     .Take(20) // Limit the results to a certain number
+                    .OrderBy(c => c.name)
                     .ToListAsync(cancellationToken);
             }
             return cards;
