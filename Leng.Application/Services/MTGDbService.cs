@@ -216,6 +216,17 @@ namespace Leng.Application.Services {
             return null;
         }
 
+        public async Task<IEnumerable<LengUserMTGCards>> GetAllCardsFromUserCollectionAsync(LengUser user)
+        {
+            var cards = await _dbContext.LengUserMTGCards
+                .Include(c => c.MTGCards)
+                .Include(s => s.MTGCards.MTGSets)
+                .ToListAsync();
+            // What, no where for the user check? Is this then also not required in the functions after this?
+
+            return cards;
+        }
+
         public async Task<IEnumerable<LengUserMTGCards>> GetCardFromUserCollectionAsync(LengUser user, string cardName)
         {
             var cards = await _dbContext.LengUserMTGCards
