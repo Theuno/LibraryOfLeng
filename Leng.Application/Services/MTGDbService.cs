@@ -167,8 +167,9 @@ namespace Leng.Application.Services {
                     else
                     {
                         // Update properties
-                        //dbCard.Colors = card.Colors;
+                        dbCard.color = card.color;
                         dbCard.scryfallId = card.scryfallId;
+                        dbCard.faceName = card.faceName;
 
                     //    dbCard.colors = card.colors;
                     }

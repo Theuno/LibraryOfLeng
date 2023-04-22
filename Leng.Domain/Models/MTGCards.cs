@@ -109,30 +109,8 @@ namespace Leng.Domain.Models
         //colorIdentity TEXT,
         //colorIndicator TEXT,
 
-        // colors TEXT, - array of colors (W, U, B, R, G)
-        //public virtual ICollection<MTGColor> colors { get; set; } = new List<MTGColor>();
-        //[NotMapped]
-
-        //[NotMapped]
-        //public virtual ICollection<MTGColor> colors { get; set; } = new List<MTGColor>();
-
-        // many-to-many relationship with colors
-        //public ICollection<MTGColor> Colors { get; set; } = new List<MTGColor>();
-
-
-        //[NotMapped]
-        //public List<string>? colors { get; set; }
-
-        //public MTGColor ToMTGColor()
-        //{
-        //    if (colors == null || colors.Count == 0)
-        //    {
-        //        return null;
-        //    }
-
-        //    return new MTGColor { Color = colors[0] };
-        //}
-
+        // This is a string that is not mapped to the source data.
+        public string? color { get; set; }
 
         //convertedManaCost FLOAT,
         //duelDeck TEXT,
@@ -141,7 +119,9 @@ namespace Leng.Domain.Models
         //faceConvertedManaCost FLOAT,
         //faceFlavorName TEXT,
         //faceManaValue FLOAT,
-        //faceName TEXT,
+
+        public string? faceName { get; set; }
+
         //finishes TEXT,
         //flavorName TEXT,
         //flavorText TEXT,

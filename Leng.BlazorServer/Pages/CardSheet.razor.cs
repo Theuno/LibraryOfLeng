@@ -80,18 +80,27 @@ namespace Leng.BlazorServer.Pages {
             cards = await dbService.GetCardsInSetForUserAsync(LengUser, setCode);
 
             foreach (var card in cards) {
-                var usersCard = card.LengUserMTGCards
-                    .Where(u => u.LengUser == LengUser && u.MTGCards == card).SingleOrDefault();
+                try
+                {
+                    var usersCard = card.LengUserMTGCards
+                        .Where(u => u.LengUser == LengUser && u.MTGCards == card).SingleOrDefault();
 
-                var imageUrl = $"https://api.scryfall.com/cards/{card.scryfallId}?format=image&version=small";
 
-                if (usersCard == null) {
-                    sheet.Add(new ShowSheet { setCode = card.MTGSets.setCode, cardImageUrl = imageUrl, name = card.name, number = card.number, count = 0, countFoil = 0 });
+                    var imageUrl = $"https://api.scryfall.com/cards/{card.scryfallId}?format=image&version=small";
+
+                    if (usersCard == null) {
+                        sheet.Add(new ShowSheet { setCode = card.MTGSets.setCode, cardImageUrl = imageUrl, name = card.name, number = card.number, count = 0, countFoil = 0 });
+                    }
+                    else {
+                        sheet.Add(new ShowSheet { setCode = card.MTGSets.setCode, cardImageUrl = imageUrl, name = card.name, number = card.number, count = usersCard.count, countFoil = usersCard.countFoil });
+                    }
+                    Console.WriteLine(card.name);
+
                 }
-                else {
-                    sheet.Add(new ShowSheet { setCode = card.MTGSets.setCode, cardImageUrl = imageUrl, name = card.name, number = card.number, count = usersCard.count, countFoil = usersCard.countFoil });
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
                 }
-                Console.WriteLine(card.name);
             }
         }
 
