@@ -4,6 +4,7 @@ using Leng.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Leng.Infrastructure.Migrations
 {
     [DbContext(typeof(LengDbContext))]
-    partial class LengDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230422113640_Add facename, color, index on LengUserMTGCards")]
+    partial class AddfacenamecolorindexonLengUserMTGCards
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -101,7 +104,7 @@ namespace Leng.Infrastructure.Migrations
                     b.Property<string>("asciiName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("color")
+                    b.Property<string>("colors")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("edhrecRank")
