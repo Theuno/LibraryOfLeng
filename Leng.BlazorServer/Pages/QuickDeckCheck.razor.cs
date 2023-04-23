@@ -1,10 +1,12 @@
 ﻿using Leng.Application.Services;
+using Leng.BlazorServer.Shared;
 using Leng.Domain.Models;
 using Leng.Infrastructure;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
+using static MudBlazor.CategoryTypes;
 
 namespace Leng.BlazorServer.Pages
 {
@@ -14,6 +16,7 @@ namespace Leng.BlazorServer.Pages
         [CascadingParameter] private Task<AuthenticationState>? authenticationState { get; set; }
 
         private string _resultList = "";
+        private List<ShowSheet>? _resultSheet = new List<ShowSheet>();
 
         [Inject] IDbContextFactory<LengDbContext> cf { get; set; } = default!;
         private readonly Regex arenaCardLineRegex = new Regex(@"^(?<count>\d+)\s+(?<name>[\w\s',!\?\.]+)\s*(?<isFoil>\(Foil\))?");
@@ -27,13 +30,19 @@ namespace Leng.BlazorServer.Pages
             _lengUser = await dbService.GetLengUserAsync(msalId);
         }
 
+        private async void CommittedItemChanges(ShowSheet contextCard)
+        {
+
+        }
+
         private async void HandleDeckListChange(string deckList)
         {
             var dbService = new MTGDbService(cf.CreateDbContext());
             var cards = new List<MTGCards>();
 
             _resultList = "Available cards: \r";
-            
+            _resultSheet.Clear();
+
             string missingCards = "Missing cards: \r";
             string _errorList = "Problems found: \r";
 
@@ -81,7 +90,10 @@ namespace Leng.BlazorServer.Pages
                         missingCount = 0;
                     }
 
-                    _resultList += $"{card.count} - {card.MTGCards.MTGSets.setCode} - {card.MTGCards.number} - {card.MTGCards.name}\r";
+                    //_resultList += $"{card.count} - {card.MTGCards.MTGSets.setCode} - {card.MTGCards.number} - {card.MTGCards.name}\r";
+
+                    var imageUrl = $"https://api.scryfall.com/cards/{card.MTGCards.scryfallId}?format=image&version=small";
+                    _resultSheet.Add(new ShowSheet { setCode = card.MTGCards.setCode, cardImageUrl = imageUrl, name = card.MTGCards.name, number = card.MTGCards.number, count = card.count, countFoil = card.countFoil });
                 }
 
                 if (missingCount > 0)
@@ -92,6 +104,7 @@ namespace Leng.BlazorServer.Pages
 
             _resultList += "\r";
             _resultList += missingCards;
+            _resultList += "\r";
             _resultList += _errorList;
 
             await InvokeAsync(StateHasChanged);
