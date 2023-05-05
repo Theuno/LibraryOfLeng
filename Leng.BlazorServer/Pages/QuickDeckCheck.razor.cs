@@ -15,6 +15,7 @@ namespace Leng.BlazorServer.Pages
         private LengUser? _lengUser;
         [CascadingParameter] private Task<AuthenticationState>? authenticationState { get; set; }
 
+        public int LoadingValue { get; set; }
         private string _resultList = "";
         private List<ShowSheet>? _resultSheet = new List<ShowSheet>();
 
@@ -38,21 +39,30 @@ namespace Leng.BlazorServer.Pages
 
         private async void HandleDeckListChange(string deckList)
         {
+            LoadingValue = 0;
             var dbService = new MTGDbService(cf.CreateDbContext());
             var cards = new List<MTGCards>();
 
-            _resultList = "Available cards: \r";
-            _resultSheet.Clear();
-
             string missingCards = "Missing cards: \r";
             string _errorList = "Problems found: \r";
+
+            _resultList = "";
+            _resultList += missingCards;
+
+            _resultSheet.Clear();
 
             var lines = deckList.Split('\n', '\r')
                                 .Select(line => line.Trim())
                                 .Where(line => !string.IsNullOrEmpty(line));
 
+            // Calculate the progress per line
+            var progressPerLine = (int)Math.Round(100.0 / lines.Count(), 1);
+
             foreach (var line in lines)
             {
+                LoadingValue += progressPerLine;
+                _ = InvokeAsync(StateHasChanged);
+
                 var arenaMatch = arenaCardLineRegex.Match(line);
                 var mtgoMatch = mtgoCardLineRegex.Match(line);
                 string name;
@@ -91,20 +101,19 @@ namespace Leng.BlazorServer.Pages
                         missingCount = 0;
                     }
 
-                    //_resultList += $"{card.count} - {card.MTGCards.MTGSets.setCode} - {card.MTGCards.number} - {card.MTGCards.name}\r";
-
                     var imageUrl = $"https://api.scryfall.com/cards/{card.MTGCards.scryfallId}?format=image&version=small";
                     _resultSheet.Add(new ShowSheet { setCode = card.MTGCards.setCode, cardImageUrl = imageUrl, name = card.MTGCards.name, number = card.MTGCards.number, count = card.count, countFoil = card.countFoil });
                 }
 
                 if (missingCount > 0)
                 {
-                    missingCards += $"{missingCount} x {name}\r";
+                    _resultList += $"{missingCount} x {name}\r";
+                    _ = InvokeAsync(StateHasChanged);
                 }
             }
 
-            _resultList += "\r";
-            _resultList += missingCards;
+            LoadingValue = 100;
+
             _resultList += "\r";
             _resultList += _errorList;
 
