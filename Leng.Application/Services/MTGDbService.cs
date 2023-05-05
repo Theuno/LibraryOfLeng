@@ -236,6 +236,18 @@ namespace Leng.Application.Services {
                 .Where(c => c.MTGCards.name == cardName && c.LengUser.LengUserID == user.LengUserID)
                 .ToListAsync();
 
+            var faceCards = await _dbContext.LengUserMTGCards
+                .Include(c => c.MTGCards)
+                .Include(s => s.MTGCards.MTGSets)
+                .Where(c => c.MTGCards.faceName == cardName && c.LengUser.LengUserID == user.LengUserID)
+                .ToListAsync();
+
+            // Merge cards and faceCards
+            foreach (var card in faceCards)
+            {
+                cards.Add(card);
+            }
+
             return cards;
         }
 
@@ -287,6 +299,24 @@ namespace Leng.Application.Services {
             {
                 Console.WriteLine(ex.ToString());
             }
+        }
+
+        public async Task<(int cards, int playsets)> GetUserCollectionSummaryAsync(LengUser user)
+        {
+            // TODO: Fix playset information
+            var query = _dbContext.LengUserMTGCards
+                .Where(lumc => lumc.LengUser.LengUserID == user.LengUserID)
+                .GroupBy(lumc => lumc.MTGCards.MTGCardsID)
+                .Select(g => new
+                {
+                    Count = g.Sum(lumc => lumc.count + lumc.countFoil),
+                    PlaysetCount = 0
+                });
+
+            var results = await query.ToListAsync();
+            int cards = results.Sum(r => r.Count);
+            int playsets = results.Sum(r => r.PlaysetCount);
+            return (cards, playsets);
         }
     }
 }
