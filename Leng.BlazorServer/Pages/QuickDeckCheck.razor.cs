@@ -12,15 +12,16 @@ namespace Leng.BlazorServer.Pages
 {
     public partial class QuickDeckCheck
     {
-        private LengUser? _lengUser { get; set; }
+        private LengUser? _lengUser;
         [CascadingParameter] private Task<AuthenticationState>? authenticationState { get; set; }
 
         private string _resultList = "";
         private List<ShowSheet>? _resultSheet = new List<ShowSheet>();
 
         [Inject] IDbContextFactory<LengDbContext> cf { get; set; } = default!;
-        private readonly Regex arenaCardLineRegex = new Regex(@"^(?<count>\d+)\s+(?<name>[\w\s',!\?\.]+)\s*(?<isFoil>\(Foil\))?");
-        private readonly Regex mtgoCardLineRegex = new Regex(@"^(?<count>\d+)\s+(?<name>[\w\s',!\?\.]+)\s+\[(?<setCode>[A-Za-z0-9]+)\]\s+\[(?<cardNumber>\d+)\]");
+        //private readonly Regex arenaCardLineRegex = new Regex(@"^(?<count>\d+)\s+(?<name>[\w\s',!\?\.]+)\s*(?<isFoil>\(Foil\))?");
+        private readonly Regex arenaCardLineRegex = new Regex(@"^(?<count>\d+)\s+(?<name>[\w\s',!\?\.-]+(?:\s*//\s*[\w\s',!\?\.]+)?)\s*(?<isFoil>\(Foil\))?");
+        private readonly Regex mtgoCardLineRegex = new Regex(@"^(?<count>\d+)\s+(?<name>[\w\s',!\?\.-]+)\s+\[(?<setCode>[A-Za-z0-9]+)\]\s+\[(?<cardNumber>\d+)\]");
 
         protected override async Task OnInitializedAsync()
         {
