@@ -67,6 +67,28 @@ namespace Leng.BlazorServer.Pages
                 var mtgoMatch = mtgoCardLineRegex.Match(line);
                 string name;
                 int count;
+
+                // Lines from mtggoldfish formats can be skipped
+                if (line.StartsWith("Sideboard") ||
+                    line.StartsWith("Commander") ||
+                    line.StartsWith("Companion") ||
+                    line.StartsWith("Deck") ||
+                    line.StartsWith("Lands") ||
+                    line.StartsWith("Creatures") ||
+                    line.StartsWith("Spells") ||
+                    line.StartsWith("Planeswalkers") ||
+                    line.StartsWith("Artifacts") ||
+                    line.StartsWith("Enchantments") ||
+                    line.StartsWith("Instants") ||
+                    line.StartsWith("Sorceries") || 
+                    line.StartsWith("Sideboard") || 
+                    line.StartsWith("Maybeboard") || 
+                    line.StartsWith("Tok"))
+                {
+                    continue;
+                }
+                
+
                 if (arenaMatch.Success)
                 {
                     count = int.Parse(arenaMatch.Groups["count"].Value);
