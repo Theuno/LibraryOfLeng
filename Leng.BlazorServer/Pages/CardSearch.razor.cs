@@ -60,9 +60,9 @@ namespace Leng.BlazorServer.Pages
 
                 var dbService = new MTGDbService(cf.CreateDbContext());
 
-                var cards = await dbService.getCardsAsync(card, _searchCancellationTokenSource.Token);
-                cards = cards.DistinctBy(c => c.name);
-                return await Task.FromResult(cards.Select(x => x.name).ToArray());
+                var searchedCards = await dbService.getCardsAsync(card, _searchCancellationTokenSource.Token);
+                searchedCards = searchedCards.DistinctBy(c => c.name);
+                return await Task.FromResult(searchedCards.Select(x => x.name).ToArray());
             }
             catch (OperationCanceledException)
             {
