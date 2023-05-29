@@ -142,10 +142,8 @@ namespace Leng.Application.Services {
 
         internal async Task AddCardsAsync(List<MTGCards> setCards) {
             var set = _dbContext.MTGSets.Where(r => r.setCode == setCards.FirstOrDefault().setCode).SingleOrDefault();
-            if (set != null) {
-                if (set.Cards == null) {
-                    set.Cards = new List<MTGCards>();
-                }
+            if (set != null && set.Cards == null) {
+                set.Cards = new List<MTGCards>();
             }
 
             foreach (MTGCards card in setCards) {
