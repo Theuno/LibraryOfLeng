@@ -5,6 +5,7 @@ using Leng.Infrastructure;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
 using System.Text.RegularExpressions;
 using static MudBlazor.CategoryTypes;
 
@@ -41,10 +42,12 @@ namespace Leng.BlazorServer.Pages
         {
             LoadingValue = 0;
             var dbService = new MTGDbService(cf.CreateDbContext());
-            var cards = new List<MTGCards>();
 
-            string missingCards = "Missing cards: \r";
-            string _errorList = "Problems found: \r";
+            StringBuilder missingCards = new StringBuilder();
+            missingCards.Append("Missing cards: \r");
+
+            StringBuilder errorList = new StringBuilder();
+            errorList.Append("Problems found: \r");
 
             _resultList = "";
             _resultList += missingCards;
@@ -101,15 +104,15 @@ namespace Leng.BlazorServer.Pages
                 }
                 else
                 {
-                    _errorList += $"Invalid line format: {line}";
+                    errorList.Append("Invalid line format: ");
+                    errorList.Append(line);
                     continue;
                 }
 
                 var collectedCards = await dbService.GetCardFromUserCollectionAsync(_lengUser, name); // .GetCardFromUserCollectionAsync(name);
                 if (collectedCards == null)
                 {
-                    //throw new Exception($"Card not found: {name}");
-                    missingCards += $"{name}\r";
+                    missingCards.AppendLine(name);
                 }
 
                 int missingCount = count;
@@ -137,7 +140,7 @@ namespace Leng.BlazorServer.Pages
             LoadingValue = 100;
 
             _resultList += "\r";
-            _resultList += _errorList;
+            _resultList += errorList;
 
             await InvokeAsync(StateHasChanged);
         }
