@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Leng.Application.Services {
     public class MTGDbService {
-        private LengDbContext _dbContext;
+        private readonly LengDbContext _dbContext;
         public MTGDbService(LengDbContext dbContext) {
             _dbContext = dbContext;
         }
