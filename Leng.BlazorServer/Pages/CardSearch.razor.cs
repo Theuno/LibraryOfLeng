@@ -19,14 +19,11 @@ namespace Leng.BlazorServer.Pages
         
         private CancellationTokenSource _searchCancellationTokenSource = new CancellationTokenSource();
 
-        //private MTGDbService? _dbService { get; set; }
         private LengUser? _lengUser { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
-            //_dbService = new MTGDbService(cf.CreateDbContext());
             var dbService = new MTGDbService(cf.CreateDbContext());
-
 
             var msalId = LengAuthenticationService.getMsalId(await authenticationState);
             _lengUser = await dbService.GetLengUserAsync(msalId);
