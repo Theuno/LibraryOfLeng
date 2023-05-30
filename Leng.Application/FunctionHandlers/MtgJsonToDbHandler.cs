@@ -15,7 +15,7 @@ namespace Leng.Application.FunctionHandlers
 {
     public class MtgJsonToDbHandler
     {
-        MTGDbService dbService = null;
+        readonly MTGDbService dbService;
         string fileName = "AllSetFiles.zip";
         private readonly ILogger _logger;
 
