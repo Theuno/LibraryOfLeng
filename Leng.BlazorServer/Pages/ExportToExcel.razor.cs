@@ -101,20 +101,9 @@ namespace Leng.BlazorServer.Pages
             await SaveAndDownloadExcelPackage(package, "CardsPerSet.xlsx");
         }
 
-        private async Task<string> SaveExcelPackageToFileAsync(ExcelPackage package, string fileName)
-        {
-            var tempFile = Path.GetTempFileName();
-            using (var stream = File.Create(tempFile))
-            {
-                await package.SaveAsAsync(stream);
-            }
-            return tempFile;
-        }
-
         private async Task SaveAndDownloadExcelPackage(ExcelPackage package, string fileName)
         {
             var stream = new MemoryStream(package.GetAsByteArray());
-            var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
             using var streamRef = new DotNetStreamReference(stream: stream);
             await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
