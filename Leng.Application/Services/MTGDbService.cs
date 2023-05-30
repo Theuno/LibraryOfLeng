@@ -49,12 +49,7 @@ namespace Leng.Application.Services {
                 Console.WriteLine(ex.Message);
             }
 
-            if (setCode != null) {
-                return setCode;
-            }
-            else {
-                return null;
-            }
+            return setCode != null ? setCode : null;
         }
 
         public async Task<MTGSets?> GetSetAsync(string setCode) {
@@ -295,7 +290,7 @@ namespace Leng.Application.Services {
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+                Console.WriteLine(ex);
             }
         }
 
