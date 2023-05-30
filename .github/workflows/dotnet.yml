@@ -58,11 +58,9 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: |
+        dotnet clean Leng.sln
         dotnet-sonarscanner begin /k:"colin-sonarsource_dotnet_core_sample" /o:"colin-sonarsource" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
-        cd Leng.BlazorServer
-        dotnet build --configuration Release
-        cd ../Leng.Function.MtgJsonToDb
-        dotnet build --configuration Release
+        dotnet build --no-restore
         dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
     - name: 'Login via Azure CLI'
       uses: azure/login@v1
