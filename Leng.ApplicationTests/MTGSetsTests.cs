@@ -24,15 +24,20 @@ public class MTGSetsTests
         }
     }
 
+    private DbContextOptions<LengDbContext> CreateOptions(string databaseName)
+    {
+        return new DbContextOptionsBuilder<LengDbContext>()
+            .UseInMemoryDatabase(databaseName)
+            .Options;
+    }
+
+
 
     [Test]
     public async Task AddSetAsync_AddsSet_WhenSetCodeDoesNotExist()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<LengDbContext>()
-            .UseInMemoryDatabase(databaseName: "TestDatabase_AddsSet_WhenSetCodeDoesNotExist") // Unique name for in-memory database
-            .Options;
-
+        var options = CreateOptions("TestDatabase_AddsSet_WhenSetCodeDoesNotExist");
         SeedBasicTestData(options);
 
         // Use a clean instance of the context to run the test
@@ -57,10 +62,7 @@ public class MTGSetsTests
     public async Task AddSetAsync_DoesNotAddSet_WhenSetCodeExists()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<LengDbContext>()
-            .UseInMemoryDatabase(databaseName: "TestDatabase_AddSetAsync_WhenSetCodeExists") // Unique name for in-memory database
-            .Options;
-
+        var options = CreateOptions("TestDatabase_AddSetAsync_DoesNotAddSet_WhenSetCodeExists");
         SeedBasicTestData(options);
 
         using (var context = new LengDbContext(options))
@@ -85,10 +87,7 @@ public class MTGSetsTests
     public async Task AddSetAsync_HandlesNullArg()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<LengDbContext>()
-            .UseInMemoryDatabase(databaseName: "TestDatabase_AddSetAsync_HandlesNullArg") // Unique name for in-memory database
-            .Options;
-
+        var options = CreateOptions("TestDatabase_AddSetAsync_HandlesNullArg");
         SeedBasicTestData(options);
 
         using (var context = new LengDbContext(options))
@@ -113,10 +112,7 @@ public class MTGSetsTests
     public async Task GetSetCodeAsync_ValidInput_ReturnsSetCode()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<LengDbContext>()
-            .UseInMemoryDatabase(databaseName: "TestDatabase_GetSetCodeAsync_Null") // Unique name for in-memory database
-            .Options;
-
+        var options = CreateOptions("TestDatabase_GetSetCodeAsync_ValidInput_ReturnsSetCode");
         SeedBasicTestData(options);
 
         // Arrange
@@ -139,10 +135,7 @@ public class MTGSetsTests
     public async Task GetSetCodeAsync_Throws_WhenSetNameIsNull()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<LengDbContext>()
-            .UseInMemoryDatabase(databaseName: "TestDatabase_GetSetCodeAsync_Null") // Unique name for in-memory database
-            .Options;
-
+        var options = CreateOptions("TestDatabase_GetSetCodeAsync_Null");
         SeedBasicTestData(options);
 
         // Act
@@ -161,10 +154,7 @@ public class MTGSetsTests
     public async Task GetSetCodeAsync_Throws_WhenSetNameIsEmpty()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<LengDbContext>()
-            .UseInMemoryDatabase(databaseName: "TestDatabase_GetSetCodeAsync_WhenSetNameIsEmpty") // Unique name for in-memory database
-            .Options;
-
+        var options = CreateOptions("TestDatabase_GetSetCodeAsync_WhenSetNameIsEmpty");
         SeedBasicTestData(options);
 
         // Act
@@ -183,10 +173,7 @@ public class MTGSetsTests
     public async Task GetSetCodeAsync_ReturnsNull_WhenSetNameDoesNotExist()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<LengDbContext>()
-            .UseInMemoryDatabase(databaseName: "TestDatabase_DoesNotExist") // Unique name for in-memory database
-            .Options;
-
+        var options = CreateOptions("TestDatabase_GetSetCodeAsync_ReturnsNull_WhenSetNameDoesNotExist");
         SeedBasicTestData(options);
 
         // Act
