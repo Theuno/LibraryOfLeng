@@ -42,7 +42,7 @@ public class MTGSetsTests
         using (var context = new LengDbContext(options))
         {
             // Assert
-            Assert.IsTrue(context.MTGSets.Any(set => set.setCode == "4ED"));
+            Assert.That(context.MTGSets.Any(set => set.setCode == "4ED"));
         }
     }
 
@@ -75,7 +75,8 @@ public class MTGSetsTests
         using (var context = new LengDbContext(options))
         {
             // Assert
-            Assert.AreEqual(2, context.MTGSets.Count());  // Check that the count of sets hasn't increased
+            // Check that the count of sets hasn't increased
+            Assert.That(context.MTGSets.Count(), Is.EqualTo(2));
         }
     }
 
@@ -107,7 +108,8 @@ public class MTGSetsTests
         using (var context = new LengDbContext(options))
         {
             // Assert
-            Assert.AreEqual(2, context.MTGSets.Count());  // Check that the count of sets hasn't increased
+            // Check that the count of sets hasn't increased
+            Assert.That(context.MTGSets.Count(), Is.EqualTo(2));
         }
     }
 
@@ -142,7 +144,7 @@ public class MTGSetsTests
         }
 
         // Assert
-        Assert.AreEqual(expectedSetCode, setCode);
+        Assert.That(setCode, Is.EqualTo(expectedSetCode));
     }
 
     [Test]
@@ -169,8 +171,8 @@ public class MTGSetsTests
 
             // Act & Assert
             var ex = Assert.ThrowsAsync<ArgumentException>(async () => await service.GetSetCodeAsync(null));
-            Assert.AreEqual("Set name cannot be null or empty (Parameter 'setName')", ex.Message);
-            Assert.AreEqual("setName", ex.ParamName);
+            Assert.That(ex.Message, Is.EqualTo("Set name cannot be null or empty (Parameter 'setName')"));
+            Assert.That(ex.ParamName, Is.EqualTo("setName"));
         }
     }
 
@@ -198,8 +200,8 @@ public class MTGSetsTests
 
             // Act & Assert
             var ex = Assert.ThrowsAsync<ArgumentException>(async () => await service.GetSetCodeAsync(""));
-            Assert.AreEqual("Set name cannot be null or empty (Parameter 'setName')", ex.Message);
-            Assert.AreEqual("setName", ex.ParamName);
+            Assert.That(ex.Message, Is.EqualTo("Set name cannot be null or empty (Parameter 'setName')"));
+            Assert.That(ex.ParamName, Is.EqualTo("setName"));
         }
     }
 
@@ -229,6 +231,6 @@ public class MTGSetsTests
         }
 
         // Assert
-        Assert.IsNull(setCode);
+        Assert.That(setCode, Is.Null);
     }
 }
