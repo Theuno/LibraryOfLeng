@@ -76,7 +76,7 @@ namespace Leng.BlazorServer.Pages {
             var msalId = LengAuthenticationService.getMsalId(await authenticationState);
             var LengUser = await dbService.GetLengUserAsync(msalId);
 
-            var setCode = await dbService.getSetCodeAsync(set);
+            var setCode = await dbService.GetSetCodeAsync(set);
             cards = await dbService.GetCardsInSetForUserAsync(LengUser, setCode);
 
             foreach (var card in cards) {

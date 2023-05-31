@@ -6,7 +6,9 @@ using Leng.Domain.Models;
 using Leng.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Moq;
+using Moq.EntityFrameworkCore;
 using NUnit.Framework;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 public class MTGSetsTests
 {
@@ -14,57 +16,249 @@ public class MTGSetsTests
 
     private Mock<LengDbContext> _mockDbContext;
     private Mock<DbSet<MTGSets>> _mockDbSet;
+    private Mock<DbSet<MTGCards>> _mockDbCards;
 
     [SetUp]
     public void Setup()
     {
-        var data = new List<MTGSets>
+        var setData = new List<MTGSets>
         {
             new MTGSets { setCode = "ATQ", /* other properties */ },
+            new MTGSets { setCode = "LEA", name =  "Limited Edition Alpha" /* other properties */}
             // Add more existing sets as needed
-        }.AsQueryable();
+        };
 
-        _mockDbSet = new Mock<DbSet<MTGSets>>();
-        _mockDbSet.As<IQueryable<MTGSets>>().Setup(m => m.Provider).Returns(data.Provider);
-        _mockDbSet.As<IQueryable<MTGSets>>().Setup(m => m.Expression).Returns(data.Expression);
-        _mockDbSet.As<IQueryable<MTGSets>>().Setup(m => m.ElementType).Returns(data.ElementType);
-        _mockDbSet.As<IQueryable<MTGSets>>().Setup(m => m.GetEnumerator()).Returns(data.GetEnumerator());
+        var cardData = new List<MTGCards>
+        {
+            new MTGCards { name = "Black Lotus", MTGSets = setData.FirstOrDefault(m => m.setCode == "LEA"), setCode = "LEA", number = "232", /* other properties */ }
+            // Add more existing cards as needed
+        };
 
         _mockDbContext = new Mock<LengDbContext>();
-        _mockDbContext.Setup(c => c.MTGSets).Returns(_mockDbSet.Object);
-        
+        _mockDbContext.Setup(c => c.MTGSets).ReturnsDbSet(setData);
+        _mockDbContext.Setup(c => c.Set<MTGCards>()).ReturnsDbSet(cardData);
+
         _MTGDbService = new MTGDbService(_mockDbContext.Object);
     }
+
 
     [Test]
     public async Task AddSetAsync_AddsSet_WhenSetCodeDoesNotExist()
     {
-        var newSet = new MTGSets { setCode = "4ED", /* other properties */ };
+        // Arrange
+        var options = new DbContextOptionsBuilder<LengDbContext>()
+            .UseInMemoryDatabase(databaseName: "TestDatabase_AddsSet_WhenSetCodeDoesNotExist") // Unique name for in-memory database
+            .Options;
 
-        await _MTGDbService.AddSetAsync(newSet);
+        // Insert seed data into the database using one instance of the context
+        using (var context = new LengDbContext(options))
+        {
+            context.MTGSets.AddRange(new MTGSets { setCode = "ATQ", /* other properties */ },
+                                     new MTGSets { setCode = "LEA", name = "Limited Edition Alpha" /* other properties */});
+            context.SaveChanges();
+        }
 
-        _mockDbSet.Verify(m => m.AddAsync(It.IsAny<MTGSets>(), default(CancellationToken)), Times.Once);
-        _mockDbContext.Verify(m => m.SaveChangesAsync(default(CancellationToken)), Times.Once);
+        // Use a clean instance of the context to run the test
+        using (var context = new LengDbContext(options))
+        {
+            var service = new MTGDbService(context);
+            var newSet = new MTGSets { setCode = "4ED", /* other properties */ };
+
+            // Act
+            await service.AddSetAsync(newSet);
+        }
+
+        // Use another instance of the context to verify the results
+        using (var context = new LengDbContext(options))
+        {
+            // Assert
+            Assert.IsTrue(context.MTGSets.Any(set => set.setCode == "4ED"));
+        }
     }
-
 
     [Test]
     public async Task AddSetAsync_DoesNotAddSet_WhenSetCodeExists()
     {
-        var existingSet = new MTGSets { setCode = "ATQ", /* other properties */ };
+        // Arrange
+        var options = new DbContextOptionsBuilder<LengDbContext>()
+            .UseInMemoryDatabase(databaseName: "TestDatabase_AddSetAsync_WhenSetCodeExists") // Unique name for in-memory database
+            .Options;
 
-        await _MTGDbService.AddSetAsync(existingSet);
+        using (var context = new LengDbContext(options))
+        {
+            context.MTGSets.AddRange(
+                new MTGSets { setCode = "ATQ", /* other properties */ },
+                new MTGSets { setCode = "LEA", name = "Limited Edition Alpha", /* other properties */ });
+            context.SaveChanges();
+        }
 
-        _mockDbSet.Verify(m => m.AddAsync(It.IsAny<MTGSets>(), default(CancellationToken)), Times.Never);
-        _mockDbContext.Verify(m => m.SaveChangesAsync(default(CancellationToken)), Times.Never);
+        using (var context = new LengDbContext(options))
+        {
+            var service = new MTGDbService(context);
+            var existingSet = new MTGSets { setCode = "ATQ", /* other properties */ };
+
+            // Act
+            await service.AddSetAsync(existingSet);
+        }
+
+        // Use another instance of the context to verify the results
+        using (var context = new LengDbContext(options))
+        {
+            // Assert
+            Assert.AreEqual(2, context.MTGSets.Count());  // Check that the count of sets hasn't increased
+        }
     }
 
     [Test]
     public async Task AddSetAsync_HandlesNullArg()
     {
-        await _MTGDbService.AddSetAsync(null);
+        // Arrange
+        var options = new DbContextOptionsBuilder<LengDbContext>()
+            .UseInMemoryDatabase(databaseName: "TestDatabase_AddSetAsync_HandlesNullArg") // Unique name for in-memory database
+            .Options;
 
-        _mockDbSet.Verify(m => m.AddAsync(It.IsAny<MTGSets>(), default(CancellationToken)), Times.Never);
-        _mockDbContext.Verify(m => m.SaveChangesAsync(default(CancellationToken)), Times.Never);
+        using (var context = new LengDbContext(options))
+        {
+            context.MTGSets.AddRange(
+                new MTGSets { setCode = "ATQ", /* other properties */ },
+                new MTGSets { setCode = "LEA", name = "Limited Edition Alpha", /* other properties */ });
+            context.SaveChanges();
+        }
+
+        using (var context = new LengDbContext(options))
+        {
+            var service = new MTGDbService(context);
+
+            // Act
+            await service.AddSetAsync(null);
+        }
+
+        // Use another instance of the context to verify the results
+        using (var context = new LengDbContext(options))
+        {
+            // Assert
+            Assert.AreEqual(2, context.MTGSets.Count());  // Check that the count of sets hasn't increased
+        }
+    }
+
+
+    [Test]
+    public async Task GetSetCodeAsync_ValidInput_ReturnsSetCode()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<LengDbContext>()
+            .UseInMemoryDatabase(databaseName: "TestDatabase_GetSetCodeAsync_Null") // Unique name for in-memory database
+            .Options;
+
+        // Insert seed data into the database using one instance of the context
+        using (var context = new LengDbContext(options))
+        {
+            context.MTGSets.AddRange(
+                new MTGSets { setCode = "4ED", name = "Fourth Edition" },
+                new MTGSets { setCode = "LEA", name = "Limited Edition Alpha" });
+            context.SaveChanges();
+        }
+
+        // Arrange
+        var setName = "Fourth Edition";
+        var expectedSetCode = "4ED";  // Expected setCode for "Limited Edition Alpha" set
+
+        // Act
+        string setCode;
+        using (var context = new LengDbContext(options))
+        {
+            var service = new MTGDbService(context);
+            setCode = await service.GetSetCodeAsync(setName);
+        }
+
+        // Assert
+        Assert.AreEqual(expectedSetCode, setCode);
+    }
+
+    [Test]
+    public async Task GetSetCodeAsync_Throws_WhenSetNameIsNull()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<LengDbContext>()
+            .UseInMemoryDatabase(databaseName: "TestDatabase_GetSetCodeAsync_Null") // Unique name for in-memory database
+            .Options;
+
+        // Insert seed data into the database using one instance of the context
+        using (var context = new LengDbContext(options))
+        {
+            context.MTGSets.AddRange(
+                new MTGSets { setCode = "ATQ", /* other properties */ },
+                new MTGSets { setCode = "LEA", name = "Limited Edition Alpha" /* other properties */});
+            context.SaveChanges();
+        }
+
+        // Act
+        using (var context = new LengDbContext(options))
+        {
+            var service = new MTGDbService(context);
+
+            // Act & Assert
+            var ex = Assert.ThrowsAsync<ArgumentException>(async () => await service.GetSetCodeAsync(null));
+            Assert.AreEqual("Set name cannot be null or empty (Parameter 'setName')", ex.Message);
+            Assert.AreEqual("setName", ex.ParamName);
+        }
+    }
+
+    [Test]
+    public async Task GetSetCodeAsync_Throws_WhenSetNameIsEmpty()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<LengDbContext>()
+            .UseInMemoryDatabase(databaseName: "TestDatabase_GetSetCodeAsync_WhenSetNameIsEmpty") // Unique name for in-memory database
+            .Options;
+
+        // Insert seed data into the database using one instance of the context
+        using (var context = new LengDbContext(options))
+        {
+            context.MTGSets.AddRange(
+                new MTGSets { setCode = "ATQ", },
+                new MTGSets { setCode = "LEA", name = "Limited Edition Alpha" });
+            context.SaveChanges();
+        }
+
+        // Act
+        using (var context = new LengDbContext(options))
+        {
+            var service = new MTGDbService(context);
+
+            // Act & Assert
+            var ex = Assert.ThrowsAsync<ArgumentException>(async () => await service.GetSetCodeAsync(""));
+            Assert.AreEqual("Set name cannot be null or empty (Parameter 'setName')", ex.Message);
+            Assert.AreEqual("setName", ex.ParamName);
+        }
+    }
+
+    [Test]
+    public async Task GetSetCodeAsync_ReturnsNull_WhenSetNameDoesNotExist()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<LengDbContext>()
+            .UseInMemoryDatabase(databaseName: "TestDatabase_DoesNotExist") // Unique name for in-memory database
+            .Options;
+
+        // Insert seed data into the database using one instance of the context
+        using (var context = new LengDbContext(options))
+        {
+            context.MTGSets.AddRange(
+                new MTGSets { setCode = "ATQ", /* other properties */ },
+                new MTGSets { setCode = "LEA", name = "Limited Edition Alpha" /* other properties */});
+            context.SaveChanges();
+        }
+
+        // Act
+        string setCode;
+        using (var context = new LengDbContext(options))
+        {
+            var service = new MTGDbService(context);
+            setCode = await service.GetSetCodeAsync("This set name does not exist");
+        }
+
+        // Assert
+        Assert.IsNull(setCode);
     }
 }

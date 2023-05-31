@@ -9,7 +9,7 @@ namespace Leng.Infrastructure {
         public LengDbContext() : this(new DbContextOptions<LengDbContext>()) { }
 
         public virtual DbSet<MTGSets> MTGSets { get; set; }
-        public DbSet<MTGCards> MTGCard { get; set; }
+        public virtual DbSet<MTGCards> MTGCard { get; set; }
         public DbSet<LengUser> LengUser { get; set; }
         public DbSet<LengUserMTGCards> LengUserMTGCards { get; set; }
 

@@ -5,10 +5,10 @@
 
 <h3>QuickDeckCheck</h3>
 
-<MudProgressLinear Color="Color.Primary" Value="@LoadingValue" Class="my-7" />
+<MudProgressLinear Color="Color.Primary" Value="@_loadingValue" Class="my-7" />
 
 <MudTextField T="string" Label="Deck List" Variant="Variant.Outlined" Multiline="true" DebounceInterval="300"
-              ValueChanged="HandleDeckListChange" Lines="30"/>
+              ValueChanged="HandleDeckListChangeAsync" Lines="30"/>
 
 @if (_resultSheet.Count != 0)
 {
