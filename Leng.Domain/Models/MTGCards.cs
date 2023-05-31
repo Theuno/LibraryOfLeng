@@ -76,7 +76,7 @@ namespace Leng.Domain.Models
         // Method to return IComparer object for sort helper.
         public static IComparer SortCardsAscending()
         {
-            return (IComparer)new SortCardsHelper();
+            return new SortCardsHelper();
         }
 
 

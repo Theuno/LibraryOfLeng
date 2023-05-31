@@ -67,7 +67,7 @@ namespace Leng.BlazorServer.Pages
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+                Console.WriteLine(ex);
             }
 
             return null;
