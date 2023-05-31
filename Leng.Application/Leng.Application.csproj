@@ -9,7 +9,9 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components" Version="7.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="7.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="7.0.5" />
     <PackageReference Include="Microsoft.Identity.Web" Version="2.11.0" />
+    <PackageReference Include="Moq.EntityFrameworkCore" Version="7.0.0.2" />
   </ItemGroup>
 
   <ItemGroup>

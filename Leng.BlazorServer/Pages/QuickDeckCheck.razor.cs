@@ -16,12 +16,12 @@ namespace Leng.BlazorServer.Pages
         private LengUser? _lengUser;
         [CascadingParameter] private Task<AuthenticationState>? authenticationState { get; set; }
 
-        public int LoadingValue { get; set; }
+        public int _loadingValue { get; set; }
         private string _resultList = "";
         private List<ShowSheet>? _resultSheet = new List<ShowSheet>();
 
         [Inject] IDbContextFactory<LengDbContext> cf { get; set; } = default!;
-        //private readonly Regex arenaCardLineRegex = new Regex(@"^(?<count>\d+)\s+(?<name>[\w\s',!\?\.]+)\s*(?<isFoil>\(Foil\))?");
+
         private readonly Regex arenaCardLineRegex = new Regex(@"^(?<count>\d+)\s+(?<name>[\w\s',!\?\.-]+(?:\s*//\s*[\w\s',!\?\.]+)?)\s*(?<isFoil>\(Foil\))?");
         private readonly Regex mtgoCardLineRegex = new Regex(@"^(?<count>\d+)\s+(?<name>[\w\s',!\?\.-]+)\s+\[(?<setCode>[A-Za-z0-9]+)\]\s+\[(?<cardNumber>\d+)\]");
 
@@ -38,9 +38,9 @@ namespace Leng.BlazorServer.Pages
 
         }
 
-        private async void HandleDeckListChange(string deckList)
+        private async Task HandleDeckListChangeAsync(string deckList)
         {
-            LoadingValue = 0;
+            _loadingValue = 0;
             var dbService = new MTGDbService(cf.CreateDbContext());
 
             StringBuilder missingCards = new StringBuilder();
@@ -48,6 +48,7 @@ namespace Leng.BlazorServer.Pages
 
             StringBuilder errorList = new StringBuilder();
             errorList.Append("Problems found: \r");
+
 
             _resultList = "";
             _resultList += missingCards;
@@ -63,7 +64,7 @@ namespace Leng.BlazorServer.Pages
 
             foreach (var line in lines)
             {
-                LoadingValue += progressPerLine;
+                _loadingValue += progressPerLine;
                 _ = InvokeAsync(StateHasChanged);
 
                 var arenaMatch = arenaCardLineRegex.Match(line);
@@ -113,6 +114,7 @@ namespace Leng.BlazorServer.Pages
                 if (collectedCards == null)
                 {
                     missingCards.AppendLine(name);
+                    continue;
                 }
 
                 int missingCount = count;
@@ -137,7 +139,7 @@ namespace Leng.BlazorServer.Pages
                 }
             }
 
-            LoadingValue = 100;
+            _loadingValue = 100;
 
             _resultList += "\r";
             _resultList += errorList;

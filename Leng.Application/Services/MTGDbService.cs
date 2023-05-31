@@ -29,27 +29,17 @@ namespace Leng.Application.Services {
             return await _dbContext.MTGSets.OrderBy(x => x.name).ToListAsync();
         }
 
-        public async Task<MTGSets?> getSetFromNameAsync(string setName) {
-            if (!string.IsNullOrEmpty(setName) && _dbContext.MTGSets != null) {
-                var setCode = await getSetCodeAsync(setName);
-                return await GetSetAsync(setCode);
-            }
-
-            return null;
-        }
-
         // Get SetCode for set
-        public async Task<string>? getSetCodeAsync(string setName) {
-            string? setCode = null;
-            try {
-                var set = await _dbContext.MTGSets.Where(set => set.name == setName).FirstOrDefaultAsync();
-                setCode = set.setCode;
-            }
-            catch (Exception ex) {
-                Console.WriteLine(ex.Message);
+        public async Task<string>? GetSetCodeAsync(string setName)
+        {
+            if (string.IsNullOrEmpty(setName))
+            {
+                throw new ArgumentException("Set name cannot be null or empty", nameof(setName));
             }
 
-            return setCode != null ? setCode : null;
+            var set = await _dbContext.MTGSets.FirstOrDefaultAsync(s => s.name == setName);
+
+            return set?.setCode;
         }
 
         public async Task<MTGSets?> GetSetAsync(string setCode) {
