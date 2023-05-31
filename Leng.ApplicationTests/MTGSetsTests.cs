@@ -1,18 +1,11 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Leng.Application.Services;
 using Leng.Domain.Models;
 using Leng.Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using Moq;
-using Moq.EntityFrameworkCore;
-using NUnit.Framework;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 public class MTGSetsTests
 {
-    private void SeedBasicTestData(DbContextOptions<LengDbContext> options)
+    private static void SeedBasicTestData(DbContextOptions<LengDbContext> options)
     {
         // Insert seed data into the database using one instance of the context
         using (var context = new LengDbContext(options))
@@ -24,14 +17,12 @@ public class MTGSetsTests
         }
     }
 
-    private DbContextOptions<LengDbContext> CreateOptions(string databaseName)
+    private static DbContextOptions<LengDbContext> CreateOptions(string databaseName)
     {
         return new DbContextOptionsBuilder<LengDbContext>()
             .UseInMemoryDatabase(databaseName)
             .Options;
     }
-
-
 
     [Test]
     public async Task AddSetAsync_AddsSet_WhenSetCodeDoesNotExist()
