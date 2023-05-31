@@ -12,36 +12,6 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 public class MTGSetsTests
 {
-    private MTGDbService _MTGDbService;
-
-    private Mock<LengDbContext> _mockDbContext;
-    private Mock<DbSet<MTGSets>> _mockDbSet;
-    private Mock<DbSet<MTGCards>> _mockDbCards;
-
-    [SetUp]
-    public void Setup()
-    {
-        var setData = new List<MTGSets>
-        {
-            new MTGSets { setCode = "ATQ", /* other properties */ },
-            new MTGSets { setCode = "LEA", name =  "Limited Edition Alpha" /* other properties */}
-            // Add more existing sets as needed
-        };
-
-        var cardData = new List<MTGCards>
-        {
-            new MTGCards { name = "Black Lotus", MTGSets = setData.FirstOrDefault(m => m.setCode == "LEA"), setCode = "LEA", number = "232", /* other properties */ }
-            // Add more existing cards as needed
-        };
-
-        _mockDbContext = new Mock<LengDbContext>();
-        _mockDbContext.Setup(c => c.MTGSets).ReturnsDbSet(setData);
-        _mockDbContext.Setup(c => c.Set<MTGCards>()).ReturnsDbSet(cardData);
-
-        _MTGDbService = new MTGDbService(_mockDbContext.Object);
-    }
-
-
     [Test]
     public async Task AddSetAsync_AddsSet_WhenSetCodeDoesNotExist()
     {
