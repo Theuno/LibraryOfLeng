@@ -32,29 +32,32 @@ namespace Leng.BlazorServer.Pages
             var dbService = new MTGDbService(cf.CreateDbContext());
             var cards = await dbService.GetAllCardsFromUserCollectionAsync(_lengUser);
 
+            // Using the non commercial license of EPPlus
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            var package = new ExcelPackage();
-            var worksheet = package.Workbook.Worksheets.Add("All Cards");
-            worksheet.Cells[1, 1].Value = "Card Name";
-            worksheet.Cells[1, 2].Value = "Card Number";
-            worksheet.Cells[1, 3].Value = "Set Code";
-            worksheet.Cells[1, 4].Value = "Count";
-            worksheet.Cells[1, 5].Value = "Count Foil";
 
-            int row = 2;
-            foreach (var card in cards)
+            using (var package = new ExcelPackage())
             {
-                worksheet.Cells[row, 1].Value = card.MTGCards.name;
-                worksheet.Cells[row, 2].Value = card.MTGCards.number;
-                worksheet.Cells[row, 3].Value = card.MTGCards.setCode;
-                //worksheet.Cells[row, 4].Value = card.LengUserMTGCards.Sum(c => c.count);
-                worksheet.Cells[row, 4].Value = card.count;
-                worksheet.Cells[row, 5].Value = card.countFoil;
-                row++;
+                var worksheet = package.Workbook.Worksheets.Add("All Cards");
+                worksheet.Cells[1, 1].Value = "Card Name";
+                worksheet.Cells[1, 2].Value = "Card Number";
+                worksheet.Cells[1, 3].Value = "Set Code";
+                worksheet.Cells[1, 4].Value = "Count";
+                worksheet.Cells[1, 5].Value = "Count Foil";
+
+                int row = 2;
+                foreach (var card in cards)
+                {
+                    worksheet.Cells[row, 1].Value = card.MTGCards.name;
+                    worksheet.Cells[row, 2].Value = card.MTGCards.number;
+                    worksheet.Cells[row, 3].Value = card.MTGCards.setCode;
+                    //worksheet.Cells[row, 4].Value = card.LengUserMTGCards.Sum(c => c.count);
+                    worksheet.Cells[row, 4].Value = card.count;
+                    worksheet.Cells[row, 5].Value = card.countFoil;
+                    row++;
+                }
+
+                await SaveAndDownloadExcelPackage(package, "AllCards.xlsx");
             }
-
-            await SaveAndDownloadExcelPackage(package, "AllCards.xlsx");
-
         }
 
         // Function to export cards per set on a separate sheet

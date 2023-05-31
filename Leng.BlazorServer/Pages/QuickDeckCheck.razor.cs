@@ -44,7 +44,7 @@ namespace Leng.BlazorServer.Pages
 
             // The cards we have in our collection
             var dbService = new MTGDbService(cf.CreateDbContext());
-            
+
             /*
             var cards = await dbService.GetCollectionAsync(_lengUser!.Id);
             
@@ -99,14 +99,13 @@ namespace Leng.BlazorServer.Pages
                     line.StartsWith("Artifacts") ||
                     line.StartsWith("Enchantments") ||
                     line.StartsWith("Instants") ||
-                    line.StartsWith("Sorceries") || 
-                    line.StartsWith("Sideboard") || 
-                    line.StartsWith("Maybeboard") || 
+                    line.StartsWith("Sorceries") ||
+                    line.StartsWith("Sideboard") ||
+                    line.StartsWith("Maybeboard") ||
                     line.StartsWith("Tok"))
                 {
                     continue;
                 }
-                
 
                 if (arenaMatch.Success)
                 {
