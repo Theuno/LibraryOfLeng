@@ -12,6 +12,19 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 public class MTGSetsTests
 {
+    private void SeedBasicTestData(DbContextOptions<LengDbContext> options)
+    {
+        // Insert seed data into the database using one instance of the context
+        using (var context = new LengDbContext(options))
+        {
+            context.MTGSets.AddRange(
+                new MTGSets { setCode = "ATQ", name = "Antiquities" },
+                new MTGSets { setCode = "LEA", name = "Limited Edition Alpha" });
+            context.SaveChanges();
+        }
+    }
+
+
     [Test]
     public async Task AddSetAsync_AddsSet_WhenSetCodeDoesNotExist()
     {
@@ -20,13 +33,7 @@ public class MTGSetsTests
             .UseInMemoryDatabase(databaseName: "TestDatabase_AddsSet_WhenSetCodeDoesNotExist") // Unique name for in-memory database
             .Options;
 
-        // Insert seed data into the database using one instance of the context
-        using (var context = new LengDbContext(options))
-        {
-            context.MTGSets.AddRange(new MTGSets { setCode = "ATQ", /* other properties */ },
-                                     new MTGSets { setCode = "LEA", name = "Limited Edition Alpha" /* other properties */});
-            context.SaveChanges();
-        }
+        SeedBasicTestData(options);
 
         // Use a clean instance of the context to run the test
         using (var context = new LengDbContext(options))
@@ -54,13 +61,7 @@ public class MTGSetsTests
             .UseInMemoryDatabase(databaseName: "TestDatabase_AddSetAsync_WhenSetCodeExists") // Unique name for in-memory database
             .Options;
 
-        using (var context = new LengDbContext(options))
-        {
-            context.MTGSets.AddRange(
-                new MTGSets { setCode = "ATQ", /* other properties */ },
-                new MTGSets { setCode = "LEA", name = "Limited Edition Alpha", /* other properties */ });
-            context.SaveChanges();
-        }
+        SeedBasicTestData(options);
 
         using (var context = new LengDbContext(options))
         {
@@ -88,13 +89,7 @@ public class MTGSetsTests
             .UseInMemoryDatabase(databaseName: "TestDatabase_AddSetAsync_HandlesNullArg") // Unique name for in-memory database
             .Options;
 
-        using (var context = new LengDbContext(options))
-        {
-            context.MTGSets.AddRange(
-                new MTGSets { setCode = "ATQ", /* other properties */ },
-                new MTGSets { setCode = "LEA", name = "Limited Edition Alpha", /* other properties */ });
-            context.SaveChanges();
-        }
+        SeedBasicTestData(options);
 
         using (var context = new LengDbContext(options))
         {
@@ -122,18 +117,11 @@ public class MTGSetsTests
             .UseInMemoryDatabase(databaseName: "TestDatabase_GetSetCodeAsync_Null") // Unique name for in-memory database
             .Options;
 
-        // Insert seed data into the database using one instance of the context
-        using (var context = new LengDbContext(options))
-        {
-            context.MTGSets.AddRange(
-                new MTGSets { setCode = "4ED", name = "Fourth Edition" },
-                new MTGSets { setCode = "LEA", name = "Limited Edition Alpha" });
-            context.SaveChanges();
-        }
+        SeedBasicTestData(options);
 
         // Arrange
-        var setName = "Fourth Edition";
-        var expectedSetCode = "4ED";  // Expected setCode for "Limited Edition Alpha" set
+        var setName = "Antiquities";
+        var expectedSetCode = "ATQ";
 
         // Act
         string setCode;
@@ -155,14 +143,7 @@ public class MTGSetsTests
             .UseInMemoryDatabase(databaseName: "TestDatabase_GetSetCodeAsync_Null") // Unique name for in-memory database
             .Options;
 
-        // Insert seed data into the database using one instance of the context
-        using (var context = new LengDbContext(options))
-        {
-            context.MTGSets.AddRange(
-                new MTGSets { setCode = "ATQ", /* other properties */ },
-                new MTGSets { setCode = "LEA", name = "Limited Edition Alpha" /* other properties */});
-            context.SaveChanges();
-        }
+        SeedBasicTestData(options);
 
         // Act
         using (var context = new LengDbContext(options))
@@ -184,14 +165,7 @@ public class MTGSetsTests
             .UseInMemoryDatabase(databaseName: "TestDatabase_GetSetCodeAsync_WhenSetNameIsEmpty") // Unique name for in-memory database
             .Options;
 
-        // Insert seed data into the database using one instance of the context
-        using (var context = new LengDbContext(options))
-        {
-            context.MTGSets.AddRange(
-                new MTGSets { setCode = "ATQ", },
-                new MTGSets { setCode = "LEA", name = "Limited Edition Alpha" });
-            context.SaveChanges();
-        }
+        SeedBasicTestData(options);
 
         // Act
         using (var context = new LengDbContext(options))
@@ -213,14 +187,7 @@ public class MTGSetsTests
             .UseInMemoryDatabase(databaseName: "TestDatabase_DoesNotExist") // Unique name for in-memory database
             .Options;
 
-        // Insert seed data into the database using one instance of the context
-        using (var context = new LengDbContext(options))
-        {
-            context.MTGSets.AddRange(
-                new MTGSets { setCode = "ATQ", /* other properties */ },
-                new MTGSets { setCode = "LEA", name = "Limited Edition Alpha" /* other properties */});
-            context.SaveChanges();
-        }
+        SeedBasicTestData(options);
 
         // Act
         string setCode;
