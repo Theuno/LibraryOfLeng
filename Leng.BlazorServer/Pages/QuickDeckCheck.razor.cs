@@ -18,7 +18,7 @@ namespace Leng.BlazorServer.Pages
 
         public int _loadingValue { get; set; }
         private string _resultList = "";
-        private List<ShowSheet>? _resultSheet = new List<ShowSheet>();
+        private readonly List<ShowSheet>? _resultSheet = new List<ShowSheet>();
 
         [Inject] IDbContextFactory<LengDbContext> cf { get; set; } = default!;
 
@@ -41,7 +41,22 @@ namespace Leng.BlazorServer.Pages
         private async Task HandleDeckListChangeAsync(string deckList)
         {
             _loadingValue = 0;
+
+            // The cards we have in our collection
             var dbService = new MTGDbService(cf.CreateDbContext());
+
+            /*
+            var cards = await dbService.GetCollectionAsync(_lengUser!.Id);
+            
+            // The cards we have in our collection, grouped by name
+            var cardsByName = cards.GroupBy(c => c.Name).ToDictionary(g => g.Key, g => g.ToList());
+            // The cards we have in our collection, grouped by name and set
+            var cardsByNameAndSet = cards.GroupBy(c => new { c.Name, c.SetCode }).ToDictionary(g => g.Key, g => g.ToList());
+            // The cards we have in our collection, grouped by name and set and number
+            var cardsByNameAndSetAndNumber = cards.GroupBy(c => new { c.Name, c.SetCode, c.Number }).ToDictionary(g => g.Key, g => g.ToList());
+            // The cards we have in our collection, grouped by name and set and number and isFoil
+            var cardsByNameAndSetAndNumberAndIsFoil = cards.GroupBy(c => new { c.Name, c.SetCode, c.Number, c.IsFoil }).ToDictionary(g => g.Key, g => g.ToList());
+            */
 
             StringBuilder missingCards = new StringBuilder();
             missingCards.Append("Missing cards: \r");
@@ -84,14 +99,13 @@ namespace Leng.BlazorServer.Pages
                     line.StartsWith("Artifacts") ||
                     line.StartsWith("Enchantments") ||
                     line.StartsWith("Instants") ||
-                    line.StartsWith("Sorceries") || 
-                    line.StartsWith("Sideboard") || 
-                    line.StartsWith("Maybeboard") || 
+                    line.StartsWith("Sorceries") ||
+                    line.StartsWith("Sideboard") ||
+                    line.StartsWith("Maybeboard") ||
                     line.StartsWith("Tok"))
                 {
                     continue;
                 }
-                
 
                 if (arenaMatch.Success)
                 {

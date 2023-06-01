@@ -76,16 +76,22 @@ namespace Leng.Domain.Models
         // Method to return IComparer object for sort helper.
         public static IComparer SortCardsAscending()
         {
-            return (IComparer)new SortCardsHelper();
+            return new SortCardsHelper();
         }
 
 
         public int MTGCardsID { get; set; }
         public string? artist { get; set; }
 
+        // TODO: setCode should become a foreign key to MTGSets
         [JsonPropertyName("setCode")]
         [Column(TypeName = "varchar(8)")]
         public string? setCode { get; set; }
+        /*
+            [ForeignKey("setCode")]
+            public virtual MTGSets MTGSets { get; set; }
+        */
+
         public string? name { get; set; }
 
         // Relationship to sets
