@@ -19,7 +19,8 @@ namespace Leng.Application.FunctionHandlers
         string fileName = "AllSetFiles.zip";
         private readonly ILogger _logger;
 
-        public MtgJsonToDbHandler(ILogger logger, LengDbContext lengDbContext) {
+        public MtgJsonToDbHandler(ILogger logger, LengDbContext lengDbContext)
+        {
             _logger = logger;
 
             dbService = new MTGDbService(lengDbContext);
@@ -87,23 +88,27 @@ namespace Leng.Application.FunctionHandlers
             }
         }
 
-        private async Task ImportMTGSet(string file) {
+        private async Task ImportMTGSet(string file)
+        {
             using FileStream openStream = File.OpenRead(file);
 
             JsonNode mtgNodes = JsonNode.Parse(openStream);
             JsonObject mtgData = mtgNodes["data"]!.AsObject();
 
-            try {
+            try
+            {
                 MTGSets set = JsonSerializer.Deserialize<MTGSets>(mtgData.ToString());
 
-                if (!set.isOnlineOnly && !set.isPartialPreview) {
+                if (!set.isOnlineOnly && !set.isPartialPreview)
+                {
                     await dbService.AddSetAsync(set);
 
                     // Add cards
                     JsonArray mtgCards = mtgNodes["data"]["cards"]!.AsArray();
                     List<MTGCards> setCards = new List<MTGCards>();
 
-                    for (int i = 0; i < mtgCards.Count; i++) {
+                    for (int i = 0; i < mtgCards.Count; i++)
+                    {
                         // Foils? Forest317★
                         // Dead?  El-Hajjâj134†
 
@@ -112,7 +117,7 @@ namespace Leng.Application.FunctionHandlers
                         {
                             // Set the colors property to a list of MTGColor objects
                             JsonArray colorArray = mtgCards[i]["colors"].AsArray();
-                            
+
                             if (colorArray.Count > 0)
                             {
                                 card.color = "";
@@ -122,7 +127,7 @@ namespace Leng.Application.FunctionHandlers
                                     card.color += color;
                                 }
                             }
-                            
+
                             var identifiers = mtgCards[i]["identifiers"].AsObject();
                             card.scryfallId = identifiers["scryfallId"].ToString();
 
@@ -130,13 +135,15 @@ namespace Leng.Application.FunctionHandlers
                         }
                     }
 
-                    if (setCards.Count > 0) {
+                    if (setCards.Count > 0)
+                    {
                         await dbService.AddCardsAsync(setCards);
                     }
                 }
 
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.LogInformation("Error: " + ex.Message);
             }
         }

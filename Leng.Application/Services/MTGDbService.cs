@@ -1,31 +1,32 @@
 ﻿using Leng.Domain.Models;
 using Leng.Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Leng.Application.Services {
-    public class MTGDbService {
+namespace Leng.Application.Services
+{
+    public class MTGDbService
+    {
         private readonly LengDbContext _dbContext;
-        public MTGDbService(LengDbContext dbContext) {
+        public MTGDbService(LengDbContext dbContext)
+        {
             _dbContext = dbContext;
         }
 
-        public async Task AddSetAsync(MTGSets set) {
-            if (set != null) {
+        public async Task AddSetAsync(MTGSets set)
+        {
+            if (set != null)
+            {
                 var dbSetWhere = _dbContext.MTGSets.Where(r => r.setCode == set.setCode).SingleOrDefault();
 
-                if (dbSetWhere == null) {
+                if (dbSetWhere == null)
+                {
                     await _dbContext.MTGSets.AddAsync(set);
                     await _dbContext.SaveChangesAsync();
                 }
             }
         }
-        public async Task<List<MTGSets>> GetAllSetsAsync() {
+        public async Task<List<MTGSets>> GetAllSetsAsync()
+        {
             return await _dbContext.MTGSets.OrderBy(x => x.name).ToListAsync();
         }
 
@@ -42,13 +43,17 @@ namespace Leng.Application.Services {
             return set?.setCode;
         }
 
-        public async Task<MTGSets?> GetSetAsync(string setCode) {
-            if (!string.IsNullOrEmpty(setCode) && _dbContext.MTGSets != null) {
-                if (setCode.Length >= 3 && setCode.Length <= 5) {
+        public async Task<MTGSets?> GetSetAsync(string setCode)
+        {
+            if (!string.IsNullOrEmpty(setCode) && _dbContext.MTGSets != null)
+            {
+                if (setCode.Length >= 3 && setCode.Length <= 5)
+                {
                     var set = await _dbContext.MTGSets.Where(set => set.setCode == setCode).FirstOrDefaultAsync();
                     return set;
                 }
-                else {
+                else
+                {
                     throw new ArgumentException("Value must be between 3 and 5 characters.", nameof(setCode));
                 }
             }
@@ -56,12 +61,15 @@ namespace Leng.Application.Services {
             return new MTGSets();
         }
 
-        public async Task<List<MTGSets>> SearchSetsContainingCardsAsync(string mtgset) {
+        public async Task<List<MTGSets>> SearchSetsContainingCardsAsync(string mtgset)
+        {
             // if text is null or empty, show complete list
-            if (string.IsNullOrEmpty(mtgset)) {
+            if (string.IsNullOrEmpty(mtgset))
+            {
                 return await GetAllSetsAsync();
             }
-            else {
+            else
+            {
                 List<MTGSets> list = await _dbContext.MTGSets
                         .Include(s => s.Cards)
                         .Where(x => x.name.Contains(mtgset) && x.Cards.Count != 0).ToListAsync();
@@ -71,7 +79,8 @@ namespace Leng.Application.Services {
 
         // This function gets the cards from the database matching a part of the name
         // It has preference for cards that start with the name, but if there are no matches, it will return cards that contain the name
-        public async Task<IEnumerable<MTGCards>> getCardsAsync(string cardName, CancellationToken cancellationToken) {
+        public async Task<IEnumerable<MTGCards>> getCardsAsync(string cardName, CancellationToken cancellationToken)
+        {
             var cards = await _dbContext.MTGCard
                 .Where(c => c.name.StartsWith(cardName))
                 .Include(cards => cards.LengUserMTGCards)
@@ -80,7 +89,8 @@ namespace Leng.Application.Services {
                 .ToListAsync(cancellationToken);
 
             // if no cards match, do a contains match.
-            if (cards.Count == 0) {
+            if (cards.Count == 0)
+            {
                 cards = await _dbContext.MTGCard
                     .Where(c => c.name.Contains(cardName))
                     .Include(cards => cards.LengUserMTGCards)
@@ -91,11 +101,14 @@ namespace Leng.Application.Services {
             return cards;
         }
 
-        public async Task AddCardAsync(MTGCards card) {
+        public async Task AddCardAsync(MTGCards card)
+        {
             var set = _dbContext.MTGSets.Where(r => r.setCode == card.setCode).SingleOrDefault();
 
-            if (set != null) {
-                if (set.Cards == null) {
+            if (set != null)
+            {
+                if (set.Cards == null)
+                {
                     // TODO: This should have been part of the init somewhere?
                     set.Cards = new List<MTGCards>();
                 }
@@ -107,7 +120,8 @@ namespace Leng.Application.Services {
                         (c.setCode == card.setCode) &&
                         (card.side == "a" || card.side == null)).SingleOrDefaultAsync();
 
-                if (dbCard == null) {
+                if (dbCard == null)
+                {
                     set.Cards.Add(card);
                     _dbContext.SaveChanges();
                 }
@@ -127,17 +141,21 @@ namespace Leng.Application.Services {
             }
         }
 
-        internal async Task AddCardsAsync(List<MTGCards> setCards) {
+        internal async Task AddCardsAsync(List<MTGCards> setCards)
+        {
             var set = _dbContext.MTGSets.Where(r => r.setCode == setCards.FirstOrDefault().setCode).SingleOrDefault();
-            if (set != null && set.Cards == null) {
+            if (set != null && set.Cards == null)
+            {
                 set.Cards = new List<MTGCards>();
             }
 
-            foreach (MTGCards card in setCards) {
+            foreach (MTGCards card in setCards)
+            {
                 if (card.name != null &&
-                    card.number != null && 
-                    card.setCode != null && 
-                    (card.side == "a" || card.side == null)) {
+                    card.number != null &&
+                    card.setCode != null &&
+                    (card.side == "a" || card.side == null))
+                {
 
                     MTGCards dbCard = await _dbContext.MTGCard.Where(
                         c =>
@@ -146,7 +164,8 @@ namespace Leng.Application.Services {
                         (c.setCode == card.setCode)
                         ).SingleOrDefaultAsync();
 
-                    if (dbCard == null) {
+                    if (dbCard == null)
+                    {
                         set.Cards.Add(card);
                     }
                     else
@@ -156,7 +175,7 @@ namespace Leng.Application.Services {
                         dbCard.scryfallId = card.scryfallId;
                         dbCard.faceName = card.faceName;
 
-                    //    dbCard.colors = card.colors;
+                        //    dbCard.colors = card.colors;
                     }
                 }
             }
@@ -164,7 +183,8 @@ namespace Leng.Application.Services {
         }
 
         // Get single card - GetCard
-        public async Task<MTGCards> getCardAsync(string cardName, MTGSets set, int cardNumber) {
+        public async Task<MTGCards> getCardAsync(string cardName, MTGSets set, int cardNumber)
+        {
             MTGCards card = await _dbContext.MTGCard
                 .Where(c => c.name == cardName &&
                     c.number == cardNumber.ToString() &&
@@ -174,7 +194,8 @@ namespace Leng.Application.Services {
         }
 
         // Get single card - GetCard
-        public async Task<MTGCards> getCardAsync(string cardName, MTGSets set, string cardNumber) {
+        public async Task<MTGCards> getCardAsync(string cardName, MTGSets set, string cardNumber)
+        {
             MTGCards card = await _dbContext.MTGCard
                 .Where(c => c.name == cardName &&
                     c.number == cardNumber &&
@@ -183,8 +204,10 @@ namespace Leng.Application.Services {
             return card;
         }
 
-        public async Task AddLengUserAsync(string aduuid) {
-            if (!string.IsNullOrEmpty(aduuid)) {
+        public async Task AddLengUserAsync(string aduuid)
+        {
+            if (!string.IsNullOrEmpty(aduuid))
+            {
                 LengUser user = new LengUser();
                 user.aduuid = aduuid;
 
@@ -193,8 +216,10 @@ namespace Leng.Application.Services {
             }
         }
 
-        public async Task<LengUser> GetLengUserAsync(string aduuid) {
-            if (!string.IsNullOrEmpty(aduuid)) {
+        public async Task<LengUser> GetLengUserAsync(string aduuid)
+        {
+            if (!string.IsNullOrEmpty(aduuid))
+            {
                 var user = await _dbContext.LengUser.Where(u => u.aduuid == aduuid).SingleOrDefaultAsync();
                 return user;
             }
@@ -236,7 +261,8 @@ namespace Leng.Application.Services {
             return cards;
         }
 
-        public async Task<IEnumerable<MTGCards>> GetCardsForUserAsync(LengUser user, string cardName) {
+        public async Task<IEnumerable<MTGCards>> GetCardsForUserAsync(LengUser user, string cardName)
+        {
             List<MTGCards> cardsList = await _dbContext.MTGCard
                 .Where(cards => cards.name == cardName)
                 .Include(cards => cards.LengUserMTGCards)
@@ -246,10 +272,12 @@ namespace Leng.Application.Services {
             return cardsList;
         }
 
-        public async Task<IEnumerable<MTGCards>> GetCardsInSetForUserAsync(LengUser user, string setCode) {
+        public async Task<IEnumerable<MTGCards>> GetCardsInSetForUserAsync(LengUser user, string setCode)
+        {
             var set = await _dbContext.MTGSets.FirstOrDefaultAsync(set => set.setCode == setCode);
 
-            if (set != null) {
+            if (set != null)
+            {
                 List<MTGCards> cardsList = await _dbContext.MTGCard
                     .Where(cards => cards.setCode == setCode)
                     .Include(cards => cards.LengUserMTGCards)
@@ -257,22 +285,24 @@ namespace Leng.Application.Services {
 
                 cardsList.Sort();
                 return cardsList;
-
             }
 
             return null;
         }
 
-        public async Task updateCardOfUserAsync(string number, string name, string setCode, int count, int countFoil, LengUser user) {
+        public async Task updateCardOfUserAsync(string number, string name, string setCode, int count, int countFoil, LengUser user)
+        {
             var set = await GetSetAsync(setCode);
             var card = await getCardAsync(name, set, number);
 
             var dbCard = _dbContext.LengUserMTGCards.Where(c => c.LengUser == user && c.MTGCards == card).SingleOrDefault();
-            if (dbCard != null) {
+            if (dbCard != null)
+            {
                 dbCard.count = count;
                 dbCard.countFoil = countFoil;
             }
-            else {
+            else
+            {
                 await _dbContext.LengUserMTGCards.AddAsync(new LengUserMTGCards { LengUser = user, MTGCards = card, count = count, countFoil = countFoil });
             }
 

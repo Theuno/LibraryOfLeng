@@ -15,7 +15,7 @@ namespace Leng.Application.Tests
                 context.MTGSets.AddRange(
                     new MTGSets { setCode = "ATQ", name = "Antiquities" },
                     new MTGSets { setCode = "LEA", name = "Limited Edition Alpha" },
-                    new MTGSets { setCode = "WAR", name = "War of the Spark"});
+                    new MTGSets { setCode = "WAR", name = "War of the Spark" });
                 context.SaveChanges();
 
                 context.MTGCard.AddRange(
@@ -205,7 +205,7 @@ namespace Leng.Application.Tests
                 var sets = await service.SearchSetsContainingCardsAsync("");
 
                 // Assert
-                Assert.That(sets.Count, Is.EqualTo(context.MTGSets.Count()));
+                Assert.That(sets, Has.Count.EqualTo(context.MTGSets.Count()));
                 // Please adjust the assertion as needed. This assumes GetAllSetsAsync returns all sets.
             }
         }
