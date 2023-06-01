@@ -2,46 +2,58 @@ using Leng.Application.Services;
 using Leng.Domain.Models;
 using Leng.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Leng.Application.Tests
 {
-    public class MTGSetsTests
+    public static class MTGTestGenerics 
     {
-        private static void SeedBasicTestData(DbContextOptions<LengDbContext> options)
-        {
-            // Insert seed data into the database using one instance of the context
-            using (var context = new LengDbContext(options))
-            {
-                context.MTGSets.AddRange(
-                    new MTGSets { setCode = "ATQ", name = "Antiquities" },
-                    new MTGSets { setCode = "LEA", name = "Limited Edition Alpha" },
-                    new MTGSets { setCode = "WAR", name = "War of the Spark" });
-                context.SaveChanges();
-
-                context.MTGCard.AddRange(
-                    new MTGCards { name = "Urza's Mine", setCode = "ATQ", MTGSets = context.MTGSets.Where(c => c.setCode == "ATQ").FirstOrDefault() },
-                    new MTGCards { name = "Urza's Power Plant", setCode = "ATQ", MTGSets = context.MTGSets.Where(c => c.setCode == "ATQ").FirstOrDefault() },
-                    new MTGCards { name = "Urza's Tower", setCode = "ATQ", MTGSets = context.MTGSets.Where(c => c.setCode == "ATQ").FirstOrDefault() },
-                    new MTGCards { name = "Black Lotus", setCode = "LEA", MTGSets = context.MTGSets.Where(c => c.setCode == "LEA").FirstOrDefault() },
-                    new MTGCards { name = "Mox Pearl", setCode = "LEA", MTGSets = context.MTGSets.Where(c => c.setCode == "LEA").FirstOrDefault() },
-                    new MTGCards { name = "Mox Sapphire", setCode = "LEA", MTGSets = context.MTGSets.Where(c => c.setCode == "LEA").FirstOrDefault() });
-                context.SaveChanges();
-            }
-        }
-
-        private static DbContextOptions<LengDbContext> CreateOptions(string databaseName)
+        public static DbContextOptions<LengDbContext> CreateOptions(string databaseName)
         {
             return new DbContextOptionsBuilder<LengDbContext>()
                 .UseInMemoryDatabase(databaseName)
                 .Options;
         }
 
+        public static void SeedBasicTestData(DbContextOptions<LengDbContext> options)
+        {
+            // Insert seed data into the database using one instance of the context
+            using (var context = new LengDbContext(options))
+            {
+                var sets = new MTGSets[]
+                {
+                    new MTGSets { setCode = "ATQ", name = "Antiquities" },
+                    new MTGSets { setCode = "LEA", name = "Limited Edition Alpha" },
+                    new MTGSets { setCode = "WAR", name = "War of the Spark" }
+                };
+
+                context.MTGSets.AddRange(sets);
+                context.SaveChanges();
+
+                var cards = new MTGCards[]
+                {
+                    new MTGCards { name = "Urza's Mine", number = "83b", MTGSets = sets[0] },
+                    new MTGCards { name = "Urza's Power Plant", number = "84a", MTGSets = sets[0] },
+                    new MTGCards { name = "Urza's Tower", number = "85c", MTGSets = sets[0] },
+                    new MTGCards { name = "Black Lotus", number = "232", MTGSets = sets[1] },
+                    new MTGCards { name = "Mox Pearl", number = "263", MTGSets = sets[1] },
+                    new MTGCards { name = "Mox Sapphire", number = "265", MTGSets = sets[1] }
+                };
+
+                context.MTGCard.AddRange(cards);
+                context.SaveChanges();
+            }
+        }
+    }
+
+    public class MTGSetsTests
+    {
         [Test]
         public async Task AddSetAsync_AddsSet_WhenSetCodeDoesNotExist()
         {
             // Arrange
-            var options = CreateOptions("TestDatabase_AddsSet_WhenSetCodeDoesNotExist");
-            SeedBasicTestData(options);
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_AddsSet_WhenSetCodeDoesNotExist");
+            MTGTestGenerics.SeedBasicTestData(options);
 
             // Use a clean instance of the context to run the test
             using (var context = new LengDbContext(options))
@@ -65,8 +77,8 @@ namespace Leng.Application.Tests
         public async Task AddSetAsync_DoesNotAddSet_WhenSetCodeExists()
         {
             // Arrange
-            var options = CreateOptions("TestDatabase_AddSetAsync_DoesNotAddSet_WhenSetCodeExists");
-            SeedBasicTestData(options);
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_AddSetAsync_DoesNotAddSet_WhenSetCodeExists");
+            MTGTestGenerics.SeedBasicTestData(options);
 
             using (var context = new LengDbContext(options))
             {
@@ -90,8 +102,8 @@ namespace Leng.Application.Tests
         public async Task AddSetAsync_HandlesNullArg()
         {
             // Arrange
-            var options = CreateOptions("TestDatabase_AddSetAsync_HandlesNullArg");
-            SeedBasicTestData(options);
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_AddSetAsync_HandlesNullArg");
+            MTGTestGenerics.SeedBasicTestData(options);
 
             using (var context = new LengDbContext(options))
             {
@@ -115,8 +127,8 @@ namespace Leng.Application.Tests
         public async Task GetSetCodeAsync_ValidInput_ReturnsSetCode()
         {
             // Arrange
-            var options = CreateOptions("TestDatabase_GetSetCodeAsync_ValidInput_ReturnsSetCode");
-            SeedBasicTestData(options);
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_GetSetCodeAsync_ValidInput_ReturnsSetCode");
+            MTGTestGenerics.SeedBasicTestData(options);
 
             // Arrange
             var setName = "Antiquities";
@@ -138,8 +150,8 @@ namespace Leng.Application.Tests
         public async Task GetSetCodeAsync_Throws_WhenSetNameIsNull()
         {
             // Arrange
-            var options = CreateOptions("TestDatabase_GetSetCodeAsync_Null");
-            SeedBasicTestData(options);
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_GetSetCodeAsync_Null");
+            MTGTestGenerics.SeedBasicTestData(options);
 
             // Act
             using (var context = new LengDbContext(options))
@@ -157,8 +169,8 @@ namespace Leng.Application.Tests
         public async Task GetSetCodeAsync_Throws_WhenSetNameIsEmpty()
         {
             // Arrange
-            var options = CreateOptions("TestDatabase_GetSetCodeAsync_WhenSetNameIsEmpty");
-            SeedBasicTestData(options);
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_GetSetCodeAsync_WhenSetNameIsEmpty");
+            MTGTestGenerics.SeedBasicTestData(options);
 
             // Act
             using (var context = new LengDbContext(options))
@@ -176,8 +188,8 @@ namespace Leng.Application.Tests
         public async Task GetSetCodeAsync_ReturnsNull_WhenSetNameDoesNotExist()
         {
             // Arrange
-            var options = CreateOptions("TestDatabase_GetSetCodeAsync_ReturnsNull_WhenSetNameDoesNotExist");
-            SeedBasicTestData(options);
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_GetSetCodeAsync_ReturnsNull_WhenSetNameDoesNotExist");
+            MTGTestGenerics.SeedBasicTestData(options);
 
             // Act
             string setCode;
@@ -195,8 +207,8 @@ namespace Leng.Application.Tests
         public async Task SearchSetsContainingCardsAsync_ReturnsAllSets_WhenEmptyStringIsPassed()
         {
             // Arrange
-            var options = CreateOptions("TestDatabase_ReturnsAllSets_WhenEmptyStringIsPassed");
-            SeedBasicTestData(options);
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_ReturnsAllSets_WhenEmptyStringIsPassed");
+            MTGTestGenerics.SeedBasicTestData(options);
             using (var context = new LengDbContext(options))
             {
                 var service = new MTGDbService(context);
@@ -214,8 +226,8 @@ namespace Leng.Application.Tests
         public async Task SearchSetsContainingCardsAsync_ReturnsSetsWithNameContainingPassedString_AndSetsHaveCards()
         {
             // Arrange
-            var options = CreateOptions("TestDatabase_ReturnsSetsWithNameContainingPassedString_AndSetsHaveCards");
-            SeedBasicTestData(options); // Make sure you seed data with at least one set containing cards.
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_ReturnsSetsWithNameContainingPassedString_AndSetsHaveCards");
+            MTGTestGenerics.SeedBasicTestData(options); // Make sure you seed data with at least one set containing cards.
             var setToSearch = "Alpha"; // Make sure "Alpha" appears in at least one of your seed sets with cards.
             using (var context = new LengDbContext(options))
             {
@@ -233,8 +245,8 @@ namespace Leng.Application.Tests
         public async Task SearchSetsContainingCardsAsync_ReturnsNoSetsWithNameContainingPassedString_AndSetHasNoCards()
         {
             // Arrange
-            var options = CreateOptions("TestDatabase_ReturnsNoSetsWithNameContainingPassedString_AndSetHasNoCards");
-            SeedBasicTestData(options); // Make sure you seed data with at least one set containing cards.
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_ReturnsNoSetsWithNameContainingPassedString_AndSetHasNoCards");
+            MTGTestGenerics.SeedBasicTestData(options); // Make sure you seed data with at least one set containing cards.
             var setToSearch = "Spark"; // Make sure "Alpha" appears in at least one of your seed sets with cards.
             using (var context = new LengDbContext(options))
             {
@@ -245,6 +257,161 @@ namespace Leng.Application.Tests
 
                 // Assert
                 Assert.That(sets, Is.All.Matches<MTGSets>(s => s.name.Contains(setToSearch) && s.Cards.Count != 0));
+            }
+        }
+    }
+
+    public class MTGCardsTests
+    {
+        [Test]
+        public async Task GetCardsAsync_ReturnsCards_WhenCardNamesStartWithProvidedString()
+        {
+            // Arrange
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_ReturnsCards_WhenCardNamesStartWithProvidedString");
+            MTGTestGenerics.SeedBasicTestData(options);
+
+            var cardNameToSearch = "Black";
+            using (var context = new LengDbContext(options))
+            {
+                var service = new MTGDbService(context);
+
+                // Act
+                var cards = await service.getCardsAsync(cardNameToSearch, CancellationToken.None);
+
+                // Assert
+                Assert.That(cards, Is.All.Matches<MTGCards>(c => c.name.StartsWith(cardNameToSearch)));
+            }
+        }
+
+        [Test]
+        public async Task GetCardsAsync_ReturnsCards_WhenCardNamesContainProvidedString_ButNoCardsStartWithIt()
+        {
+            // Arrange
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_ReturnsCards_WhenCardNamesContainProvidedString_ButNoCardsStartWithIt");
+            MTGTestGenerics.SeedBasicTestData(options);
+
+            var cardNameToSearch = "Lotus";
+            using (var context = new LengDbContext(options))
+            {
+                var service = new MTGDbService(context);
+
+                // Act
+                var cards = await service.getCardsAsync(cardNameToSearch, CancellationToken.None);
+
+                // Assert
+                Assert.That(cards, Is.All.Matches<MTGCards>(c => c.name.Contains(cardNameToSearch)));
+            }
+        }
+
+        [Test]
+        public async Task GetCardsAsync_ReturnsEmpty_WhenNoCardNamesStartWithOrContainProvidedString()
+        {
+            // Arrange
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_ReturnsEmpty_WhenNoCardNamesStartWithOrContainProvidedString");
+            MTGTestGenerics.SeedBasicTestData(options);
+
+            var cardNameToSearch = "Zebra";
+            using (var context = new LengDbContext(options))
+            {
+                var service = new MTGDbService(context);
+
+                // Act
+                var cards = await service.getCardsAsync(cardNameToSearch, CancellationToken.None);
+
+                // Assert
+                Assert.IsEmpty(cards);
+            }
+        }
+
+        [Test]
+        public async Task GetCardsAsync_ReturnsTop20_WhenProvidedStringIsEmpty()
+        {
+            // Arrange
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_ReturnsTop20_WhenProvidedStringIsEmpty");
+
+            using (var context = new LengDbContext(options))
+            {
+                var sets = new MTGSets[]
+                {
+                    new MTGSets { setCode = "ATQ", name = "Antiquities" },
+                    new MTGSets { setCode = "LEA", name = "Limited Edition Alpha" },
+                    new MTGSets { setCode = "WAR", name = "War of the Spark" }
+                };
+                    
+                context.MTGSets.AddRange(sets);
+                context.SaveChanges();
+
+                var cardData = new List<MTGCards>();
+                for (int i = 1; i <= 32; i++)
+                {
+                    var card = new MTGCards();
+                    card.name = $"Animate Wall";
+                    card.number = $"{i}";
+                    card.MTGSets = sets[1];
+
+                    cardData.Add(card);
+                }
+
+                context.MTGCard.AddRange(cardData);
+                context.SaveChanges();
+            }
+
+            var cardNameToSearch = "";
+            using (var context = new LengDbContext(options))
+            {
+                var service = new MTGDbService(context);
+
+                // Act
+                var cards = await service.getCardsAsync(cardNameToSearch, CancellationToken.None);
+
+                // Assert
+                Assert.AreEqual(20, cards.Count());
+            }
+        }
+
+        [Test]
+        public async Task GetCardAsync_ReturnsCorrectCard_WhenGivenStringNumber()
+        {
+            // Arrange
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_ReturnsCorrectCard_WhenGivenStringNumber");
+            MTGTestGenerics.SeedBasicTestData(options);
+
+            using (var context = new LengDbContext(options))
+            {
+                var service = new MTGDbService(context);
+
+                // Act
+                var set = await service.GetSetAsync("ATQ");
+                var card = await service.getCardAsync("Urza's Tower", set, "85c");
+
+                // Assert
+                Assert.That(card, Is.Not.Null);
+                Assert.That(card.name, Is.EqualTo("Urza's Tower"));
+                Assert.That(card.number, Is.EqualTo("85c"));
+                Assert.That(card.MTGSets.setCode, Is.EqualTo("ATQ"));
+            }
+        }
+
+        [Test]
+        public async Task GetCardAsync_ReturnsCorrectCard_WhenGivenIntNumber()
+        {
+            // Arrange
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_ReturnsCorrectCard_WhenGivenIntNumber");
+            MTGTestGenerics.SeedBasicTestData(options);
+
+            using (var context = new LengDbContext(options))
+            {
+                var service = new MTGDbService(context);
+
+                // Act
+                var set = await service.GetSetAsync("LEA");
+                var card = await service.getCardAsync("Mox Sapphire", set, 265);
+
+                // Assert
+                Assert.That(card, Is.Not.Null);
+                Assert.That(card.name, Is.EqualTo("Mox Sapphire"));
+                Assert.That(card.number, Is.EqualTo("265"));
+                Assert.That(card.MTGSets.setCode, Is.EqualTo("LEA"));
             }
         }
 

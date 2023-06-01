@@ -182,26 +182,17 @@ namespace Leng.Application.Services
             await _dbContext.SaveChangesAsync();
         }
 
-        // Get single card - GetCard
-        public async Task<MTGCards> getCardAsync(string cardName, MTGSets set, int cardNumber)
-        {
-            MTGCards card = await _dbContext.MTGCard
-                .Where(c => c.name == cardName &&
-                    c.number == cardNumber.ToString() &&
-                    c.setCode == set.setCode)
-                .SingleOrDefaultAsync();
-            return card;
-        }
-
-        // Get single card - GetCard
         public async Task<MTGCards> getCardAsync(string cardName, MTGSets set, string cardNumber)
         {
-            MTGCards card = await _dbContext.MTGCard
-                .Where(c => c.name == cardName &&
-                    c.number == cardNumber &&
-                    c.setCode == set.setCode)
+            return await _dbContext.MTGCard
+                .Include(c => c.MTGSets)
+                .Where(c => c.name == cardName && c.number == cardNumber && c.MTGSets.setCode == set.setCode)
                 .SingleOrDefaultAsync();
-            return card;
+        }
+
+        public async Task<MTGCards> getCardAsync(string cardName, MTGSets set, int cardNumber)
+        {
+            return await getCardAsync(cardName, set, cardNumber.ToString());
         }
 
         public async Task AddLengUserAsync(string aduuid)

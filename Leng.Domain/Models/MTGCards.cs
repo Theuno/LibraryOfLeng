@@ -83,9 +83,15 @@ namespace Leng.Domain.Models
         public int MTGCardsID { get; set; }
         public string? artist { get; set; }
 
+        // TODO: setCode should become a foreign key to MTGSets
         [JsonPropertyName("setCode")]
         [Column(TypeName = "varchar(8)")]
         public string? setCode { get; set; }
+        /*
+            [ForeignKey("setCode")]
+            public virtual MTGSets MTGSets { get; set; }
+        */
+
         public string? name { get; set; }
 
         // Relationship to sets
