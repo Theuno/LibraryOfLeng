@@ -62,12 +62,14 @@ namespace Leng.Application.Services {
                 return await GetAllSetsAsync();
             }
             else {
-                List<MTGSets> list = await _dbContext.MTGSets.Where(x => x.name.Contains(mtgset) && x.Cards.Count != 0).ToListAsync();
+                List<MTGSets> list = await _dbContext.MTGSets
+                        .Include(s => s.Cards)
+                        .Where(x => x.name.Contains(mtgset) && x.Cards.Count != 0).ToListAsync();
                 return list;
             }
         }
 
-        // This function gets the cards from the database mathcing a part of the name
+        // This function gets the cards from the database matching a part of the name
         // It has preference for cards that start with the name, but if there are no matches, it will return cards that contain the name
         public async Task<IEnumerable<MTGCards>> getCardsAsync(string cardName, CancellationToken cancellationToken) {
             var cards = await _dbContext.MTGCard
