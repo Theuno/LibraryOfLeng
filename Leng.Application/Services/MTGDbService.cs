@@ -182,7 +182,7 @@ namespace Leng.Application.Services
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<MTGCards> getCardAsync(string cardName, MTGSets set, string cardNumber)
+        public async Task<MTGCards?> getCardAsync(string cardName, MTGSets set, string cardNumber)
         {
             return await _dbContext.MTGCard
                 .Include(c => c.MTGSets)
@@ -190,7 +190,7 @@ namespace Leng.Application.Services
                 .SingleOrDefaultAsync();
         }
 
-        public async Task<MTGCards> getCardAsync(string cardName, MTGSets set, int cardNumber)
+        public async Task<MTGCards?> getCardAsync(string cardName, MTGSets set, int cardNumber)
         {
             return await getCardAsync(cardName, set, cardNumber.ToString());
         }
@@ -207,7 +207,7 @@ namespace Leng.Application.Services
             }
         }
 
-        public async Task<LengUser> GetLengUserAsync(string aduuid)
+        public async Task<LengUser?> GetLengUserAsync(string aduuid)
         {
             if (!string.IsNullOrEmpty(aduuid))
             {

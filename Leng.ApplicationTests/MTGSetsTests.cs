@@ -236,8 +236,9 @@ namespace Leng.Application.Tests
         {
             // Arrange
             var options = MTGTestGenerics.CreateOptions("TestDatabase_ReturnsSetsWithNameContainingPassedString_AndSetsHaveCards");
-            MTGTestGenerics.SeedBasicTestData(options); // Make sure you seed data with at least one set containing cards.
-            var setToSearch = "Alpha"; // Make sure "Alpha" appears in at least one of your seed sets with cards.
+            MTGTestGenerics.SeedBasicTestData(options);
+            var setToSearch = "Alpha";
+
             using (var context = new LengDbContext(options))
             {
                 var service = new MTGDbService(context);
