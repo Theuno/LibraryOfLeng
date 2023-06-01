@@ -135,11 +135,18 @@ namespace Leng.Application.Tests
             var expectedSetCode = "ATQ";
 
             // Act
-            string setCode;
+            string setCode = string.Empty;
             using (var context = new LengDbContext(options))
             {
                 var service = new MTGDbService(context);
-                setCode = await service.GetSetCodeAsync(setName);
+                if (service == null)
+                {
+                    Assert.Fail("service is null");
+                }
+                else
+                {
+                    setCode = await service.GetSetCodeAsync(setName);
+                }
             }
 
             // Assert
@@ -179,8 +186,11 @@ namespace Leng.Application.Tests
 
                 // Act & Assert
                 var ex = Assert.ThrowsAsync<ArgumentException>(async () => await service.GetSetCodeAsync(""));
-                Assert.That(ex.Message, Is.EqualTo("Set name cannot be null or empty (Parameter 'setName')"));
-                Assert.That(ex.ParamName, Is.EqualTo("setName"));
+                Assert.Multiple(() =>
+                {
+                    Assert.That(ex.Message, Is.EqualTo("Set name cannot be null or empty (Parameter 'setName')"));
+                    Assert.That(ex.ParamName, Is.EqualTo("setName"));
+                });
             }
         }
 
@@ -218,7 +228,6 @@ namespace Leng.Application.Tests
 
                 // Assert
                 Assert.That(sets, Has.Count.EqualTo(context.MTGSets.Count()));
-                // Please adjust the assertion as needed. This assumes GetAllSetsAsync returns all sets.
             }
         }
 
@@ -319,7 +328,7 @@ namespace Leng.Application.Tests
                 var cards = await service.getCardsAsync(cardNameToSearch, CancellationToken.None);
 
                 // Assert
-                Assert.IsEmpty(cards);
+                Assert.That(cards, Is.Empty);
             }
         }
 
@@ -365,7 +374,7 @@ namespace Leng.Application.Tests
                 var cards = await service.getCardsAsync(cardNameToSearch, CancellationToken.None);
 
                 // Assert
-                Assert.AreEqual(20, cards.Count());
+                Assert.That(cards.Count(), Is.EqualTo(20));
             }
         }
 
@@ -382,13 +391,23 @@ namespace Leng.Application.Tests
 
                 // Act
                 var set = await service.GetSetAsync("ATQ");
-                var card = await service.getCardAsync("Urza's Tower", set, "85c");
+                if (set == null)
+                {
+                    Assert.Fail("Set is null");
+                }
+                else
+                {
+                    var card = await service.getCardAsync("Urza's Tower", set, "85c");
 
-                // Assert
-                Assert.That(card, Is.Not.Null);
-                Assert.That(card.name, Is.EqualTo("Urza's Tower"));
-                Assert.That(card.number, Is.EqualTo("85c"));
-                Assert.That(card.MTGSets.setCode, Is.EqualTo("ATQ"));
+                    // Assert
+                    Assert.Multiple(() =>
+                    {
+                        Assert.That(card, Is.Not.Null);
+                        Assert.That(card.name, Is.EqualTo("Urza's Tower"));
+                        Assert.That(card.number, Is.EqualTo("85c"));
+                        Assert.That(card.MTGSets.setCode, Is.EqualTo("ATQ"));
+                    });
+                }
             }
         }
 
@@ -405,13 +424,23 @@ namespace Leng.Application.Tests
 
                 // Act
                 var set = await service.GetSetAsync("LEA");
-                var card = await service.getCardAsync("Mox Sapphire", set, 265);
+                if (set == null)
+                {
+                    Assert.Fail("Set is null");
+                }
+                else
+                {
+                    var card = await service.getCardAsync("Mox Sapphire", set, 265);
 
-                // Assert
-                Assert.That(card, Is.Not.Null);
-                Assert.That(card.name, Is.EqualTo("Mox Sapphire"));
-                Assert.That(card.number, Is.EqualTo("265"));
-                Assert.That(card.MTGSets.setCode, Is.EqualTo("LEA"));
+                    // Assert
+                    Assert.Multiple(() =>
+                    {
+                        Assert.That(card, Is.Not.Null);
+                        Assert.That(card.name, Is.EqualTo("Mox Sapphire"));
+                        Assert.That(card.number, Is.EqualTo("265"));
+                        Assert.That(card.MTGSets.setCode, Is.EqualTo("LEA"));
+                    });
+                }
             }
         }
 
