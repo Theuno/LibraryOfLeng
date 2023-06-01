@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>5dac8452-ba40-4108-acbf-4aafdadb2e51</UserSecretsId>
+    <ProjectGuid>311A819E-240A-4A0F-90B8-43A1791AD652</ProjectGuid>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="ErikEJ.EntityFrameworkCore.DgmlBuilder" Version="6.0.0" />

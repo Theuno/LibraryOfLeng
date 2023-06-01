@@ -1,12 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
-
   <PropertyGroup>
-	  <TargetFramework>net7.0</TargetFramework>
-	  <Nullable>enable</Nullable>
-	  <ImplicitUsings>enable</ImplicitUsings>
-	  <UserSecretsId>0754030c-8a62-475e-81f1-a0743bddd10f</UserSecretsId>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>0754030c-8a62-475e-81f1-a0743bddd10f</UserSecretsId>
+    <ProjectGuid>215CC5FE-DFCA-49C0-A8B3-1338EA5B34EC</ProjectGuid>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="EPPlus" Version="6.2.4" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
@@ -22,14 +21,11 @@
     <PackageReference Include="Microsoft.Identity.Web.UI" Version="2.7.0" />
     <PackageReference Include="MudBlazor" Version="6.2.2" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Leng.Application\Leng.Application.csproj" />
     <ProjectReference Include="..\Leng.Infrastructure\Leng.Infrastructure.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <Folder Include="Data\" />
   </ItemGroup>
-
 </Project>
