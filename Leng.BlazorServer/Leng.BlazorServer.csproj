@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>0754030c-8a62-475e-81f1-a0743bddd10f</UserSecretsId>
     <ProjectGuid>215CC5FE-DFCA-49C0-A8B3-1338EA5B34EC</ProjectGuid>
+	<SonarQubeTestProject>false</SonarQubeTestProject>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="EPPlus" Version="6.2.4" />
