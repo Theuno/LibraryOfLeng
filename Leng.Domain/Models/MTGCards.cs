@@ -92,7 +92,7 @@ namespace Leng.Domain.Models
             public virtual MTGSets MTGSets { get; set; }
         */
 
-        public string? name { get; set; }
+        public string name { get; set; }
 
         // Relationship to sets
         [Required]

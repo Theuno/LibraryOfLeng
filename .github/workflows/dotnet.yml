@@ -66,8 +66,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           dotnet clean Leng.sln
-          dotnet-sonarscanner begin /k:"Theuno_LibraryOfLeng2" /o:"theuno" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml /d:sonar.verbose=true
-          dotnet build --no-restore --no-incremental -v:diag
+          dotnet-sonarscanner begin /k:"Theuno_LibraryOfLeng2" /o:"theuno" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
+          dotnet build --no-restore --no-incremental
           dotnet-coverage collect 'dotnet test' -f xml -o 'coverage.xml'
           dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
       - name: 'Login via Azure CLI'

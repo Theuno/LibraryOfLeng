@@ -81,8 +81,13 @@ namespace Leng.Application.Services
         // It has preference for cards that start with the name, but if there are no matches, it will return cards that contain the name
         public async Task<IEnumerable<MTGCards>> getCardsAsync(string cardName, CancellationToken cancellationToken)
         {
+            if (cardName == null)
+            {
+                throw new ArgumentException("Value cannot be null or empty.", nameof(cardName));
+            }
+
             var cards = await _dbContext.MTGCard
-                .Where(c => c.name.StartsWith(cardName))
+                .Where(c => c.name.StartsWith(cardName)) // Dereference of a possibly null reference.
                 .Include(cards => cards.LengUserMTGCards)
                 .Take(20) // Limit the results to a certain number
                 .OrderBy(c => c.name)
@@ -93,7 +98,7 @@ namespace Leng.Application.Services
             {
                 cards = await _dbContext.MTGCard
                     .Where(c => c.name.Contains(cardName))
-                    .Include(cards => cards.LengUserMTGCards)
+                    .Include(cards => cards.LengUserMTGCards)  // Dereference of a possibly null reference.
                     .Take(20) // Limit the results to a certain number
                     .OrderBy(c => c.name)
                     .ToListAsync(cancellationToken);

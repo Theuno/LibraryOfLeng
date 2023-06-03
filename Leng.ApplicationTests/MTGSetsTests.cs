@@ -214,6 +214,73 @@ namespace Leng.Application.Tests
         }
 
         [Test]
+        public async Task GetSetAsync_ReturnsCorrectSet_WhenGivenValidSetCode()
+        {
+            // Arrange
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_ReturnsCorrectSet_WhenGivenValidSetCode");
+            MTGTestGenerics.SeedBasicTestData(options);
+
+            using (var context = new LengDbContext(options))
+            {
+                var service = new MTGDbService(context);
+
+                // Act
+                var set = await service.GetSetAsync("ATQ");
+
+                // Assert
+                Assert.Multiple(() =>
+                {
+                    Assert.That(set, Is.Not.Null);
+                    Assert.That(set.setCode, Is.EqualTo("ATQ"));
+                });
+            }
+        }
+
+        [Test]
+        public void GetSetAsync_ThrowsException_WhenGivenInvalidSetCode()
+        {
+            // Arrange
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_ThrowsException_WhenGivenInvalidSetCode");
+            MTGTestGenerics.SeedBasicTestData(options);
+
+            using (var context = new LengDbContext(options))
+            {
+                var service = new MTGDbService(context);
+
+                // Act & Assert
+                var ex = Assert.ThrowsAsync<ArgumentException>(() => service.GetSetAsync("A"));
+                Assert.That(ex.Message, Is.EqualTo("Value must be between 3 and 5 characters. (Parameter 'setCode')"));
+            }
+        }
+
+        [Test]
+        public async Task GetSetAsync_ReturnsEmptyMTGSets_WhenGivenNullOrEmptySetCode()
+        {
+            // Arrange
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_ReturnsEmptyMTGSets_WhenGivenNullOrEmptySetCode");
+            MTGTestGenerics.SeedBasicTestData(options);
+
+            using (var context = new LengDbContext(options))
+            {
+                var service = new MTGDbService(context);
+
+                // Act
+                var set1 = await service.GetSetAsync(null);
+                var set2 = await service.GetSetAsync("");
+
+                // Assert
+                Assert.Multiple(() =>
+                {
+                    Assert.That(set1, Is.Not.Null);
+                    Assert.That(set1.setCode, Is.Null.Or.Empty);
+
+                    Assert.That(set2, Is.Not.Null);
+                    Assert.That(set2.setCode, Is.Null.Or.Empty);
+                });
+            }
+        }
+
+        [Test]
         public async Task SearchSetsContainingCardsAsync_ReturnsAllSets_WhenEmptyStringIsPassed()
         {
             // Arrange
@@ -330,6 +397,27 @@ namespace Leng.Application.Tests
 
                 // Assert
                 Assert.That(cards, Is.Empty);
+            }
+        }
+
+        [Test]
+        public async Task GetCardsAsync_ReturnsCorrectCards_WhenGivenCardName()
+        {
+            // Arrange
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_ReturnsCorrectCards_WhenGivenCardName");
+            MTGTestGenerics.SeedBasicTestData(options);
+
+            using (var context = new LengDbContext(options))
+            {
+                var service = new MTGDbService(context);
+                var cardName = "Mox Sapphire";
+
+                // Act
+                var cards = await service.getCardsAsync(cardName, CancellationToken.None);
+
+                // Assert
+                Assert.That(cards, Is.Not.Empty);
+                Assert.That(cards.All(c => c.name.Contains(cardName)));
             }
         }
 
