@@ -468,6 +468,25 @@ namespace Leng.Application.Tests
         }
 
         [Test]
+        public async Task GetCardsAsync_Throw_WhenCalledWithNull()
+        {
+            // Arrange
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_GetCardsAsync_Throw_WhenCalledWithNull");
+            MTGTestGenerics.SeedBasicTestData(options);
+
+            // Act
+            using (var context = new LengDbContext(options))
+            {
+                var service = new MTGDbService(context);
+
+                // Act & Assert
+                var ex = Assert.ThrowsAsync<ArgumentException>(async () => await service.getCardsAsync(null, CancellationToken.None));
+                Assert.That(ex.Message, Is.EqualTo("Value cannot be null or empty. (Parameter 'cardName')"));
+                Assert.That(ex.ParamName, Is.EqualTo("cardName"));
+            }
+        }
+
+        [Test]
         public async Task GetCardAsync_ReturnsCorrectCard_WhenGivenStringNumber()
         {
             // Arrange
