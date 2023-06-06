@@ -43,7 +43,7 @@ namespace Leng.Application.Services
             return set?.setCode;
         }
 
-        public async Task<MTGSets?> GetSetAsync(string setCode)
+        public async Task<MTGSets?> GetSetAsync(string? setCode)
         {
             if (!string.IsNullOrEmpty(setCode) && _dbContext.MTGSets != null)
             {
@@ -81,11 +81,6 @@ namespace Leng.Application.Services
         // It has preference for cards that start with the name, but if there are no matches, it will return cards that contain the name
         public async Task<IEnumerable<MTGCards>> getCardsAsync(string cardName, CancellationToken cancellationToken)
         {
-            if (cardName == null)
-            {
-                throw new ArgumentException("Value cannot be null or empty.", nameof(cardName));
-            }
-
             var cards = await _dbContext.MTGCard
                 .Where(c => c.name.StartsWith(cardName)) // Dereference of a possibly null reference.
                 .Include(cards => cards.LengUserMTGCards)

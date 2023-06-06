@@ -231,7 +231,7 @@ namespace Leng.Application.Tests
                 Assert.Multiple(() =>
                 {
                     Assert.That(set, Is.Not.Null);
-                    Assert.That(set.setCode, Is.EqualTo("ATQ"));
+                    Assert.That(set, Has.Property("setCode").EqualTo("ATQ"));
                 });
             }
         }
@@ -272,10 +272,10 @@ namespace Leng.Application.Tests
                 Assert.Multiple(() =>
                 {
                     Assert.That(set1, Is.Not.Null);
-                    Assert.That(set1.setCode, Is.Null.Or.Empty);
+                    Assert.That(set1, Has.Property("setCode").Null.Or.Empty);
 
                     Assert.That(set2, Is.Not.Null);
-                    Assert.That(set2.setCode, Is.Null.Or.Empty);
+                    Assert.That(set2, Has.Property("setCode").Null.Or.Empty);
                 });
             }
         }
@@ -464,25 +464,6 @@ namespace Leng.Application.Tests
 
                 // Assert
                 Assert.That(cards.Count(), Is.EqualTo(20));
-            }
-        }
-
-        [Test]
-        public async Task GetCardsAsync_Throw_WhenCalledWithNull()
-        {
-            // Arrange
-            var options = MTGTestGenerics.CreateOptions("TestDatabase_GetCardsAsync_Throw_WhenCalledWithNull");
-            MTGTestGenerics.SeedBasicTestData(options);
-
-            // Act
-            using (var context = new LengDbContext(options))
-            {
-                var service = new MTGDbService(context);
-
-                // Act & Assert
-                var ex = Assert.ThrowsAsync<ArgumentException>(async () => await service.getCardsAsync(null, CancellationToken.None));
-                Assert.That(ex.Message, Is.EqualTo("Value cannot be null or empty. (Parameter 'cardName')"));
-                Assert.That(ex.ParamName, Is.EqualTo("cardName"));
             }
         }
 
