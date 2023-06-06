@@ -78,7 +78,10 @@ namespace Leng.Domain.Models
         {
             return new SortCardsHelper();
         }
-
+        public MTGCards()
+        {
+            name = string.Empty; // or some other non-null value
+        }
 
         public int MTGCardsID { get; set; }
         public string? artist { get; set; }
@@ -92,7 +95,7 @@ namespace Leng.Domain.Models
             public virtual MTGSets MTGSets { get; set; }
         */
 
-        public string? name { get; set; }
+        public string name { get; set; }
 
         // Relationship to sets
         [Required]

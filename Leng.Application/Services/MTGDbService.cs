@@ -43,7 +43,7 @@ namespace Leng.Application.Services
             return set?.setCode;
         }
 
-        public async Task<MTGSets?> GetSetAsync(string setCode)
+        public async Task<MTGSets?> GetSetAsync(string? setCode)
         {
             if (!string.IsNullOrEmpty(setCode) && _dbContext.MTGSets != null)
             {
@@ -82,7 +82,7 @@ namespace Leng.Application.Services
         public async Task<IEnumerable<MTGCards>> getCardsAsync(string cardName, CancellationToken cancellationToken)
         {
             var cards = await _dbContext.MTGCard
-                .Where(c => c.name.StartsWith(cardName))
+                .Where(c => c.name.StartsWith(cardName)) // Dereference of a possibly null reference.
                 .Include(cards => cards.LengUserMTGCards)
                 .Take(20) // Limit the results to a certain number
                 .OrderBy(c => c.name)
@@ -93,7 +93,7 @@ namespace Leng.Application.Services
             {
                 cards = await _dbContext.MTGCard
                     .Where(c => c.name.Contains(cardName))
-                    .Include(cards => cards.LengUserMTGCards)
+                    .Include(cards => cards.LengUserMTGCards)  // Dereference of a possibly null reference.
                     .Take(20) // Limit the results to a certain number
                     .OrderBy(c => c.name)
                     .ToListAsync(cancellationToken);
