@@ -32,12 +32,12 @@ namespace Leng.Application.Tests
 
                 var cards = new MTGCards[]
                 {
-                    new MTGCards { name = "Urza's Mine", number = "83b", MTGSets = sets[0] },
-                    new MTGCards { name = "Urza's Power Plant", number = "84a", MTGSets = sets[0] },
-                    new MTGCards { name = "Urza's Tower", number = "85c", MTGSets = sets[0] },
-                    new MTGCards { name = "Black Lotus", number = "232", MTGSets = sets[1] },
-                    new MTGCards { name = "Mox Pearl", number = "263", MTGSets = sets[1] },
-                    new MTGCards { name = "Mox Sapphire", number = "265", MTGSets = sets[1] }
+                    new MTGCards { name = "Urza's Mine", number = "83b", setCode = sets[0].setCode, MTGSets = sets[0] },
+                    new MTGCards { name = "Urza's Power Plant", number = "84a", setCode = sets[0].setCode, MTGSets = sets[0] },
+                    new MTGCards { name = "Urza's Tower", number = "85c", setCode = sets[0].setCode, MTGSets = sets[0] },
+                    new MTGCards { name = "Black Lotus", number = "232", setCode = sets[1].setCode, MTGSets = sets[1] },
+                    new MTGCards { name = "Mox Pearl", number = "263", setCode = sets[1].setCode, MTGSets = sets[1] },
+                    new MTGCards { name = "Mox Sapphire", number = "265", setCode = sets[1].setCode, MTGSets = sets[1] }
                 };
 
                 context.MTGCard.AddRange(cards);
@@ -340,6 +340,184 @@ namespace Leng.Application.Tests
 
     public class MTGCardsTests
     {
+        [Test]
+        public async Task AddCardsAsync_AddsNewCardsToDatabase_WhenNoExistingCards()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<LengDbContext>()
+                .UseInMemoryDatabase(databaseName: "TestDatabase_AddsNewCardsToDatabase_WhenNoExistingCards")
+                .Options;
+
+            var newCards = new List<MTGCards>
+            {
+                new MTGCards
+                {
+                    name = "Card 1",
+                    number = "1",
+                    setCode = "SET1",
+                    asciiName = "Card One",
+                    color = "Red",
+                    edhrecRank = 10,
+                    edhrecSaltiness = 5,
+                    faceName = "Face 1",
+                    scryfallId = "scry1",
+                    text = "This is Card One"
+                },
+                new MTGCards
+                {
+                    name = "Card 2",
+                    number = "2",
+                    setCode = "SET1",
+                    asciiName = "Card Two",
+                    color = "Blue",
+                    edhrecRank = 20,
+                    edhrecSaltiness = 10,
+                    faceName = "Face 2",
+                    scryfallId = "scry2",
+                    text = "This is Card Two"
+                }
+            };
+
+            using (var context = new LengDbContext(options))
+            {
+                var service = new MTGDbService(context);
+                var set = new MTGSets { setCode = "SET1" };
+                context.MTGSets.Add(set);
+                await context.SaveChangesAsync();
+
+                // Act
+                await service.AddCardsAsync(newCards);
+
+                // Assert
+                var cardsInDatabase = await context.MTGCard.ToListAsync();
+                Assert.Multiple(() =>
+                {
+                    Assert.That(cardsInDatabase, Has.Count.EqualTo(2));
+                    Assert.That(cardsInDatabase, Has.One.Matches<MTGCards>(card => card.name == "Card 1" && card.number == "1"));
+                    Assert.That(cardsInDatabase, Has.One.Matches<MTGCards>(card => card.name == "Card 2" && card.number == "2"));
+                });
+            }
+        }
+
+        [Test]
+        public async Task AddCardsAsync_UpdatesExistingCardsInDatabase_WhenExistingCards()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<LengDbContext>()
+                .UseInMemoryDatabase(databaseName: "TestDatabase_UpdatesExistingCardsInDatabase_WhenExistingCards")
+                .Options;
+
+            var newCards = new List<MTGCards>
+            {
+                new MTGCards
+                {
+                    name = "Urza's Mine",
+                    number = "83b",
+                    setCode = "ATQ",
+                    asciiName = "Updated Urza's Mine",
+                    color = "Updated Red",
+                    edhrecRank = 100,
+                    edhrecSaltiness = 50,
+                    faceName = "Updated Face 1",
+                    scryfallId = "Updated scry1",
+                    text = "Updated This is Card One"
+                }
+            };
+
+            using (var context = new LengDbContext(options))
+            {
+                var service = new MTGDbService(context);
+                MTGTestGenerics.SeedBasicTestData(options);
+
+                // Act
+                await service.AddCardsAsync(newCards);
+
+                // Assert
+                var updatedCardInDatabase = await context.MTGCard.FirstOrDefaultAsync(c => c.name == "Urza's Mine" && c.number == "83b");
+
+                Assert.That(updatedCardInDatabase, Is.Not.Null);
+                if(updatedCardInDatabase != null)
+                {
+                    Assert.Multiple(() =>
+                    {
+                        Assert.That(updatedCardInDatabase.asciiName, Is.EqualTo("Updated Urza's Mine"));
+                        Assert.That(updatedCardInDatabase.color, Is.EqualTo("Updated Red"));
+                        Assert.That(updatedCardInDatabase.edhrecRank, Is.EqualTo(100));
+                        Assert.That(updatedCardInDatabase.edhrecSaltiness, Is.EqualTo(50));
+                        Assert.That(updatedCardInDatabase.faceName, Is.EqualTo("Updated Face 1"));
+                        Assert.That(updatedCardInDatabase.scryfallId, Is.EqualTo("Updated scry1"));
+                        Assert.That(updatedCardInDatabase.text, Is.EqualTo("Updated This is Card One"));
+                    });
+                }
+            }
+        }
+
+        [Test]
+        public async Task AddCardsAsync_HandlesMultipleSetsProperly()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<LengDbContext>()
+                .UseInMemoryDatabase(databaseName: "TestDatabase_HandlesMultipleSetsProperly")
+                .Options;
+
+            var newCards = new List<MTGCards>
+            {
+                new MTGCards { name = "New Card 1", number = "1", setCode = "ATQ" },
+                new MTGCards { name = "New Card 2", number = "2", setCode = "LEA" },
+                new MTGCards { name = "New Card 3", number = "3", setCode = "WAR" }
+            };
+
+            using (var context = new LengDbContext(options))
+            {
+                var service = new MTGDbService(context);
+                MTGTestGenerics.SeedBasicTestData(options);
+
+                // Act
+                await service.AddCardsAsync(newCards);
+
+                // Assert
+                var card1 = await context.MTGCard.FirstOrDefaultAsync(c => c.name == "New Card 1" && c.number == "1");
+                var card2 = await context.MTGCard.FirstOrDefaultAsync(c => c.name == "New Card 2" && c.number == "2");
+                var card3 = await context.MTGCard.FirstOrDefaultAsync(c => c.name == "New Card 3" && c.number == "3");
+
+                Assert.Multiple(() =>
+                {
+                    Assert.That(card1, Is.Not.Null);
+                    Assert.That(card2, Is.Not.Null);
+                    Assert.That(card3, Is.Not.Null);
+
+                    Assert.That(card1.MTGSets.setCode, Is.EqualTo("ATQ"));
+                    Assert.That(card2.MTGSets.setCode, Is.EqualTo("LEA"));
+                    Assert.That(card3.MTGSets.setCode, Is.EqualTo("WAR"));
+                });
+            }
+        }
+
+        [Test]
+        public void AddCardsAsync_ThrowsException_WhenSetNotFound()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<LengDbContext>()
+                .UseInMemoryDatabase(databaseName: "TestDatabase_ThrowsException_WhenSetNotFound")
+                .Options;
+
+            var newCards = new List<MTGCards>
+            {
+                new MTGCards { name = "New Card 1", number = "1", setCode = "NONEX" }
+            };
+
+            using (var context = new LengDbContext(options))
+            {
+                var service = new MTGDbService(context);
+                MTGTestGenerics.SeedBasicTestData(options);
+
+                // Assert
+                var ex = Assert.ThrowsAsync<InvalidOperationException>(async () => await service.AddCardsAsync(newCards));
+                Assert.That(ex.Message, Is.EqualTo("Set with code NONEX not found."));
+            }
+        }
+
+
         [Test]
         public async Task GetCardsAsync_ReturnsCards_WhenCardNamesStartWithProvidedString()
         {

@@ -49,7 +49,9 @@ namespace Leng.Application.Services
             {
                 if (setCode.Length >= 3 && setCode.Length <= 5)
                 {
-                    var set = await _dbContext.MTGSets.Where(set => set.setCode == setCode).FirstOrDefaultAsync();
+                    var set = await _dbContext.MTGSets
+                        .Include(s => s.Cards).
+                        Where(set => set.setCode == setCode).FirstOrDefaultAsync();
                     return set;
                 }
                 else
@@ -101,28 +103,47 @@ namespace Leng.Application.Services
             return cards;
         }
 
-        internal async Task AddCardsAsync(List<MTGCards> setCards)
+        public async Task AddCardsAsync(List<MTGCards> setCards)
         {
-            var set = _dbContext.MTGSets.Where(r => r.setCode == setCards.FirstOrDefault().setCode).SingleOrDefault();
-            if (set != null && set.Cards == null)
+            // Group cards by set code
+            var groupedCards = setCards.GroupBy(card => card.setCode);
+
+            // Process each group
+            foreach (var cardGroup in groupedCards)
+            {
+                await AddCardsToSetAsync(cardGroup.ToList());
+            }
+        }
+
+        private async Task AddCardsToSetAsync(List<MTGCards> setCards)
+        {
+            var setCode = setCards.FirstOrDefault()?.setCode;
+
+            if (string.IsNullOrEmpty(setCode)) return;
+
+            // Find the set
+            var set = await GetSetAsync(setCode);
+
+            // If set does not exist, we can't add cards to it
+            if (set == null)
+            {
+                throw new InvalidOperationException($"Set with code {setCode} not found.");
+            }
+
+            if (set.Cards == null)
             {
                 set.Cards = new List<MTGCards>();
             }
 
-            foreach (MTGCards card in setCards)
+            foreach (var card in setCards)
             {
-                if (card.name != null &&
-                    card.number != null &&
-                    card.setCode != null &&
-                    (card.side == "a" || card.side == null))
+                if (card.name != null && card.number != null && (card.side == "a" || card.side == null))
                 {
-
-                    MTGCards dbCard = await _dbContext.MTGCard.Where(
-                        c =>
-                        (c.name == card.name) &&
-                        (c.number == card.number) &&
-                        (c.setCode == card.setCode)
-                        ).SingleOrDefaultAsync();
+                    var dbCard = await _dbContext.MTGCard.Where(
+                        c => c.name == card.name &&
+                             c.number == card.number &&
+                             c.setCode == card.setCode
+                    ).SingleOrDefaultAsync();
 
                     if (dbCard == null)
                     {
@@ -131,14 +152,17 @@ namespace Leng.Application.Services
                     else
                     {
                         // Update properties
+                        dbCard.asciiName = card.asciiName;
                         dbCard.color = card.color;
-                        dbCard.scryfallId = card.scryfallId;
+                        dbCard.edhrecRank = card.edhrecRank;
+                        dbCard.edhrecSaltiness = card.edhrecSaltiness;
                         dbCard.faceName = card.faceName;
-
-                        //    dbCard.colors = card.colors;
+                        dbCard.scryfallId = card.scryfallId;
+                        dbCard.text = card.text;
                     }
                 }
             }
+
             await _dbContext.SaveChangesAsync();
         }
 
