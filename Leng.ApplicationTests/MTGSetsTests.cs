@@ -486,9 +486,13 @@ namespace Leng.Application.Tests
                     Assert.That(card2, Is.Not.Null);
                     Assert.That(card3, Is.Not.Null);
 
-                    Assert.That(card1.MTGSets.setCode, Is.EqualTo("ATQ"));
-                    Assert.That(card2.MTGSets.setCode, Is.EqualTo("LEA"));
-                    Assert.That(card3.MTGSets.setCode, Is.EqualTo("WAR"));
+                    Assert.That(card1?.MTGSets, Is.Not.Null);
+                    Assert.That(card2?.MTGSets, Is.Not.Null);
+                    Assert.That(card3?.MTGSets, Is.Not.Null);
+
+                    Assert.That(card1?.MTGSets.setCode, Is.EqualTo("ATQ"));
+                    Assert.That(card2?.MTGSets.setCode, Is.EqualTo("LEA"));
+                    Assert.That(card3?.MTGSets.setCode, Is.EqualTo("WAR"));
                 });
             }
         }

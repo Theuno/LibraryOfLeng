@@ -132,7 +132,7 @@ namespace Leng.Application.Services
 
             if (set.Cards == null)
             {
-                set.Cards = new List<MTGCards>();
+                throw new InvalidOperationException($"Set with code {setCode} found, but no Cards list is present.");
             }
 
             foreach (var card in setCards)
