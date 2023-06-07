@@ -101,46 +101,6 @@ namespace Leng.Application.Services
             return cards;
         }
 
-        public async Task AddCardAsync(MTGCards card)
-        {
-            var set = _dbContext.MTGSets.Where(r => r.setCode == card.setCode).SingleOrDefault();
-
-            if (set != null)
-            {
-                if (set.Cards == null)
-                {
-                    // TODO: This should have been part of the init somewhere?
-                    set.Cards = new List<MTGCards>();
-                }
-
-                MTGCards dbCard = await _dbContext.MTGCard.Where(
-                    c =>
-                        (c.name == card.name) &&
-                        (c.number == card.number) &&
-                        (c.setCode == card.setCode) &&
-                        (card.side == "a" || card.side == null)).SingleOrDefaultAsync();
-
-                if (dbCard == null)
-                {
-                    set.Cards.Add(card);
-                    _dbContext.SaveChanges();
-                }
-                //else
-                //{
-                //    TODO: Fix update
-                //    dbCard.artist = card.artist;
-                //    dbCard.text = card.text;
-                //    dbCard.setCode = card.setCode;
-                //    dbCard.hasFoil = card.hasFoil;
-                //    dbCard.hasNonFoil = card.hasNonFoil;
-                //    dbCard.number = card.number;
-
-                //    _dbContext.MTGCard.Update(dbCard);
-                //    _dbContext.SaveChanges();
-                //}
-            }
-        }
-
         internal async Task AddCardsAsync(List<MTGCards> setCards)
         {
             var set = _dbContext.MTGSets.Where(r => r.setCode == setCards.FirstOrDefault().setCode).SingleOrDefault();
