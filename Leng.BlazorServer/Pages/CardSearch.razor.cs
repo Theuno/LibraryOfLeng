@@ -107,7 +107,7 @@ namespace Leng.BlazorServer.Pages
             }
         }
 
-        private async void CommittedItemChanges(ShowSheet contextCard)
+        private async Task CommittedItemChanges(ShowSheet contextCard)
         {
             var card = contextCard;
 

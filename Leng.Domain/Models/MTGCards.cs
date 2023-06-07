@@ -80,7 +80,8 @@ namespace Leng.Domain.Models
         }
         public MTGCards()
         {
-            name = string.Empty; // or some other non-null value
+            name = string.Empty;
+            MTGSets = new MTGSets();
         }
 
         public int MTGCardsID { get; set; }

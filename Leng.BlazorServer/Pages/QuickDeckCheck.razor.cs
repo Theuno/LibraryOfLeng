@@ -33,7 +33,7 @@ namespace Leng.BlazorServer.Pages
             _lengUser = await dbService.GetLengUserAsync(msalId);
         }
 
-        private async void CommittedItemChanges(ShowSheet contextCard)
+        private async Task CommittedItemChanges(ShowSheet contextCard)
         {
 
         }
