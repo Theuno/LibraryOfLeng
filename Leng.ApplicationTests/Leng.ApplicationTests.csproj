@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <ProjectGuid>CD5350AE-7EB1-44D6-8732-093EF71A62E6</ProjectGuid>
+    <ProjectGuid>{57C6BE8D-CB76-456F-BDED-234618B166F4}</ProjectGuid>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.2" />
