@@ -14,7 +14,7 @@ namespace Leng.BlazorServer.Pages
         [CascadingParameter] private Task<AuthenticationState>? authenticationState { get; set; }
 
         private string? _selectedCard = string.Empty;
-        private List<ShowSheet>? sheet = new List<ShowSheet>();
+        private readonly List<ShowSheet>? sheet = new List<ShowSheet>();
         private IEnumerable<MTGCards>? cards = new List<MTGCards>();
         
         private CancellationTokenSource _searchCancellationTokenSource = new CancellationTokenSource();

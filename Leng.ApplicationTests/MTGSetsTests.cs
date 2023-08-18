@@ -2,11 +2,11 @@ using Leng.Application.Services;
 using Leng.Domain.Models;
 using Leng.Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using NSubstitute;
 
 namespace Leng.Application.Tests
 {
-    public static class MTGTestGenerics 
+    public static class MTGTestGenerics
     {
         public static DbContextOptions<LengDbContext> CreateOptions(string databaseName)
         {
@@ -138,7 +138,7 @@ namespace Leng.Application.Tests
             string setCode = string.Empty;
             using (var context = new LengDbContext(options))
             {
-                var service = new MTGDbService(context);
+                var service = Substitute.For<MTGDbService>(context);
                 if (service == null)
                 {
                     Assert.Fail("service is null");
