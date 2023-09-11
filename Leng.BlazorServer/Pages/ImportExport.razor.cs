@@ -3,13 +3,65 @@ using Leng.Domain.Models;
 using Leng.Infrastructure;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
-using OfficeOpenXml;
+using MudBlazor;
+using OfficeOpenXml; //? EPPlus
+using System.IO;
 
 namespace Leng.BlazorServer.Pages
 {
-    public partial class ExportToExcel
+    public partial class ImportExportBase : ComponentBase
+    {
+        protected MudDialog importDialog;
+        protected bool uploading = false;
+
+
+
+        protected async void UploadFiles(IBrowserFile file)
+        {
+            if (file == null)
+            {
+                // Handle null file error
+                return;
+            }
+
+            if (file.Size > 10485760) // 10 MB limit
+            {
+                // Handle file size exceeded error
+                return;
+            }
+
+            if (!file.Name.EndsWith(".xlsx"))
+            {
+                // Handle invalid file type error
+                return;
+            }
+
+            Stream stream = file.OpenReadStream();
+            string filename = file.Name;
+            var uploadDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+            var path = Path.Combine(uploadDir, filename);
+
+            if (!Directory.Exists(uploadDir))
+            {
+                Directory.CreateDirectory(uploadDir);
+            }
+
+            FileStream fs = File.Create(path);
+            await stream.CopyToAsync(fs);
+            stream.Close();
+            fs.Close();
+        }
+
+        protected void CloseImportDialog()
+        {
+            importDialog.Close();
+        }
+    }
+
+    public partial class ImportExport
     {
         private LengUser? _lengUser { get; set; }
         [CascadingParameter] private Task<AuthenticationState>? authenticationState { get; set; }
@@ -59,6 +111,20 @@ namespace Leng.BlazorServer.Pages
                 await SaveAndDownloadExcelPackage(package, "AllCards.xlsx");
             }
         }
+
+        //public async Task ImportCardsAsync()
+        //{
+        //    // Validate headers
+        //    var validHeaders1 = new[] { "Card Name", "Card Number", "Set Code", "Count", "Count Foil", "have", "have foil", "want", "want foil", "note" };
+        //    var validHeaders2 = new[] { "kaartnaam", "kaartnummer", "set_code", "c", "c_foil", "h", "h_foil", "w", "w_foil", "notitie" };
+
+        //    var headers = Enumerable.Range(1, 10).Select(col => worksheet.Cells[1, col].Text).ToArray();
+        //    if (!headers.SequenceEqual(validHeaders1) && !headers.SequenceEqual(validHeaders2))
+        //    {
+        //        // Handle invalid header error
+        //        return;
+        //    }
+        //}
 
         // Function to export cards per set on a separate sheet
         public async Task ExportCardsPerSetAsync()
@@ -111,6 +177,5 @@ namespace Leng.BlazorServer.Pages
             using var streamRef = new DotNetStreamReference(stream: stream);
             await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
         }
-
     }
 }

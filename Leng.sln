@@ -3,21 +3,19 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.6.33417.168
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Leng.Application", "Leng.Application\Leng.Application.csproj", "{A1B1BFD1-4808-4C11-A917-68D473FB12B1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Leng.Application", "Leng.Application\Leng.Application.csproj", "{94F02E15-B21B-4F13-87E8-7C1CB73713F3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Leng.Domain", "Leng.Domain\Leng.Domain.csproj", "{1A98AB7D-114E-4720-A8A1-A8860785AB76}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Leng.Domain", "Leng.Domain\Leng.Domain.csproj", "{9803FDED-3A4A-4F2E-8FF8-886DB90AE8A4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Leng.Infrastructure", "Leng.Infrastructure\Leng.Infrastructure.csproj", "{89EA1766-8C72-4580-BB3B-722C3650B7EC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Leng.Infrastructure", "Leng.Infrastructure\Leng.Infrastructure.csproj", "{8F656120-90E9-44CF-8B22-DFB2D65E7240}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Leng.BlazorServer", "Leng.BlazorServer\Leng.BlazorServer.csproj", "{C35F6291-BCC7-4137-8CDE-06E8C56B9524}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Leng.BlazorServer", "Leng.BlazorServer\Leng.BlazorServer.csproj", "{215CC5FE-DFCA-49C0-A8B3-1338EA5B34EC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Leng.Function.MtgJsonToDb", "Leng.Function.MtgJsonToDb\Leng.Function.MtgJsonToDb.csproj", "{CEAA375B-ADA6-4120-A080-AC164814C8B7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Leng.Function.MtgJsonToDb", "Leng.Function.MtgJsonToDb\Leng.Function.MtgJsonToDb.csproj", "{311A819E-240A-4A0F-90B8-43A1791AD652}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2302D42F-1122-43BB-8191-E70B446C6786}"
 	ProjectSection(SolutionItems) = preProject
-		infra-as-code\bicep\bicepconfig.json = infra-as-code\bicep\bicepconfig.json
 		.jscpd.json = .jscpd.json
-		infra-as-code\bicep\leng.bicep = infra-as-code\bicep\leng.bicep
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Leng.ApplicationTests", "Leng.ApplicationTests\Leng.ApplicationTests.csproj", "{57C6BE8D-CB76-456F-BDED-234618B166F4}"
@@ -28,26 +26,26 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A1B1BFD1-4808-4C11-A917-68D473FB12B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A1B1BFD1-4808-4C11-A917-68D473FB12B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A1B1BFD1-4808-4C11-A917-68D473FB12B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A1B1BFD1-4808-4C11-A917-68D473FB12B1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1A98AB7D-114E-4720-A8A1-A8860785AB76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1A98AB7D-114E-4720-A8A1-A8860785AB76}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1A98AB7D-114E-4720-A8A1-A8860785AB76}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1A98AB7D-114E-4720-A8A1-A8860785AB76}.Release|Any CPU.Build.0 = Release|Any CPU
-		{89EA1766-8C72-4580-BB3B-722C3650B7EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{89EA1766-8C72-4580-BB3B-722C3650B7EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{89EA1766-8C72-4580-BB3B-722C3650B7EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{89EA1766-8C72-4580-BB3B-722C3650B7EC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C35F6291-BCC7-4137-8CDE-06E8C56B9524}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C35F6291-BCC7-4137-8CDE-06E8C56B9524}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C35F6291-BCC7-4137-8CDE-06E8C56B9524}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C35F6291-BCC7-4137-8CDE-06E8C56B9524}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CEAA375B-ADA6-4120-A080-AC164814C8B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CEAA375B-ADA6-4120-A080-AC164814C8B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CEAA375B-ADA6-4120-A080-AC164814C8B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CEAA375B-ADA6-4120-A080-AC164814C8B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94F02E15-B21B-4F13-87E8-7C1CB73713F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94F02E15-B21B-4F13-87E8-7C1CB73713F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94F02E15-B21B-4F13-87E8-7C1CB73713F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94F02E15-B21B-4F13-87E8-7C1CB73713F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9803FDED-3A4A-4F2E-8FF8-886DB90AE8A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9803FDED-3A4A-4F2E-8FF8-886DB90AE8A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9803FDED-3A4A-4F2E-8FF8-886DB90AE8A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9803FDED-3A4A-4F2E-8FF8-886DB90AE8A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F656120-90E9-44CF-8B22-DFB2D65E7240}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F656120-90E9-44CF-8B22-DFB2D65E7240}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F656120-90E9-44CF-8B22-DFB2D65E7240}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F656120-90E9-44CF-8B22-DFB2D65E7240}.Release|Any CPU.Build.0 = Release|Any CPU
+		{215CC5FE-DFCA-49C0-A8B3-1338EA5B34EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{215CC5FE-DFCA-49C0-A8B3-1338EA5B34EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{215CC5FE-DFCA-49C0-A8B3-1338EA5B34EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{215CC5FE-DFCA-49C0-A8B3-1338EA5B34EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{311A819E-240A-4A0F-90B8-43A1791AD652}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{311A819E-240A-4A0F-90B8-43A1791AD652}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{311A819E-240A-4A0F-90B8-43A1791AD652}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{311A819E-240A-4A0F-90B8-43A1791AD652}.Release|Any CPU.Build.0 = Release|Any CPU
 		{57C6BE8D-CB76-456F-BDED-234618B166F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{57C6BE8D-CB76-456F-BDED-234618B166F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{57C6BE8D-CB76-456F-BDED-234618B166F4}.Release|Any CPU.ActiveCfg = Release|Any CPU

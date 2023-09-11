@@ -1,5 +1,6 @@
 ﻿using Leng.Domain.Models;
 using Leng.Infrastructure;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace Leng.Application.Services
@@ -20,8 +21,15 @@ namespace Leng.Application.Services
 
                 if (dbSetWhere == null)
                 {
-                    await _dbContext.MTGSets.AddAsync(set);
-                    await _dbContext.SaveChangesAsync();
+                    try
+                    {
+                        await _dbContext.MTGSets.AddAsync(set);
+                        await _dbContext.SaveChangesAsync();
+                    }
+                    catch (SqlException ex)
+                    {
+                        throw new Exception(ex.Message);
+                    }
                 }
             }
         }
@@ -47,7 +55,7 @@ namespace Leng.Application.Services
         {
             if (!string.IsNullOrEmpty(setCode) && _dbContext.MTGSets != null)
             {
-                if (setCode.Length >= 3 && setCode.Length <= 5)
+                if (setCode.Length >= 3 && setCode.Length <= 6)
                 {
                     var set = await _dbContext.MTGSets
                         .Include(s => s.Cards).
@@ -56,7 +64,7 @@ namespace Leng.Application.Services
                 }
                 else
                 {
-                    throw new ArgumentException("Value must be between 3 and 5 characters.", nameof(setCode));
+                    throw new ArgumentException("Value must be between 3 and 6 characters.", nameof(setCode));
                 }
             }
 
@@ -293,20 +301,28 @@ namespace Leng.Application.Services
 
         public async Task<(int cards, int playsets)> GetUserCollectionSummaryAsync(LengUser user)
         {
-            // TODO: Fix playset information
-            var query = _dbContext.LengUserMTGCards
-                .Where(lumc => lumc.LengUser.LengUserID == user.LengUserID)
-                .GroupBy(lumc => lumc.MTGCards.MTGCardsID)
-                .Select(g => new
-                {
-                    Count = g.Sum(lumc => lumc.count + lumc.countFoil),
-                    PlaysetCount = 0
-                });
+            if (user == null)
+            {
+                //throw new ArgumentNullException(nameof(user));
+                return (0, 0);
+            }
+            else
+            {
+                // TODO: Fix playset information
+                var query = _dbContext.LengUserMTGCards
+                    .Where(lumc => lumc.LengUser.LengUserID == user.LengUserID)
+                    .GroupBy(lumc => lumc.MTGCards.MTGCardsID)
+                    .Select(g => new
+                    {
+                        Count = g.Sum(lumc => lumc.count + lumc.countFoil),
+                        PlaysetCount = 0
+                    });
 
-            var results = await query.ToListAsync();
-            int cards = results.Sum(r => r.Count);
-            int playsets = results.Sum(r => r.PlaysetCount);
-            return (cards, playsets);
+                var results = await query.ToListAsync();
+                int cards = results.Sum(r => r.Count);
+                int playsets = results.Sum(r => r.PlaysetCount);
+                return (cards, playsets);
+            }
         }
     }
 }

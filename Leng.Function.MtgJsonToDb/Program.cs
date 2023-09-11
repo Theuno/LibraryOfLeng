@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 
 Console.WriteLine("Hello World!");
-Console.WriteLine(Environment.GetEnvironmentVariable("DefaultDbConnection"));
+Console.WriteLine(Environment.GetEnvironmentVariable("sqlConnectionString"));
 
 var host = new HostBuilder()
     .ConfigureAppConfiguration((hostingContext, config) => {
@@ -17,7 +17,7 @@ var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
     .ConfigureServices(services => {
         services.AddDbContextFactory<LengDbContext>(options => options
-                    .UseSqlServer(Environment.GetEnvironmentVariable("DefaultDbConnection"))
+                    .UseSqlServer(Environment.GetEnvironmentVariable("sqlConnectionString"))
                     );
     })
     .Build();

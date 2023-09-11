@@ -99,6 +99,17 @@ namespace Leng.Application.FunctionHandlers
             {
                 MTGSets set = JsonSerializer.Deserialize<MTGSets>(mtgData.ToString());
 
+                if(set.isOnlineOnly)
+                {
+                    _logger.LogInformation("Skipping online only set: " + set.name);
+                    return;
+                } 
+                else if (set.isPartialPreview)
+                {
+                    _logger.LogInformation("Skipping partial preview set: " + set.name);
+                    return;
+                }
+
                 if (!set.isOnlineOnly && !set.isPartialPreview)
                 {
                     await dbService.AddSetAsync(set);
@@ -112,31 +123,26 @@ namespace Leng.Application.FunctionHandlers
                         // Foils? Forest317★
                         // Dead?  El-Hajjâj134†
 
-                        MTGCards card = JsonSerializer.Deserialize<MTGCards>(mtgCards[i].ToString());
-                        if (!card.isOnlineOnly)
+                        MTGCards card = null;
+                        try
                         {
-                            // Set the colors property to a list of MTGColor objects
-                            JsonArray colorArray = mtgCards[i]["colors"].AsArray();
-
-                            if (colorArray.Count > 0)
-                            {
-                                card.color = "";
-                                // For each color, add the value to the string
-                                foreach (var color in colorArray)
-                                {
-                                    card.color += color;
-                                }
-                            }
-
-                            var identifiers = mtgCards[i]["identifiers"].AsObject();
-                            card.scryfallId = identifiers["scryfallId"].ToString();
-
+                            card = JsonSerializer.Deserialize<MTGCards>(mtgCards[i].ToString());
+                        }
+                        catch (JsonException je)
+                        {
+                            Console.WriteLine($"Error when deserializing card! Exception: {je.Message}");
+                            return;
+                        }
+                        if (card != null)
+                        {
+                            SetCardProperties(card, mtgCards[i]);
                             setCards.Add(card);
                         }
                     }
 
                     if (setCards.Count > 0)
                     {
+                        _logger.LogInformation("Adding " + setCards.Count + " cards for set: " + set.name);
                         await dbService.AddCardsAsync(setCards);
                     }
                 }
@@ -145,6 +151,32 @@ namespace Leng.Application.FunctionHandlers
             catch (Exception ex)
             {
                 _logger.LogInformation("Error: " + ex.Message);
+            }
+        }
+
+        private void SetCardProperties(MTGCards card, JsonNode cardNode)
+        {
+            if (!card.isOnlineOnly)
+            {
+                // Set the colors property to a list of MTGColor objects
+                JsonArray colorArray = cardNode["colors"].AsArray();
+
+                if (colorArray.Count > 0)
+                {
+                    card.color = "";
+                    // For each color, add the value to the string
+                    foreach (var color in colorArray)
+                    {
+                        card.color += color;
+                    }
+                }
+
+                var identifiers = cardNode["identifiers"].AsObject();
+                card.scryfallId = identifiers["scryfallId"].ToString();
+            }
+            else
+            {
+                _logger.LogInformation("Skipping onlineOnly card: " + card.name);
             }
         }
     }
