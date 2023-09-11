@@ -249,7 +249,7 @@ namespace Leng.Application.Tests
 
                 // Act & Assert
                 var ex = Assert.ThrowsAsync<ArgumentException>(() => service.GetSetAsync("A"));
-                Assert.That(ex.Message, Is.EqualTo("Value must be between 3 and 5 characters. (Parameter 'setCode')"));
+                Assert.That(ex.Message, Is.EqualTo("Value must be between 3 and 6 characters. (Parameter 'setCode')"));
             }
         }
 
