@@ -15,9 +15,6 @@ namespace Leng.BlazorServer.Pages
     public partial class ImportExportBase : ComponentBase
     {
         protected MudDialog importDialog;
-        protected bool uploading = false;
-
-
 
         protected async Task UploadFiles(IBrowserFile file)
         {
