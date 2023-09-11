@@ -19,7 +19,7 @@ namespace Leng.BlazorServer.Pages
 
 
 
-        protected async void UploadFiles(IBrowserFile file)
+        protected async Task UploadFiles(IBrowserFile file)
         {
             if (file == null)
             {

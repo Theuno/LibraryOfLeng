@@ -40,10 +40,12 @@ jobs:
         run: |
           cd Leng.ApplicationTests
           dotnet test
-      - name: Set up JDK 11
+
+      # Run Sonar Scanning
+      - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
-          java-version: 11
+          java-version: 17
           distribution: 'zulu'
       - name: Cache SonarCloud packages
         uses: actions/cache@v3
@@ -66,21 +68,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           dotnet clean Leng.sln
-          dotnet-sonarscanner begin /k:"Theuno_LibraryOfLeng2" /o:"theuno" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
+          dotnet-sonarscanner begin /k:"Theuno_LibraryOfLeng2" /o:"theuno" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml /d:-Dsonar.scm.provider=git
           dotnet build --no-restore --no-incremental
           dotnet-coverage collect 'dotnet test' -f xml -o 'coverage.xml'
           dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
-      - name: 'Login via Azure CLI'
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-      - name: Publish LengFunctionMtgJsonToDb
-        uses: Azure/functions-action@v1
-        with:
-          app-name: libraryofleng-function
-          package: ./Leng.Function.MtgJsonToDb/Output
-      - name: Publish LengBlazorServer
-        uses: Azure/webapps-deploy@v2
-        with:
-          app-name: libraryofleng-web
-          package: ./Leng.BlazorServer/Output
