@@ -16,6 +16,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2302D42F-1122-43BB-8191-E70B446C6786}"
 	ProjectSection(SolutionItems) = preProject
 		.jscpd.json = .jscpd.json
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Leng.ApplicationTests", "Leng.ApplicationTests\Leng.ApplicationTests.csproj", "{57C6BE8D-CB76-456F-BDED-234618B166F4}"

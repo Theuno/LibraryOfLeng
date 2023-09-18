@@ -10,11 +10,13 @@ namespace Leng.Domain.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
-
-        [ForeignKey("Id.LengUserID")]
+        
+        public string LengUserId { get; set; }  // Foreign key for LengUser
+        [ForeignKey("LengUserId")]
         public LengUser LengUser { get; set; }
 
-        [ForeignKey("Id.MTGCardsID")]
+        public int MTGCardsId { get; set; }  // Foreign key for MTGCards
+        [ForeignKey("MTGCardsId")]
         public MTGCards MTGCards { get; set; }
 
         public int count { get; set; }

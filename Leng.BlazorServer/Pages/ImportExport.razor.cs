@@ -8,13 +8,33 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
 using MudBlazor;
 using OfficeOpenXml; //? EPPlus
-using System.IO;
 
 namespace Leng.BlazorServer.Pages
 {
-    public partial class ImportExportBase : ComponentBase
+    public partial class ImportExport : ComponentBase
     {
         protected MudDialog importDialog;
+
+        private LengUser? _lengUser { get; set; }
+        [CascadingParameter] private Task<AuthenticationState>? authenticationState { get; set; }
+
+        [Inject] IJSRuntime JS { get; set; } = default!;
+        [Inject] IDbContextFactory<LengDbContext> cf { get; set; } = default!;
+
+
+        protected override async Task OnInitializedAsync()
+        {
+            var msalId = LengAuthenticationService.getMsalId(await authenticationState);
+            var dbService = new MTGDbService(cf.CreateDbContext());
+
+            _lengUser = await dbService.GetLengUserAsync(msalId);
+        }
+
+
+        protected void CloseImportDialog()
+        {
+            importDialog.Close();
+        }
 
         protected async Task UploadFiles(IBrowserFile file)
         {
@@ -37,9 +57,8 @@ namespace Leng.BlazorServer.Pages
             }
 
             Stream stream = file.OpenReadStream();
-            string filename = file.Name;
             var uploadDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-            var path = Path.Combine(uploadDir, filename);
+            var path = Path.Combine(uploadDir, file.Name);
 
             if (!Directory.Exists(uploadDir))
             {
@@ -50,30 +69,82 @@ namespace Leng.BlazorServer.Pages
             await stream.CopyToAsync(fs);
             stream.Close();
             fs.Close();
+
+            // Read file, process data, and save to database
+            await ImportCardsAsync(path);
+
+            // Remove file
+            File.Delete(path);
         }
 
-        protected void CloseImportDialog()
+        // Function to Import cards from an Excel file
+        public async Task ImportCardsAsync(string file)
         {
-            importDialog.Close();
-        }
-    }
+            // Open file
+            var fileInfo = new FileInfo(file);
+            using var package = new ExcelPackage(fileInfo);
 
-    public partial class ImportExport
-    {
-        private LengUser? _lengUser { get; set; }
-        [CascadingParameter] private Task<AuthenticationState>? authenticationState { get; set; }
+            // Using the non commercial license of EPPlus
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
-        [Inject] IJSRuntime JS { get; set; } = default!;
-        [Inject] IDbContextFactory<LengDbContext> cf { get; set; } = default!;
+            // Validate file
+            var worksheet = package.Workbook.Worksheets[0];
+            if (worksheet == null)
+            {
+                // Handle invalid file error
+                return;
+            }
 
+            // Validate headers
+            var validHeaders1 = new[] { "Card Name", "Card Number", "Set Code", "Count", "Count Foil", "have", "have foil", "want", "want foil", "note" };
+            var validHeaders2 = new[] { "kaartnaam", "kaartnummer", "set_code", "c", "c_foil", "h", "h_foil", "w", "w_foil", "notitie" };
+            var validHeaders3 = new[] { "Card Name", "Card Number", "Set Code", "Count", "Count Foil", "", "", "", "", "" };
+            var validHeaders4 = new[] { "kaartnaam", "kaartnummer", "set_code", "c", "c_foil", "", "", "", "", "" };
 
-        protected override async Task OnInitializedAsync()
-        {
-            var msalId = LengAuthenticationService.getMsalId(await authenticationState);
+            var headers = Enumerable.Range(1, 10).Select(col => worksheet.Cells[1, col].Text).ToArray();
+            if (!headers.SequenceEqual(validHeaders1) && 
+                !headers.SequenceEqual(validHeaders2) &&
+                !headers.SequenceEqual(validHeaders3) &&
+                !headers.SequenceEqual(validHeaders4))
+            {
+                // Handle invalid header error
+                return;
+            }
+
+            //var dbService = new MTGDbService(cf.CreateDbContext());
             var dbService = new MTGDbService(cf.CreateDbContext());
 
-            _lengUser = await dbService.GetLengUserAsync(msalId);
+
+            // Start reading cards, after the first row in the database (which contains headers)
+            for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+            {
+                // Find card
+                MTGSets set = await dbService.GetSetAsync(worksheet.Cells[row, 3].Text);
+                MTGCards card = await dbService.getCardAsync(worksheet.Cells[row, 1].Text, set,  worksheet.Cells[row, 2].Text);
+                // TODO: Check if set and card are found, otherwise inform the user.
+
+
+                // Read card
+                var userCard = new LengUserMTGCards
+                {
+                    count = int.Parse(worksheet.Cells[row, 4].Text),
+                    countFoil = int.Parse(worksheet.Cells[row, 5].Text),
+                    //have = int.Parse(worksheet.Cells[row, 6].Text),
+                    //haveFoil = int.Parse(worksheet.Cells[row, 7].Text),
+                    //want = int.Parse(worksheet.Cells[row, 8].Text),
+                    //wantFoil = int.Parse(worksheet.Cells[row, 9].Text),
+                    //note = worksheet.Cells[row, 10].Text
+                };
+
+                // Print card information in a single line
+                Console.WriteLine($"Adding card for user: {card.name} {card.number} {card.setCode} {userCard.count} {userCard.countFoil}");
+
+                // Add card to database
+                await dbService.updateCardOfUserAsync(card.number, card.name, set.setCode, userCard.count, userCard.countFoil, _lengUser);
+            }
         }
+
+
 
         // Function to export all cards on a single sheet
         public async Task ExportAllCardsAsync()
@@ -108,20 +179,6 @@ namespace Leng.BlazorServer.Pages
                 await SaveAndDownloadExcelPackage(package, "AllCards.xlsx");
             }
         }
-
-        //public async Task ImportCardsAsync()
-        //{
-        //    // Validate headers
-        //    var validHeaders1 = new[] { "Card Name", "Card Number", "Set Code", "Count", "Count Foil", "have", "have foil", "want", "want foil", "note" };
-        //    var validHeaders2 = new[] { "kaartnaam", "kaartnummer", "set_code", "c", "c_foil", "h", "h_foil", "w", "w_foil", "notitie" };
-
-        //    var headers = Enumerable.Range(1, 10).Select(col => worksheet.Cells[1, col].Text).ToArray();
-        //    if (!headers.SequenceEqual(validHeaders1) && !headers.SequenceEqual(validHeaders2))
-        //    {
-        //        // Handle invalid header error
-        //        return;
-        //    }
-        //}
 
         // Function to export cards per set on a separate sheet
         public async Task ExportCardsPerSetAsync()

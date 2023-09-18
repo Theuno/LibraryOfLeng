@@ -278,7 +278,9 @@ namespace Leng.Application.Services
             var set = await GetSetAsync(setCode);
             var card = await getCardAsync(name, set, number);
 
-            var dbCard = _dbContext.LengUserMTGCards.Where(c => c.LengUser == user && c.MTGCards == card).SingleOrDefault();
+            var dbCard = _dbContext.LengUserMTGCards
+                           .Where(c => c.LengUserId == user.LengUserID && c.MTGCardsId == card.MTGCardsID)
+                           .SingleOrDefault();
             if (dbCard != null)
             {
                 dbCard.count = count;
@@ -286,7 +288,13 @@ namespace Leng.Application.Services
             }
             else
             {
-                await _dbContext.LengUserMTGCards.AddAsync(new LengUserMTGCards { LengUser = user, MTGCards = card, count = count, countFoil = countFoil });
+                await _dbContext.LengUserMTGCards.AddAsync(new LengUserMTGCards
+                {
+                    LengUserId = user.LengUserID,
+                    MTGCardsId = card.MTGCardsID,
+                    count = count,
+                    countFoil = countFoil
+                });
             }
 
             try

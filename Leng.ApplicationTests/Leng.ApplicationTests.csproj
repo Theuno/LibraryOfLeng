@@ -19,6 +19,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Leng.Application\Leng.Application.csproj" />
+    <ProjectReference Include="..\Leng.BlazorServer\Leng.BlazorServer.csproj" />
     <ProjectReference Include="..\Leng.Infrastructure\Leng.Infrastructure.csproj" />
   </ItemGroup>
 </Project>
