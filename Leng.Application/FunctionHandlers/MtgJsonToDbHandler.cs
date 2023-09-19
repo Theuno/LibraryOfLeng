@@ -65,8 +65,9 @@ namespace Leng.Application.FunctionHandlers
             foreach (var file in filesToImport)
             {
                 _logger.LogInformation("Importing file: " + file);
+                using FileStream importStream = File.OpenRead(file);
 
-                await ImportMTGSet(file);
+                await ImportMTGSet(importStream);
             }
         }
 
@@ -88,9 +89,9 @@ namespace Leng.Application.FunctionHandlers
             }
         }
 
-        private async Task ImportMTGSet(string file)
+        //public async Task ImportMTGSet(string file)
+        public async Task ImportMTGSet(Stream openStream)
         {
-            using FileStream openStream = File.OpenRead(file);
 
             JsonNode mtgNodes = JsonNode.Parse(openStream);
             JsonObject mtgData = mtgNodes["data"]!.AsObject();

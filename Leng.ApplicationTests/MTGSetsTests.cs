@@ -2,7 +2,11 @@ using Leng.Application.Services;
 using Leng.Domain.Models;
 using Leng.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
+using System.Text;
+using Leng.Application.FunctionHandlers;
+using Microsoft.Extensions.Options;
 
 namespace Leng.Application.Tests
 {
@@ -334,6 +338,102 @@ namespace Leng.Application.Tests
 
                 // Assert
                 Assert.That(sets, Is.All.Matches<MTGSets>(s => s.name.Contains(setToSearch) && s.Cards.Count != 0));
+            }
+        }
+    }
+
+    [TestFixture]
+    public class MTGSetImportTests
+    {
+        private MtgJsonToDbHandler _mtgJsonToDbHandler;
+        private ILogger<MtgJsonToDbHandler> _mockLogger; // Mocked ILogger
+        private string _sampleFile;
+
+        [SetUp]
+        public void Setup()
+        {
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_OPTIONS1");
+
+            // Insert seed data into the database using one instance of the context
+            using (var context = new LengDbContext(options))
+            {
+                _mockLogger = Substitute.For<ILogger<MtgJsonToDbHandler>>();
+
+                // Initialize your class with the mocked service
+                _mtgJsonToDbHandler = new MtgJsonToDbHandler(_mockLogger, context);
+
+                // Sample MTG set data in JSON format
+                _sampleFile = @"{
+                    {
+	                ""meta"": {
+		                ""date"": ""2023-09-16"",
+		                ""version"": ""5.2.2+20230916""
+	                },
+	                ""data"": {
+		                ""baseSetSize"": 350,
+		                ""block"": ""Mirage"",
+		                ""cards"": [
+                            {
+				                ""artist"": ""Pete Venters"",
+            				    ""borderColor"": ""black"",
+			            	    ""colorIdentity"": [
+					                ""W""
+				                ],
+				                ""colors"": [
+					                ""W""
+				                ],
+            				    ""convertedManaCost"": 3.0,
+			            	    ""edhrecRank"": 12036,
+				                ""finishes"": [
+					                ""nonfoil""
+				                ],
+				                ""hasFoil"": false,
+				                ""hasNonFoil"": true,
+				                ""identifiers"": {
+					                ""mcmId"": ""8256"",
+					                ""mcmMetaId"": ""68"",
+					                ""scryfallId"": ""4644694d-52e6-4d00-8cad-748899eeea84"",
+				                },
+            				    ""language"": ""English"",
+            				    ""name"": ""Afterlife"",
+			            	    ""number"": ""1"",
+            				    ""originalText"": ""Bury target creature and put an Essence token into play under the control of that creature's controller. Treat this token as a 1/1 white creature with flying."",
+            				    ""rarity"": ""uncommon"",
+				                ""setCode"": ""MIR"",
+            				    ""text"": ""Destroy target creature. It can't be regenerated. Its controller creates a 1/1 white Spirit creature token with flying."",
+				                ""type"": ""Instant"",
+            				    ""uuid"": ""5476b4a0-5ce9-5b16-9272-5d2be623c26f""
+			                }
+                        ]
+                    }
+                }";
+            }
+        }
+
+        public static DbContextOptions<LengDbContext> CreateOptions(string databaseName)
+        {
+            return new DbContextOptionsBuilder<LengDbContext>()
+                .UseInMemoryDatabase(databaseName)
+                .Options;
+        }
+
+        [Test]
+        public async Task ImportMTGSet_ValidFile_AddsSetAndCardsToDatabase()
+        {
+            // Arrange
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_ImportMTGSet_ValidFile_AddsSetAndCardsToDatabase");
+
+            // Insert seed data into the database using one instance of the context
+            using (var context = new LengDbContext(options))
+            {
+                var mockFile = new MemoryStream(Encoding.UTF8.GetBytes(_sampleFile));
+
+                // Act
+                await _mtgJsonToDbHandler.ImportMTGSet(mockFile);
+
+                // Assert
+                context.MTGSets.Received(1).Add(Arg.Any<MTGSets>());
+                context.MTGCard.Received(1).AddRange(Arg.Any<IEnumerable<MTGCards>>());
             }
         }
     }
