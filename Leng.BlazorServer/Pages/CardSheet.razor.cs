@@ -17,11 +17,6 @@ namespace Leng.BlazorServer.Pages {
         public IMTGDbService DbService { get; set; }
         [CascadingParameter] private Task<AuthenticationState>? authenticationState { get; set; }
 
-        public CardSheet(IDbContextFactory<LengDbContext> contextFactory)
-        {
-            DbService = new MTGDbService(contextFactory);
-            //_handler = new MtgJsonToDbHandler(LoggerFactory.CreateLogger<MtgJsonToDbHandler>(), DbService);
-        }
 
         private async Task CommittedItemChanges(ShowSheet contextCard) {
             var card = contextCard;

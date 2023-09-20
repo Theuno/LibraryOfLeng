@@ -30,12 +30,7 @@ namespace Leng.BlazorServer.Pages
 
         private LengUser? _lengUser { get; set; }
 
-        public CardSearch(IDbContextFactory<LengDbContext> contextFactory)
-        {
-            DbService = new MTGDbService(contextFactory);
-            //_handler = new MtgJsonToDbHandler(LoggerFactory.CreateLogger<MtgJsonToDbHandler>(), DbService);
-        }
-
+ 
         protected override async Task OnInitializedAsync()
         {
             var msalId = LengAuthenticationService.getMsalId(await authenticationState);

@@ -27,11 +27,6 @@ namespace Leng.BlazorServer.Pages
         private readonly Regex arenaCardLineRegex = new Regex(@"^(?<count>\d+)\s+(?<name>[\w\s',!\?\.-]+(?:\s*//\s*[\w\s',!\?\.]+)?)\s*(?<isFoil>\(Foil\))?");
         private readonly Regex mtgoCardLineRegex = new Regex(@"^(?<count>\d+)\s+(?<name>[\w\s',!\?\.-]+)\s+\[(?<setCode>[A-Za-z0-9]+)\]\s+\[(?<cardNumber>\d+)\]");
 
-        public QuickDeckCheck(IDbContextFactory<LengDbContext> contextFactory)
-        {
-            DbService = new MTGDbService(contextFactory);
-            //_handler = new MtgJsonToDbHandler(LoggerFactory.CreateLogger<MtgJsonToDbHandler>(), DbService);
-        }
 
         protected override async Task OnInitializedAsync()
         {
