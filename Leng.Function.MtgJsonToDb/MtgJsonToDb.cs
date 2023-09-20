@@ -15,7 +15,6 @@ namespace Leng.Function.MtgJsonToDb {
         private readonly IMTGDbService _dbService;
         private readonly Microsoft.Extensions.Logging.ILoggerFactory _loggerFactory;
 
-
         public MtgJsonToDb(Microsoft.Extensions.Logging.ILoggerFactory loggerFactory, IMTGDbService dbService)
         {
             _loggerFactory = loggerFactory;

@@ -408,11 +408,11 @@ namespace Leng.Application.Tests
         {
             // Arrange
             var mockFile = new MemoryStream(Encoding.UTF8.GetBytes(_sampleFile));
-            var mockDbService = Substitute.For<IMTGDbService>();  // Mock the dbService
+            var mockDbService = Substitute.For<IMTGDbService>();
             mockDbService.AddSetAsync(Arg.Any<MTGSets>()).Returns(Task.CompletedTask);
             mockDbService.AddCardsAsync(Arg.Any<List<MTGCards>>()).Returns(Task.CompletedTask);
 
-            var _mtgJsonToDbHandler = new MtgJsonToDbHandler(_mockLogger, mockDbService);  // Use mocked service
+            var _mtgJsonToDbHandler = new MtgJsonToDbHandler(_mockLogger, mockDbService);
 
             // Act
             await _mtgJsonToDbHandler.ImportMTGSet(mockFile);
@@ -420,6 +420,67 @@ namespace Leng.Application.Tests
             // Assert
             mockDbService.Received(1).AddSetAsync(Arg.Any<MTGSets>());
             mockDbService.Received(1).AddCardsAsync(Arg.Any<List<MTGCards>>());
+        }
+
+        [Test]
+        public async Task ImportMTGSet_ValidFile_DontAddOnlineOnly()
+        {
+            // Arrange
+            var _sampleFileOnlineOnly = @"{
+                ""data"": {
+                    ""name"": ""Masters Edition"",
+                    ""isOnlineOnly"": true,
+                    ""code"": ""MED""
+                }
+            }";
+
+            var mockFile = new MemoryStream(Encoding.UTF8.GetBytes(_sampleFileOnlineOnly));
+            var mockDbService = Substitute.For<IMTGDbService>();
+            mockDbService.AddSetAsync(Arg.Any<MTGSets>()).Returns(Task.CompletedTask);
+            mockDbService.AddCardsAsync(Arg.Any<List<MTGCards>>()).Returns(Task.CompletedTask);
+
+            var _mockLogger = Substitute.For<ILogger<MtgJsonToDbHandler>>();
+
+            var _mtgJsonToDbHandler = new MtgJsonToDbHandler(_mockLogger, mockDbService);
+
+            // Act
+            await _mtgJsonToDbHandler.ImportMTGSet(mockFile);
+
+            // Assert
+            mockDbService.Received(0).AddSetAsync(Arg.Any<MTGSets>());
+            mockDbService.Received(0).AddCardsAsync(Arg.Any<List<MTGCards>>());
+            _mockLogger.Received().LogInformation("Skipping online only set: Masters Edition"); // Check the logged message
+        }
+
+        [Test]
+        public async Task ImportMTGSet_ValidFile_DontAddPartialPreview()
+        {
+            // Arrange
+            var _sampleFileOnlineOnly = @"{
+                ""data"": {
+                    ""name"": ""The Lost Caverns of Ixalan"",
+                    ""isOnlineOnly"": false,
+                    ""isPartialPreview"": true,
+                    ""code"": ""LCI""
+                }
+            }";
+
+            var mockFile = new MemoryStream(Encoding.UTF8.GetBytes(_sampleFileOnlineOnly));
+            var mockDbService = Substitute.For<IMTGDbService>();
+            mockDbService.AddSetAsync(Arg.Any<MTGSets>()).Returns(Task.CompletedTask);
+            mockDbService.AddCardsAsync(Arg.Any<List<MTGCards>>()).Returns(Task.CompletedTask);
+
+            var _mockLogger = Substitute.For<ILogger<MtgJsonToDbHandler>>();
+
+            var _mtgJsonToDbHandler = new MtgJsonToDbHandler(_mockLogger, mockDbService);
+
+            // Act
+            await _mtgJsonToDbHandler.ImportMTGSet(mockFile);
+
+            // Assert
+            mockDbService.Received(0).AddSetAsync(Arg.Any<MTGSets>());
+            mockDbService.Received(0).AddCardsAsync(Arg.Any<List<MTGCards>>());
+            _mockLogger.Received().LogInformation("Skipping partial preview set: The Lost Caverns of Ixalan"); // Check the logged message
         }
     }
 

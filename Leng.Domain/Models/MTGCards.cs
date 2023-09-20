@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using System.Collections;
 
 namespace Leng.Domain.Models
-{ 
+{
     [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
     [Index(nameof(name), nameof(setCode), nameof(number), IsUnique = true)]
     public class MTGCards : IComparable

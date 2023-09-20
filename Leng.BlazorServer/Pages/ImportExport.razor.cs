@@ -15,15 +15,12 @@ namespace Leng.BlazorServer.Pages
 {
     public partial class ImportExport
     {
-        private IDbContextFactory<LengDbContext> _contextFactory;
         private MtgJsonToDbHandler _handler;
         private LengUser? _lengUser { get; set; }
         [CascadingParameter] private Task<AuthenticationState>? authenticationState { get; set; }
 
-
         [Inject] 
         public IJSRuntime JS { get; set; } = default!;
-
 
         [Inject]
         public IMTGDbService DbService { get; set; }
@@ -39,9 +36,16 @@ namespace Leng.BlazorServer.Pages
 
         protected override async Task OnInitializedAsync()
         {
-            var msalId = LengAuthenticationService.getMsalId(await authenticationState);
-
-            _lengUser = await DbService.GetLengUserAsync(msalId);
+            var authState = await authenticationState;
+            if(authState != null)
+            {
+                var msalId = LengAuthenticationService.getMsalId(await authenticationState);
+                _lengUser = await DbService.GetLengUserAsync(msalId);
+            }
+            else
+            {
+                _lengUser = null;
+            }
         }
 
         public ImportExport(IDbContextFactory<LengDbContext> contextFactory)
@@ -134,7 +138,6 @@ namespace Leng.BlazorServer.Pages
                 MTGCards card = await DbService.getCardAsync(worksheet.Cells[row, 1].Text, set,  worksheet.Cells[row, 2].Text);
                 // TODO: Check if set and card are found, otherwise inform the user.
 
-
                 // Read card
                 var userCard = new LengUserMTGCards
                 {
@@ -193,44 +196,47 @@ namespace Leng.BlazorServer.Pages
         // Function to export cards per set on a separate sheet
         public async Task ExportCardsPerSetAsync()
         {
-            var sets = await DbService.GetAllSetsAsync();
-
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            using var package = new ExcelPackage();
-            foreach (var set in sets)
+            if (_lengUser != null)
             {
-                var worksheet = package.Workbook.Worksheets.Add(set.setCode);
-                worksheet.Cells[1, 1].Value = "Card Name";
-                worksheet.Cells[1, 2].Value = "Card Number";
-                worksheet.Cells[1, 3].Value = "Count";
-                worksheet.Cells[1, 4].Value = "Count Foil";
+                var sets = await DbService.GetAllSetsAsync();
 
-                int row = 2;
-                foreach (var card in set.Cards)
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                using var package = new ExcelPackage();
+                foreach (var set in sets)
                 {
-                    var userCard = card.LengUserMTGCards.SingleOrDefault(c => c.LengUser.LengUserID == _lengUser.LengUserID);
-                    if (userCard != null)
+                    var worksheet = package.Workbook.Worksheets.Add(set.setCode);
+                    worksheet.Cells[1, 1].Value = "Card Name";
+                    worksheet.Cells[1, 2].Value = "Card Number";
+                    worksheet.Cells[1, 3].Value = "Count";
+                    worksheet.Cells[1, 4].Value = "Count Foil";
+
+                    int row = 2;
+                    foreach (var card in set.Cards)
                     {
-                        worksheet.Cells[row, 1].Value = card.name;
-                        worksheet.Cells[row, 2].Value = card.number;
-                        worksheet.Cells[row, 3].Value = userCard.count;
-                        worksheet.Cells[row, 4].Value = userCard.countFoil;
-                        row++;
+                        var userCard = card.LengUserMTGCards.SingleOrDefault(c => c.LengUser.LengUserID == _lengUser.LengUserID);
+                        if (userCard != null)
+                        {
+                            worksheet.Cells[row, 1].Value = card.name;
+                            worksheet.Cells[row, 2].Value = card.number;
+                            worksheet.Cells[row, 3].Value = userCard.count;
+                            worksheet.Cells[row, 4].Value = userCard.countFoil;
+                            row++;
+                        }
                     }
+
+                    worksheet.Cells[row, 1].Value = "Total:";
+                    worksheet.Cells[row, 3].Formula = $"SUM(C2:C{row - 1})";
+                    worksheet.Cells[row, 4].Formula = $"SUM(D2:D{row - 1})";
                 }
 
-                worksheet.Cells[row, 1].Value = "Total:";
-                worksheet.Cells[row, 3].Formula = $"SUM(C2:C{row - 1})";
-                worksheet.Cells[row, 4].Formula = $"SUM(D2:D{row - 1})";
+                //var tempFilePath = await SaveExcelPackageToFileAsync(package, "CardsPerSet.xlsx");
+
+                // Return a download link to the client
+                //var fileName = Path.GetFileName(tempFilePath);
+                //var downloadUrl = Url.Action("DownloadExcelFile", new { filePath = tempFilePath, fileName });
+                //await MudDialogService.ShowMessageBoxAsync($"The Excel file has been generated. <a href='{downloadUrl}'>Click here to download</a>.", "Success");
+                await SaveAndDownloadExcelPackage(package, "CardsPerSet.xlsx");
             }
-
-            //var tempFilePath = await SaveExcelPackageToFileAsync(package, "CardsPerSet.xlsx");
-
-            // Return a download link to the client
-            //var fileName = Path.GetFileName(tempFilePath);
-            //var downloadUrl = Url.Action("DownloadExcelFile", new { filePath = tempFilePath, fileName });
-            //await MudDialogService.ShowMessageBoxAsync($"The Excel file has been generated. <a href='{downloadUrl}'>Click here to download</a>.", "Success");
-            await SaveAndDownloadExcelPackage(package, "CardsPerSet.xlsx");
         }
 
         private async Task SaveAndDownloadExcelPackage(ExcelPackage package, string fileName)

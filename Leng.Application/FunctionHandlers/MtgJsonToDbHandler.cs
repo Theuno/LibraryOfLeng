@@ -33,6 +33,7 @@ namespace Leng.Application.FunctionHandlers
             ExtractDownloadedJson();
             await ImportFiles();
         }
+
         private async Task DownloadFileFromURLAsync()
         {
             string url = "https://mtgjson.com/api/v5/" + fileName;
