@@ -49,7 +49,11 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddControllersWithViews()
     .AddMicrosoftIdentityUI();
 
-builder.Services.AddTransient<IMTGDbService, MTGDbService>();
+builder.Services.AddTransient<IMTGDbService>(sp =>
+{
+    var contextFactory = sp.GetRequiredService<IDbContextFactory<LengDbContext>>();
+    return new MTGDbService(contextFactory);
+});
 
 var app = builder.Build();
 
