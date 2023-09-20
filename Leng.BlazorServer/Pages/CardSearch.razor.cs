@@ -1,16 +1,25 @@
-﻿using Leng.Application.Services;
+﻿using Leng.Application.FunctionHandlers;
+using Leng.Application.Services;
 using Leng.BlazorServer.Shared;
 using Leng.Domain.Models;
 using Leng.Infrastructure;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System.Reflection.Metadata;
 
 namespace Leng.BlazorServer.Pages
 {
     public partial class CardSearch 
     {
+        //private MtgJsonToDbHandler _handler;
+
         [Inject] IDbContextFactory<LengDbContext> cf { get; set; } = default!;
+
+        [Inject]
+        public IMTGDbService DbService { get; set; }
+
         [CascadingParameter] private Task<AuthenticationState>? authenticationState { get; set; }
 
         private string? _selectedCard = string.Empty;
@@ -21,17 +30,21 @@ namespace Leng.BlazorServer.Pages
 
         private LengUser? _lengUser { get; set; }
 
+        public CardSearch(IDbContextFactory<LengDbContext> contextFactory)
+        {
+            DbService = new MTGDbService(contextFactory);
+            //_handler = new MtgJsonToDbHandler(LoggerFactory.CreateLogger<MtgJsonToDbHandler>(), DbService);
+        }
+
         protected override async Task OnInitializedAsync()
         {
-            var dbService = new MTGDbService(cf.CreateDbContext());
-
             var msalId = LengAuthenticationService.getMsalId(await authenticationState);
-            _lengUser = await dbService.GetLengUserAsync(msalId);
+            _lengUser = await DbService.GetLengUserAsync(msalId);
 
             if (_lengUser == null)
             {
-                await dbService.AddLengUserAsync(msalId);
-                _lengUser = await dbService.GetLengUserAsync(msalId);
+                await DbService.AddLengUserAsync(msalId);
+                _lengUser = await DbService.GetLengUserAsync(msalId);
             }
         }
 
@@ -55,9 +68,7 @@ namespace Leng.BlazorServer.Pages
                 _searchCancellationTokenSource.Cancel();
                 _searchCancellationTokenSource = new CancellationTokenSource();
 
-                var dbService = new MTGDbService(cf.CreateDbContext());
-
-                var searchedCards = await dbService.getCardsAsync(card, _searchCancellationTokenSource.Token);
+                var searchedCards = await DbService.getCardsAsync(card, _searchCancellationTokenSource.Token);
                 searchedCards = searchedCards.DistinctBy(c => c.name);
                 return await Task.FromResult(searchedCards.Select(x => x.name).ToArray());
             }
@@ -85,8 +96,7 @@ namespace Leng.BlazorServer.Pages
                 sheet.Clear();
             }
 
-            var dbService = new MTGDbService(cf.CreateDbContext());
-            cards = await dbService.GetCardsForUserAsync(_lengUser, _selectedCard);
+            cards = await DbService.GetCardsForUserAsync(_lengUser, _selectedCard);
            
             foreach (var card in cards)
             {
@@ -113,12 +123,9 @@ namespace Leng.BlazorServer.Pages
 
             if (_selectedCard != null)
             {
-                var dbService = new MTGDbService(cf.CreateDbContext());
+                _lengUser = await DbService.GetLengUserAsync(_lengUser.aduuid);
 
-                //var msalId = LengAuthenticationService.getMsalId(await authenticationState);
-                _lengUser = await dbService.GetLengUserAsync(_lengUser.aduuid);
-
-                await dbService.updateCardOfUserAsync(card.number, card.name, card.setCode, card.count, card.countFoil, _lengUser);
+                await DbService.updateCardOfUserAsync(card.number, card.name, card.setCode, card.count, card.countFoil, _lengUser);
             }
 
             Console.WriteLine(card.name);

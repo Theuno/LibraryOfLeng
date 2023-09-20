@@ -2,16 +2,48 @@
 using Leng.Infrastructure;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Leng.Application.Services
 {
-    public class MTGDbService
+    public interface IMTGDbService
+    {
+        Task AddSetAsync(MTGSets set);
+        Task<List<MTGSets>> GetAllSetsAsync();
+        Task<string?> GetSetCodeAsync(string setName);
+        Task<MTGSets?> GetSetAsync(string? setCode);
+        Task<List<MTGSets>> SearchSetsContainingCardsAsync(string mtgset);
+        Task<IEnumerable<MTGCards>> getCardsAsync(string cardName, CancellationToken cancellationToken);
+        Task AddCardsAsync(List<MTGCards> setCards);
+        Task<MTGCards?> getCardAsync(string cardName, MTGSets set, string cardNumber);
+        Task<MTGCards?> getCardAsync(string cardName, MTGSets set, int cardNumber);
+        Task AddLengUserAsync(string aduuid);
+        Task<LengUser?> GetLengUserAsync(string aduuid);
+        Task<IEnumerable<LengUserMTGCards>> GetAllCardsFromUserCollectionAsync(LengUser user);
+        Task<IEnumerable<LengUserMTGCards>> GetCardFromUserCollectionAsync(LengUser user, string cardName);
+        Task<IEnumerable<MTGCards>> GetCardsForUserAsync(LengUser user, string cardName);
+        Task<IEnumerable<MTGCards>> GetCardsInSetForUserAsync(LengUser user, string setCode);
+        Task updateCardOfUserAsync(string number, string name, string setCode, int count, int countFoil, LengUser user);
+        Task<(int cards, int playsets)> GetUserCollectionSummaryAsync(LengUser user);
+    }
+
+    public class MTGDbService : IMTGDbService
     {
         private readonly LengDbContext _dbContext;
+
+
+        [ActivatorUtilitiesConstructor]
+        public MTGDbService(IDbContextFactory<LengDbContext> contextFactory)
+        {
+            _dbContext = contextFactory.CreateDbContext();
+        }
+
+        // Constructor used for testing
         public MTGDbService(LengDbContext dbContext)
         {
-            _dbContext = dbContext;
+            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
+
 
         public async Task AddSetAsync(MTGSets set)
         {
@@ -28,7 +60,7 @@ namespace Leng.Application.Services
                     }
                     catch (SqlException ex)
                     {
-                        throw new Exception(ex.Message);
+                        throw;
                     }
                 }
             }

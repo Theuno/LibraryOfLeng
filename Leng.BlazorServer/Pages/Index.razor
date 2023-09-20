@@ -7,7 +7,7 @@
 @using Leng.Domain.Models
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthenticationStateProvider
-
+@inject IMTGDbService DbService
 
 
 <PageTitle>Index</PageTitle>
@@ -30,23 +30,19 @@ else
 
 
 @code {
-    [Inject] IDbContextFactory<LengDbContext> cf { get; set; } = default!;
-
     private (int cards, int playsets)? summary;
     private LengUser _lengUser;
 
     protected override async Task OnInitializedAsync()
     {
-        var dbService = new MTGDbService(cf.CreateDbContext());
-
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var msalId = LengAuthenticationService.getMsalId(authState);
-        _lengUser = await dbService.GetLengUserAsync(msalId);
+        _lengUser = await DbService.GetLengUserAsync(msalId);
 
         var user = authState.User;
         if (user.Identity.IsAuthenticated)
         {
-            summary = await dbService.GetUserCollectionSummaryAsync(_lengUser);
+            summary = await DbService.GetUserCollectionSummaryAsync(_lengUser);
         }
     }
 }

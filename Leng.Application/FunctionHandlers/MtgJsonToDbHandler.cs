@@ -15,15 +15,15 @@ namespace Leng.Application.FunctionHandlers
 {
     public class MtgJsonToDbHandler
     {
-        readonly MTGDbService dbService;
+        private readonly ILogger<MtgJsonToDbHandler> _logger;
+        private readonly IMTGDbService _dbService;
+
         string fileName = "AllSetFiles.zip";
-        private readonly ILogger _logger;
 
-        public MtgJsonToDbHandler(ILogger logger, LengDbContext lengDbContext)
+        public MtgJsonToDbHandler(ILogger<MtgJsonToDbHandler> logger, IMTGDbService dbService)
         {
-            _logger = logger;
-
-            dbService = new MTGDbService(lengDbContext);
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _dbService = dbService ?? throw new ArgumentNullException(nameof(dbService));
         }
 
         public async Task Handle()
@@ -89,10 +89,8 @@ namespace Leng.Application.FunctionHandlers
             }
         }
 
-        //public async Task ImportMTGSet(string file)
         public async Task ImportMTGSet(Stream openStream)
         {
-
             JsonNode mtgNodes = JsonNode.Parse(openStream);
             JsonObject mtgData = mtgNodes["data"]!.AsObject();
 
@@ -113,7 +111,7 @@ namespace Leng.Application.FunctionHandlers
 
                 if (!set.isOnlineOnly && !set.isPartialPreview)
                 {
-                    await dbService.AddSetAsync(set);
+                    await _dbService.AddSetAsync(set);
 
                     // Add cards
                     JsonArray mtgCards = mtgNodes["data"]["cards"]!.AsArray();
@@ -144,7 +142,7 @@ namespace Leng.Application.FunctionHandlers
                     if (setCards.Count > 0)
                     {
                         _logger.LogInformation("Adding " + setCards.Count + " cards for set: " + set.name);
-                        await dbService.AddCardsAsync(setCards);
+                        await _dbService.AddCardsAsync(setCards);
                     }
                 }
 

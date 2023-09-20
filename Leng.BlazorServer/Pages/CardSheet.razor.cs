@@ -13,19 +13,24 @@ namespace Leng.BlazorServer.Pages {
         private List<ShowSheet>? sheet = new List<ShowSheet>();
 
         [Inject] IDbContextFactory<LengDbContext> cf { get; set; } = default!;
+        [Inject]
+        public IMTGDbService DbService { get; set; }
         [CascadingParameter] private Task<AuthenticationState>? authenticationState { get; set; }
 
-
+        public CardSheet(IDbContextFactory<LengDbContext> contextFactory)
+        {
+            DbService = new MTGDbService(contextFactory);
+            //_handler = new MtgJsonToDbHandler(LoggerFactory.CreateLogger<MtgJsonToDbHandler>(), DbService);
+        }
 
         private async Task CommittedItemChanges(ShowSheet contextCard) {
-            var dbService = new MTGDbService(cf.CreateDbContext());
             var card = contextCard;
 
             var msalId = LengAuthenticationService.getMsalId(await authenticationState);
-            var lengUser = await dbService.GetLengUserAsync(msalId);
+            var lengUser = await DbService.GetLengUserAsync(msalId);
 
             if (selectedSet != null) {
-                await dbService.updateCardOfUserAsync(card.number, card.name, card.setCode, card.count, card.countFoil, lengUser);
+                await DbService.updateCardOfUserAsync(card.number, card.name, card.setCode, card.count, card.countFoil, lengUser);
             }
 
             Console.WriteLine(card.name);
@@ -56,9 +61,7 @@ namespace Leng.BlazorServer.Pages {
         }
 
         private async Task<IEnumerable<string>> SetSearch(string set) {
-            var dbService = new MTGDbService(cf.CreateDbContext());
-
-            var sets = await dbService.SearchSetsContainingCardsAsync(set);
+            var sets = await DbService.SearchSetsContainingCardsAsync(set);
             return await Task.FromResult(sets.Select(x => x.name).ToArray());
         }
 
@@ -71,13 +74,11 @@ namespace Leng.BlazorServer.Pages {
                 sheet.Clear();
             }
 
-            var dbService = new MTGDbService(cf.CreateDbContext());
-
             var msalId = LengAuthenticationService.getMsalId(await authenticationState);
-            var LengUser = await dbService.GetLengUserAsync(msalId);
+            var LengUser = await DbService.GetLengUserAsync(msalId);
 
-            var setCode = await dbService.GetSetCodeAsync(set);
-            cards = await dbService.GetCardsInSetForUserAsync(LengUser, setCode);
+            var setCode = await DbService.GetSetCodeAsync(set);
+            cards = await DbService.GetCardsInSetForUserAsync(LengUser, setCode);
 
             foreach (var card in cards) {
                 try
@@ -105,13 +106,11 @@ namespace Leng.BlazorServer.Pages {
         }
 
         protected override async Task OnInitializedAsync() {
-            var dbService = new MTGDbService(cf.CreateDbContext());
-
             var msalId = LengAuthenticationService.getMsalId(await authenticationState);
-            var LengUser = await dbService.GetLengUserAsync(msalId);
+            var LengUser = await DbService.GetLengUserAsync(msalId);
             if (LengUser == null) {
-                await dbService.AddLengUserAsync(msalId);
-                _ = await dbService.GetLengUserAsync(msalId);
+                await DbService.AddLengUserAsync(msalId);
+                _ = await DbService.GetLengUserAsync(msalId);
             }
         }
     }

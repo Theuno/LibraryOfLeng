@@ -1,3 +1,4 @@
+using Leng.Application.Services;
 using Leng.Infrastructure;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
@@ -47,6 +48,8 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddControllersWithViews()
     .AddMicrosoftIdentityUI();
+
+builder.Services.AddTransient<IMTGDbService, MTGDbService>();
 
 var app = builder.Build();
 

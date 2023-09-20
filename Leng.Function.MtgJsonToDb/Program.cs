@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Leng.Function.MtgJsonToDb;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using Leng.Application.Services;
 
 Console.WriteLine("Hello World!");
 Console.WriteLine(Environment.GetEnvironmentVariable("sqlConnectionString"));
@@ -19,6 +20,8 @@ var host = new HostBuilder()
         services.AddDbContextFactory<LengDbContext>(options => options
                     .UseSqlServer(Environment.GetEnvironmentVariable("sqlConnectionString"))
                     );
+        services.AddTransient<IMTGDbService, MTGDbService>();
+        services.AddLogging();
     })
     .Build();
 

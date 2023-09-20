@@ -1,40 +1,55 @@
-﻿using Leng.Application.Services;
+﻿using Leng.Application.FunctionHandlers;
+using Leng.Application.Services;
 using Leng.Domain.Models;
 using Leng.Infrastructure;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using MudBlazor;
 using OfficeOpenXml; //? EPPlus
 
 namespace Leng.BlazorServer.Pages
 {
-    public partial class ImportExport : ComponentBase
+    public partial class ImportExport
     {
-        protected MudDialog importDialog;
-
+        private IDbContextFactory<LengDbContext> _contextFactory;
+        private MtgJsonToDbHandler _handler;
         private LengUser? _lengUser { get; set; }
         [CascadingParameter] private Task<AuthenticationState>? authenticationState { get; set; }
 
-        [Inject] IJSRuntime JS { get; set; } = default!;
-        [Inject] IDbContextFactory<LengDbContext> cf { get; set; } = default!;
 
+        [Inject] 
+        public IJSRuntime JS { get; set; } = default!;
+
+
+        [Inject]
+        public IMTGDbService DbService { get; set; }
+
+        [Inject]
+        public LengDbContext DbContext { get; set; }
+
+        [Inject]
+        public IDbContextFactory<LengDbContext> DbContextFactory { get; set; }
+
+        [Inject]
+        public ILoggerFactory LoggerFactory { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
             var msalId = LengAuthenticationService.getMsalId(await authenticationState);
-            var dbService = new MTGDbService(cf.CreateDbContext());
 
-            _lengUser = await dbService.GetLengUserAsync(msalId);
+            _lengUser = await DbService.GetLengUserAsync(msalId);
         }
 
-
-        protected void CloseImportDialog()
+        public ImportExport(IDbContextFactory<LengDbContext> contextFactory)
         {
-            importDialog.Close();
+            DbService = new MTGDbService(contextFactory);
+            _handler = new MtgJsonToDbHandler(LoggerFactory.CreateLogger<MtgJsonToDbHandler>(), DbService);
         }
+
 
         protected async Task UploadFiles(IBrowserFile file)
         {
@@ -111,16 +126,12 @@ namespace Leng.BlazorServer.Pages
                 return;
             }
 
-            //var dbService = new MTGDbService(cf.CreateDbContext());
-            var dbService = new MTGDbService(cf.CreateDbContext());
-
-
             // Start reading cards, after the first row in the database (which contains headers)
             for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
             {
                 // Find card
-                MTGSets set = await dbService.GetSetAsync(worksheet.Cells[row, 3].Text);
-                MTGCards card = await dbService.getCardAsync(worksheet.Cells[row, 1].Text, set,  worksheet.Cells[row, 2].Text);
+                MTGSets set = await DbService.GetSetAsync(worksheet.Cells[row, 3].Text);
+                MTGCards card = await DbService.getCardAsync(worksheet.Cells[row, 1].Text, set,  worksheet.Cells[row, 2].Text);
                 // TODO: Check if set and card are found, otherwise inform the user.
 
 
@@ -140,7 +151,7 @@ namespace Leng.BlazorServer.Pages
                 Console.WriteLine($"Adding card for user: {card.name} {card.number} {card.setCode} {userCard.count} {userCard.countFoil}");
 
                 // Add card to database
-                await dbService.updateCardOfUserAsync(card.number, card.name, set.setCode, userCard.count, userCard.countFoil, _lengUser);
+                await DbService.updateCardOfUserAsync(card.number, card.name, set.setCode, userCard.count, userCard.countFoil, _lengUser);
             }
         }
 
@@ -149,8 +160,7 @@ namespace Leng.BlazorServer.Pages
         // Function to export all cards on a single sheet
         public async Task ExportAllCardsAsync()
         {
-            var dbService = new MTGDbService(cf.CreateDbContext());
-            var cards = await dbService.GetAllCardsFromUserCollectionAsync(_lengUser);
+            var cards = await DbService.GetAllCardsFromUserCollectionAsync(_lengUser);
 
             // Using the non commercial license of EPPlus
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -183,8 +193,7 @@ namespace Leng.BlazorServer.Pages
         // Function to export cards per set on a separate sheet
         public async Task ExportCardsPerSetAsync()
         {
-            var dbService = new MTGDbService(cf.CreateDbContext());
-            var sets = await dbService.GetAllSetsAsync();
+            var sets = await DbService.GetAllSetsAsync();
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using var package = new ExcelPackage();

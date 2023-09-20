@@ -7,6 +7,8 @@ using NSubstitute;
 using System.Text;
 using Leng.Application.FunctionHandlers;
 using Microsoft.Extensions.Options;
+using Microsoft.Graph;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace Leng.Application.Tests
 {
@@ -345,25 +347,13 @@ namespace Leng.Application.Tests
     [TestFixture]
     public class MTGSetImportTests
     {
-        private MtgJsonToDbHandler _mtgJsonToDbHandler;
         private ILogger<MtgJsonToDbHandler> _mockLogger;
         private string _sampleFile;
-        private LengDbContext _context;
 
         [SetUp]
         public void Setup()
         {
-            var options = MTGTestGenerics.CreateOptions("TestDatabase_OPTIONS1");
-            _context = new LengDbContext(options);
-
             _mockLogger = Substitute.For<ILogger<MtgJsonToDbHandler>>();
-            _mtgJsonToDbHandler = new MtgJsonToDbHandler(_mockLogger, _context);
-
-            // Insert seed data into the database using one instance of the context
-            _mockLogger = Substitute.For<ILogger<MtgJsonToDbHandler>>();
-            
-            // Initialize your class with the mocked service
-            _mtgJsonToDbHandler = new MtgJsonToDbHandler(_mockLogger, _context);
 
             // Sample MTG set data in JSON format
             _sampleFile = @"{
@@ -400,7 +390,8 @@ namespace Leng.Application.Tests
                             ""type"": ""Instant"",
                             ""uuid"": ""5476b4a0-5ce9-5b16-9272-5d2be623c26f""
                         }
-                    ]
+                    ],
+                    ""code"": ""MIR""
                 }
             }";
         }
@@ -417,21 +408,18 @@ namespace Leng.Application.Tests
         {
             // Arrange
             var mockFile = new MemoryStream(Encoding.UTF8.GetBytes(_sampleFile));
+            var mockDbService = Substitute.For<IMTGDbService>();  // Mock the dbService
+            mockDbService.AddSetAsync(Arg.Any<MTGSets>()).Returns(Task.CompletedTask);
+            mockDbService.AddCardsAsync(Arg.Any<List<MTGCards>>()).Returns(Task.CompletedTask);
 
+            var _mtgJsonToDbHandler = new MtgJsonToDbHandler(_mockLogger, mockDbService);  // Use mocked service
 
             // Act
             await _mtgJsonToDbHandler.ImportMTGSet(mockFile);
 
             // Assert
-            //MTGDbService
-            //context.MTGSets.Received(1).Add(Arg.Any<MTGSets>());
-            //context.MTGCard.Received(1).AddRange(Arg.Any<IEnumerable<MTGCards>>());
-        }
-
-        [TearDown]
-        public void TearDown()
-        {
-            _context.Dispose();  // Dispose of the context after each test
+            mockDbService.Received(1).AddSetAsync(Arg.Any<MTGSets>());
+            mockDbService.Received(1).AddCardsAsync(Arg.Any<List<MTGCards>>());
         }
     }
 
