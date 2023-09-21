@@ -49,7 +49,7 @@ Next to initialize the database, run the following command in the Package Manage
 dotnet ef database update --project Leng.Infrastructure --startup-project Leng.BlazorServer
 ```
 
-### Apply migrations:
+### Apply migrations
 Open the Package Manager Console and run the following command:
 ```PowerShell
 dotnet ef database update --project Leng.Infrastructure --startup-project Leng.BlazorServer

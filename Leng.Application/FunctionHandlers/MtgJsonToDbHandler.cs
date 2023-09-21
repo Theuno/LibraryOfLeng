@@ -18,7 +18,7 @@ namespace Leng.Application.FunctionHandlers
         private readonly ILogger<MtgJsonToDbHandler> _logger;
         private readonly IMTGDbService _dbService;
 
-        string fileName = "AllSetFiles.zip";
+        readonly string fileName = "AllSetFiles.zip";
 
         public MtgJsonToDbHandler(ILogger<MtgJsonToDbHandler> logger, IMTGDbService dbService)
         {
@@ -99,11 +99,11 @@ namespace Leng.Application.FunctionHandlers
             {
                 MTGSets set = JsonSerializer.Deserialize<MTGSets>(mtgData.ToString());
 
-                if(set.isOnlineOnly)
+                if (set.isOnlineOnly)
                 {
                     _logger.LogInformation("Skipping online only set: " + set.name);
                     return;
-                } 
+                }
                 else if (set.isPartialPreview)
                 {
                     _logger.LogInformation("Skipping partial preview set: " + set.name);
@@ -133,6 +133,7 @@ namespace Leng.Application.FunctionHandlers
                             Console.WriteLine($"Error when deserializing card! Exception: {je.Message}");
                             return;
                         }
+
                         if (card != null)
                         {
                             SetCardProperties(card, mtgCards[i]);

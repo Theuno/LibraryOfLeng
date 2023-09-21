@@ -62,9 +62,9 @@ namespace Leng.Application.Services
                         await _dbContext.MTGSets.AddAsync(set);
                         await _dbContext.SaveChangesAsync();
                     }
-                    catch (SqlException ex)
+                    catch (SqlException)
                     {
-                        throw ex;
+                        throw;
                     }
                 }
             }

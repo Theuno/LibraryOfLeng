@@ -1,26 +1,22 @@
-﻿using Leng.Application.FunctionHandlers;
-using Leng.Application.Services;
+﻿using Leng.Application.Services;
 using Leng.Domain.Models;
 using Leng.Infrastructure;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
-using MudBlazor;
-using OfficeOpenXml; //? EPPlus
+using OfficeOpenXml; // EPPlus
 
 namespace Leng.BlazorServer.Pages
 {
     public partial class ImportExport
     {
-        private MtgJsonToDbHandler _handler;
         private LengUser? _lengUser { get; set; }
+        private readonly ILogger<ImportExport> _logger;
         [CascadingParameter] private Task<AuthenticationState>? authenticationState { get; set; }
 
-        [Inject] 
+        [Inject]
         public IJSRuntime JS { get; set; } = default!;
 
         [Inject]
@@ -35,10 +31,16 @@ namespace Leng.BlazorServer.Pages
         [Inject]
         public ILoggerFactory LoggerFactory { get; set; }
 
+        public ImportExport(ILoggerFactory loggerFactory, IMTGDbService dbService)
+        {
+            _logger = loggerFactory.CreateLogger<ImportExport>();
+            DbService = new MTGDbService(DbContextFactory, LoggerFactory.CreateLogger<MTGDbService>());
+        }
+
         protected override async Task OnInitializedAsync()
         {
             var authState = await authenticationState;
-            if(authState != null)
+            if (authState != null)
             {
                 var msalId = LengAuthenticationService.getMsalId(await authenticationState);
                 _lengUser = await DbService.GetLengUserAsync(msalId);
@@ -52,7 +54,6 @@ namespace Leng.BlazorServer.Pages
         public ImportExport(IDbContextFactory<LengDbContext> contextFactory)
         {
             DbService = new MTGDbService(contextFactory, LoggerFactory.CreateLogger<MTGDbService>());
-            _handler = new MtgJsonToDbHandler(LoggerFactory.CreateLogger<MtgJsonToDbHandler>(), DbService);
         }
 
         protected async Task UploadFiles(IBrowserFile file)
@@ -151,7 +152,7 @@ namespace Leng.BlazorServer.Pages
                 };
 
                 // Print card information in a single line
-                Console.WriteLine($"Adding card for user: {card.name} {card.number} {card.setCode} {userCard.count} {userCard.countFoil}");
+                _logger.LogInformation($"Adding card for user: {card.name} {card.number} {card.setCode} {userCard.count} {userCard.countFoil}");
 
                 // Add card to database
                 await DbService.updateCardOfUserAsync(card.number, card.name, set.setCode, userCard.count, userCard.countFoil, _lengUser);
@@ -229,12 +230,6 @@ namespace Leng.BlazorServer.Pages
                     worksheet.Cells[row, 4].Formula = $"SUM(D2:D{row - 1})";
                 }
 
-                //var tempFilePath = await SaveExcelPackageToFileAsync(package, "CardsPerSet.xlsx");
-
-                // Return a download link to the client
-                //var fileName = Path.GetFileName(tempFilePath);
-                //var downloadUrl = Url.Action("DownloadExcelFile", new { filePath = tempFilePath, fileName });
-                //await MudDialogService.ShowMessageBoxAsync($"The Excel file has been generated. <a href='{downloadUrl}'>Click here to download</a>.", "Success");
                 await SaveAndDownloadExcelPackage(package, "CardsPerSet.xlsx");
             }
         }

@@ -13,8 +13,6 @@ namespace Leng.BlazorServer.Pages
 {
     public partial class CardSearch 
     {
-        [Inject] IDbContextFactory<LengDbContext> cf { get; set; } = default!;
-
         [Inject]
         public IMTGDbService DbService { get; set; }
 
