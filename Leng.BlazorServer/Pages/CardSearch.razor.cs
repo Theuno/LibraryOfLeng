@@ -13,8 +13,6 @@ namespace Leng.BlazorServer.Pages
 {
     public partial class CardSearch 
     {
-        //private MtgJsonToDbHandler _handler;
-
         [Inject] IDbContextFactory<LengDbContext> cf { get; set; } = default!;
 
         [Inject]

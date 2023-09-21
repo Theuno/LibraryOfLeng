@@ -405,13 +405,6 @@ namespace Leng.Application.Tests
             }";
         }
 
-        public static DbContextOptions<LengDbContext> CreateOptions(string databaseName)
-        {
-            return new DbContextOptionsBuilder<LengDbContext>()
-                .UseInMemoryDatabase(databaseName)
-                .Options;
-        }
-
         [Test]
         public async Task ImportMTGSet_ValidFile_AddsSetAndCardsToDatabase()
         {
@@ -427,8 +420,8 @@ namespace Leng.Application.Tests
             await _mtgJsonToDbHandler.ImportMTGSet(mockFile);
 
             // Assert
-            mockDbService.Received(1).AddSetAsync(Arg.Any<MTGSets>());
-            mockDbService.Received(1).AddCardsAsync(Arg.Any<List<MTGCards>>());
+            await mockDbService.Received(1).AddSetAsync(Arg.Any<MTGSets>());
+            await mockDbService.Received(1).AddCardsAsync(Arg.Any<List<MTGCards>>());
         }
 
         [Test]
@@ -455,8 +448,8 @@ namespace Leng.Application.Tests
                 await _mtgJsonToDbHandler.ImportMTGSet(mockFile);
 
                 // Assert
-                mockDbService.Received(0).AddSetAsync(Arg.Any<MTGSets>());
-                mockDbService.Received(0).AddCardsAsync(Arg.Any<List<MTGCards>>());
+                await mockDbService.Received(0).AddSetAsync(Arg.Any<MTGSets>());
+                await mockDbService.Received(0).AddCardsAsync(Arg.Any<List<MTGCards>>());
                 _mockLogger.Received().LogInformation("Skipping online only set: Masters Edition");
             }
         }
@@ -486,8 +479,8 @@ namespace Leng.Application.Tests
                 await _mtgJsonToDbHandler.ImportMTGSet(mockFile);
 
                 // Assert
-                mockDbService.Received(0).AddSetAsync(Arg.Any<MTGSets>());
-                mockDbService.Received(0).AddCardsAsync(Arg.Any<List<MTGCards>>());
+                await mockDbService.Received(0).AddSetAsync(Arg.Any<MTGSets>());
+                await mockDbService.Received(0).AddCardsAsync(Arg.Any<List<MTGCards>>());
                 _mockLogger.Received().LogInformation("Skipping partial preview set: The Lost Caverns of Ixalan");
             }
         }

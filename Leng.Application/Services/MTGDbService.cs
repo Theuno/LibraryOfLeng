@@ -222,7 +222,7 @@ namespace Leng.Application.Services
                 searchedCards = searchedCards.DistinctBy(c => c.name);
                 return await Task.FromResult(searchedCards.Select(x => x.name).ToArray());
             }
-            catch (OperationCanceledException ex)
+            catch (OperationCanceledException)
             {
                 _logger.LogDebug("Search for card cancelled.");
             }
