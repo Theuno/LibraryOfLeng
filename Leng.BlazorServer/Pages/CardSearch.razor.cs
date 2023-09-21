@@ -57,26 +57,7 @@ namespace Leng.BlazorServer.Pages
                 sheet.Clear();
             }
 
-            try
-            {
-                // Cancel any previous searches
-                _searchCancellationTokenSource.Cancel();
-                _searchCancellationTokenSource = new CancellationTokenSource();
-
-                var searchedCards = await DbService.getCardsAsync(card, _searchCancellationTokenSource.Token);
-                searchedCards = searchedCards.DistinctBy(c => c.name);
-                return await Task.FromResult(searchedCards.Select(x => x.name).ToArray());
-            }
-            catch (OperationCanceledException)
-            {
-                // Search was canceled, do nothing
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
-
-            return null;
+            return await DbService.SearchForCardAsync(card, _searchCancellationTokenSource.Token);
         }
 
         public async Task OnCardSelected(string selectedCard)

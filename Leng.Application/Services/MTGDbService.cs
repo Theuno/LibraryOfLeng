@@ -3,6 +3,7 @@ using Leng.Infrastructure;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Leng.Application.Services
 {
@@ -15,6 +16,7 @@ namespace Leng.Application.Services
         Task<List<MTGSets>> SearchSetsContainingCardsAsync(string mtgset);
         Task<IEnumerable<MTGCards>> getCardsAsync(string cardName, CancellationToken cancellationToken);
         Task AddCardsAsync(List<MTGCards> setCards);
+        Task<IEnumerable<string>> SearchForCardAsync(string cardName, CancellationToken cancellationToken);
         Task<MTGCards?> getCardAsync(string cardName, MTGSets set, string cardNumber);
         Task<MTGCards?> getCardAsync(string cardName, MTGSets set, int cardNumber);
         Task AddLengUserAsync(string aduuid);
@@ -30,18 +32,20 @@ namespace Leng.Application.Services
     public class MTGDbService : IMTGDbService
     {
         private readonly LengDbContext _dbContext;
-
+        private readonly ILogger<MTGDbService> _logger;
 
         [ActivatorUtilitiesConstructor]
-        public MTGDbService(IDbContextFactory<LengDbContext> contextFactory)
+        public MTGDbService(IDbContextFactory<LengDbContext> contextFactory, ILogger<MTGDbService> logger)
         {
             _dbContext = contextFactory.CreateDbContext();
+            _logger = logger;
         }
 
         // Constructor used for testing
-        public MTGDbService(LengDbContext dbContext)
+        public MTGDbService(LengDbContext dbContext, ILogger<MTGDbService> logger)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            _logger = logger;
         }
 
 
@@ -60,7 +64,7 @@ namespace Leng.Application.Services
                     }
                     catch (SqlException ex)
                     {
-                        throw;
+                        throw ex;
                     }
                 }
             }
@@ -205,6 +209,31 @@ namespace Leng.Application.Services
 
             await _dbContext.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<string>> SearchForCardAsync(string cardName, CancellationToken cancellationToken)
+        {
+            try
+            {
+                _logger.LogInformation($"Searching for card: {cardName}");
+
+                var searchedCards = await getCardsAsync(cardName, cancellationToken);
+
+                _logger.LogInformation($"Found {searchedCards.Count()} cards for search term: {cardName}");
+                searchedCards = searchedCards.DistinctBy(c => c.name);
+                return await Task.FromResult(searchedCards.Select(x => x.name).ToArray());
+            }
+            catch (OperationCanceledException ex)
+            {
+                _logger.LogDebug("Search for card cancelled.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occurred while searching for cards: {ex.Message}");
+            }
+
+            return null;
+        }
+
 
         public async Task<MTGCards?> getCardAsync(string cardName, MTGSets set, string cardNumber)
         {

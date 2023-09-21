@@ -54,6 +54,15 @@ namespace Leng.Application.Tests
 
     public class MTGSetsTests
     {
+        public ILogger<MTGDbService> StubLogger { get; private set; }
+
+        [SetUp]
+        public void Setup()
+        {
+            // Initialize the stub logger
+            StubLogger = Substitute.For<ILogger<MTGDbService>>();
+        }
+
         [Test]
         public async Task AddSetAsync_AddsSet_WhenSetCodeDoesNotExist()
         {
@@ -64,7 +73,7 @@ namespace Leng.Application.Tests
             // Use a clean instance of the context to run the test
             using (var context = new LengDbContext(options))
             {
-                var service = new MTGDbService(context);
+                var service = new MTGDbService(context, StubLogger);
                 var newSet = new MTGSets { setCode = "4ED", /* other properties */ };
 
                 // Act
@@ -88,7 +97,7 @@ namespace Leng.Application.Tests
 
             using (var context = new LengDbContext(options))
             {
-                var service = new MTGDbService(context);
+                var service = new MTGDbService(context, StubLogger);
                 var existingSet = new MTGSets { setCode = "ATQ", /* other properties */ };
 
                 // Act
@@ -113,7 +122,7 @@ namespace Leng.Application.Tests
 
             using (var context = new LengDbContext(options))
             {
-                var service = new MTGDbService(context);
+                var service = new MTGDbService(context, StubLogger);
 
                 // Act
                 await service.AddSetAsync(null);
@@ -144,7 +153,7 @@ namespace Leng.Application.Tests
             string setCode = string.Empty;
             using (var context = new LengDbContext(options))
             {
-                var service = Substitute.For<MTGDbService>(context);
+                var service = new MTGDbService(context, StubLogger);
                 if (service == null)
                 {
                     Assert.Fail("service is null");
@@ -169,7 +178,7 @@ namespace Leng.Application.Tests
             // Act
             using (var context = new LengDbContext(options))
             {
-                var service = new MTGDbService(context);
+                var service = new MTGDbService(context, StubLogger);
 
                 // Act & Assert
                 var ex = Assert.ThrowsAsync<ArgumentException>(async () => await service.GetSetCodeAsync(null));
@@ -188,7 +197,7 @@ namespace Leng.Application.Tests
             // Act
             using (var context = new LengDbContext(options))
             {
-                var service = new MTGDbService(context);
+                var service = new MTGDbService(context, StubLogger);
 
                 // Act & Assert
                 var ex = Assert.ThrowsAsync<ArgumentException>(async () => await service.GetSetCodeAsync(""));
@@ -211,7 +220,7 @@ namespace Leng.Application.Tests
             string setCode;
             using (var context = new LengDbContext(options))
             {
-                var service = new MTGDbService(context);
+                var service = new MTGDbService(context, StubLogger);
                 setCode = await service.GetSetCodeAsync("This set name does not exist");
             }
 
@@ -228,7 +237,7 @@ namespace Leng.Application.Tests
 
             using (var context = new LengDbContext(options))
             {
-                var service = new MTGDbService(context);
+                var service = new MTGDbService(context, StubLogger);
 
                 // Act
                 var set = await service.GetSetAsync("ATQ");
@@ -251,7 +260,7 @@ namespace Leng.Application.Tests
 
             using (var context = new LengDbContext(options))
             {
-                var service = new MTGDbService(context);
+                var service = new MTGDbService(context, StubLogger);
 
                 // Act & Assert
                 var ex = Assert.ThrowsAsync<ArgumentException>(() => service.GetSetAsync("A"));
@@ -268,7 +277,7 @@ namespace Leng.Application.Tests
 
             using (var context = new LengDbContext(options))
             {
-                var service = new MTGDbService(context);
+                var service = new MTGDbService(context, StubLogger);
 
                 // Act
                 var set1 = await service.GetSetAsync(null);
@@ -294,7 +303,7 @@ namespace Leng.Application.Tests
             MTGTestGenerics.SeedBasicTestData(options);
             using (var context = new LengDbContext(options))
             {
-                var service = new MTGDbService(context);
+                var service = new MTGDbService(context, StubLogger);
 
                 // Act
                 var sets = await service.SearchSetsContainingCardsAsync("");
@@ -314,7 +323,7 @@ namespace Leng.Application.Tests
 
             using (var context = new LengDbContext(options))
             {
-                var service = new MTGDbService(context);
+                var service = new MTGDbService(context, StubLogger);
 
                 // Act
                 var sets = await service.SearchSetsContainingCardsAsync(setToSearch);
@@ -333,7 +342,7 @@ namespace Leng.Application.Tests
             var setToSearch = "Spark"; // Make sure "Alpha" appears in at least one of your seed sets with cards.
             using (var context = new LengDbContext(options))
             {
-                var service = new MTGDbService(context);
+                var service = new MTGDbService(context, StubLogger);
 
                 // Act
                 var sets = await service.SearchSetsContainingCardsAsync(setToSearch);
@@ -434,22 +443,22 @@ namespace Leng.Application.Tests
                 }
             }";
 
-            var mockFile = new MemoryStream(Encoding.UTF8.GetBytes(_sampleFileOnlineOnly));
-            var mockDbService = Substitute.For<IMTGDbService>();
-            mockDbService.AddSetAsync(Arg.Any<MTGSets>()).Returns(Task.CompletedTask);
-            mockDbService.AddCardsAsync(Arg.Any<List<MTGCards>>()).Returns(Task.CompletedTask);
+            using (var mockFile = new MemoryStream(Encoding.UTF8.GetBytes(_sampleFileOnlineOnly)))
+            {
+                var mockDbService = Substitute.For<IMTGDbService>();
+                mockDbService.AddSetAsync(Arg.Any<MTGSets>()).Returns(Task.CompletedTask);
+                mockDbService.AddCardsAsync(Arg.Any<List<MTGCards>>()).Returns(Task.CompletedTask);
 
-            var _mockLogger = Substitute.For<ILogger<MtgJsonToDbHandler>>();
+                var _mtgJsonToDbHandler = new MtgJsonToDbHandler(_mockLogger, mockDbService);
 
-            var _mtgJsonToDbHandler = new MtgJsonToDbHandler(_mockLogger, mockDbService);
+                // Act
+                await _mtgJsonToDbHandler.ImportMTGSet(mockFile);
 
-            // Act
-            await _mtgJsonToDbHandler.ImportMTGSet(mockFile);
-
-            // Assert
-            mockDbService.Received(0).AddSetAsync(Arg.Any<MTGSets>());
-            mockDbService.Received(0).AddCardsAsync(Arg.Any<List<MTGCards>>());
-            _mockLogger.Received().LogInformation("Skipping online only set: Masters Edition"); // Check the logged message
+                // Assert
+                mockDbService.Received(0).AddSetAsync(Arg.Any<MTGSets>());
+                mockDbService.Received(0).AddCardsAsync(Arg.Any<List<MTGCards>>());
+                _mockLogger.Received().LogInformation("Skipping online only set: Masters Edition");
+            }
         }
 
         [Test]
@@ -465,27 +474,37 @@ namespace Leng.Application.Tests
                 }
             }";
 
-            var mockFile = new MemoryStream(Encoding.UTF8.GetBytes(_sampleFileOnlineOnly));
-            var mockDbService = Substitute.For<IMTGDbService>();
-            mockDbService.AddSetAsync(Arg.Any<MTGSets>()).Returns(Task.CompletedTask);
-            mockDbService.AddCardsAsync(Arg.Any<List<MTGCards>>()).Returns(Task.CompletedTask);
+            using (var mockFile = new MemoryStream(Encoding.UTF8.GetBytes(_sampleFileOnlineOnly)))
+            {
+                var mockDbService = Substitute.For<IMTGDbService>();
+                mockDbService.AddSetAsync(Arg.Any<MTGSets>()).Returns(Task.CompletedTask);
+                mockDbService.AddCardsAsync(Arg.Any<List<MTGCards>>()).Returns(Task.CompletedTask);
 
-            var _mockLogger = Substitute.For<ILogger<MtgJsonToDbHandler>>();
+                var _mtgJsonToDbHandler = new MtgJsonToDbHandler(_mockLogger, mockDbService);
 
-            var _mtgJsonToDbHandler = new MtgJsonToDbHandler(_mockLogger, mockDbService);
+                // Act
+                await _mtgJsonToDbHandler.ImportMTGSet(mockFile);
 
-            // Act
-            await _mtgJsonToDbHandler.ImportMTGSet(mockFile);
-
-            // Assert
-            mockDbService.Received(0).AddSetAsync(Arg.Any<MTGSets>());
-            mockDbService.Received(0).AddCardsAsync(Arg.Any<List<MTGCards>>());
-            _mockLogger.Received().LogInformation("Skipping partial preview set: The Lost Caverns of Ixalan"); // Check the logged message
+                // Assert
+                mockDbService.Received(0).AddSetAsync(Arg.Any<MTGSets>());
+                mockDbService.Received(0).AddCardsAsync(Arg.Any<List<MTGCards>>());
+                _mockLogger.Received().LogInformation("Skipping partial preview set: The Lost Caverns of Ixalan");
+            }
         }
     }
 
+
     public class MTGCardsTests
     {
+        public ILogger<MTGDbService> StubLogger { get; private set; }
+
+        [SetUp]
+        public void Setup()
+        {
+            // Initialize the stub logger
+            StubLogger = Substitute.For<ILogger<MTGDbService>>();
+        }
+
         [Test]
         public async Task AddCardsAsync_AddsNewCardsToDatabase_WhenNoExistingCards()
         {
@@ -526,7 +545,7 @@ namespace Leng.Application.Tests
 
             using (var context = new LengDbContext(options))
             {
-                var service = new MTGDbService(context);
+                var service = new MTGDbService(context, StubLogger);
                 var set = new MTGSets { setCode = "SET1" };
                 context.MTGSets.Add(set);
                 await context.SaveChangesAsync();
@@ -572,7 +591,7 @@ namespace Leng.Application.Tests
 
             using (var context = new LengDbContext(options))
             {
-                var service = new MTGDbService(context);
+                var service = new MTGDbService(context, StubLogger);
                 MTGTestGenerics.SeedBasicTestData(options);
 
                 // Act
@@ -615,7 +634,7 @@ namespace Leng.Application.Tests
 
             using (var context = new LengDbContext(options))
             {
-                var service = new MTGDbService(context);
+                var service = new MTGDbService(context, StubLogger);
                 MTGTestGenerics.SeedBasicTestData(options);
 
                 // Act
@@ -658,7 +677,7 @@ namespace Leng.Application.Tests
 
             using (var context = new LengDbContext(options))
             {
-                var service = new MTGDbService(context);
+                var service = new MTGDbService(context, StubLogger);
                 MTGTestGenerics.SeedBasicTestData(options);
 
                 // Assert
@@ -678,7 +697,7 @@ namespace Leng.Application.Tests
             var cardNameToSearch = "Black";
             using (var context = new LengDbContext(options))
             {
-                var service = new MTGDbService(context);
+                var service = new MTGDbService(context, StubLogger);
 
                 // Act
                 var cards = await service.getCardsAsync(cardNameToSearch, CancellationToken.None);
@@ -698,7 +717,7 @@ namespace Leng.Application.Tests
             var cardNameToSearch = "Lotus";
             using (var context = new LengDbContext(options))
             {
-                var service = new MTGDbService(context);
+                var service = new MTGDbService(context, StubLogger);
 
                 // Act
                 var cards = await service.getCardsAsync(cardNameToSearch, CancellationToken.None);
@@ -718,7 +737,7 @@ namespace Leng.Application.Tests
             var cardNameToSearch = "Zebra";
             using (var context = new LengDbContext(options))
             {
-                var service = new MTGDbService(context);
+                var service = new MTGDbService(context, StubLogger);
 
                 // Act
                 var cards = await service.getCardsAsync(cardNameToSearch, CancellationToken.None);
@@ -737,7 +756,7 @@ namespace Leng.Application.Tests
 
             using (var context = new LengDbContext(options))
             {
-                var service = new MTGDbService(context);
+                var service = new MTGDbService(context, StubLogger);
                 var cardName = "Mox Sapphire";
 
                 // Act
@@ -785,7 +804,7 @@ namespace Leng.Application.Tests
             var cardNameToSearch = "";
             using (var context = new LengDbContext(options))
             {
-                var service = new MTGDbService(context);
+                var service = new MTGDbService(context, StubLogger);
 
                 // Act
                 var cards = await service.getCardsAsync(cardNameToSearch, CancellationToken.None);
@@ -796,6 +815,74 @@ namespace Leng.Application.Tests
         }
 
         [Test]
+        public async Task SearchForCardAsync_HappyPath_ReturnsExpectedResults()
+        {
+            // Arrange
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_SearchForCardAsync_HappyPath_ReturnsExpectedResults");
+            MTGTestGenerics.SeedBasicTestData(options);
+
+            using (var context = new LengDbContext(options))
+            {
+                var service = new MTGDbService(context, StubLogger);
+
+                // Act
+                var result = await service.SearchForCardAsync("Urza's Tower", CancellationToken.None);
+
+                // Assert
+                Assert.That(result, Is.Not.Null);
+                Assert.That(result, Is.Not.Empty);
+                Assert.That(result, Has.Exactly(1).Items);
+            }
+        }
+
+        [Test]
+        public async Task SearchForCardAsync_NonExistingCardName_ReturnsNull()
+        {
+            // Arrange
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_SearchForCardAsync_NonExistingCardName_ReturnsNull");
+            MTGTestGenerics.SeedBasicTestData(options);
+
+            using (var context = new LengDbContext(options))
+            {
+                var service = new MTGDbService(context, StubLogger);
+
+                // Act
+                var result = await service.SearchForCardAsync("Urza's Rocketship", CancellationToken.None);
+
+                // Assert
+                Assert.That(result, Is.Not.Null);
+                Assert.That(result, Is.Empty);
+                StubLogger.Received(1).LogInformation("Found 0 cards for search term: Urza's Rocketship");
+            }
+        }
+
+        [Test]
+        public async Task SearchForCardAsync_CancelledToken_ReturnsNull()
+        {
+            // Arrange
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_SearchForCardAsync_CancelledToken_ReturnsNull");
+            MTGTestGenerics.SeedBasicTestData(options);
+
+            using (var context = new LengDbContext(options))
+            {
+                var service = new MTGDbService(context, StubLogger);
+
+                // Create a CancellationToken that is already cancelled
+                var cts = new CancellationTokenSource();
+                cts.Cancel();
+                var cancellationToken = cts.Token;
+
+                // Act
+                var result = await service.SearchForCardAsync("Urza's Tower", cancellationToken);
+
+                // Assert
+                Assert.That(result, Is.Null);
+                StubLogger.Received(1).LogDebug("Search for card cancelled.");
+            }
+        }
+
+
+        [Test]
         public async Task GetCardAsync_ReturnsCorrectCard_WhenGivenStringNumber()
         {
             // Arrange
@@ -804,7 +891,7 @@ namespace Leng.Application.Tests
 
             using (var context = new LengDbContext(options))
             {
-                var service = new MTGDbService(context);
+                var service = new MTGDbService(context, StubLogger);
 
                 // Act
                 var set = await service.GetSetAsync("ATQ");
@@ -837,7 +924,7 @@ namespace Leng.Application.Tests
 
             using (var context = new LengDbContext(options))
             {
-                var service = new MTGDbService(context);
+                var service = new MTGDbService(context, StubLogger);
 
                 // Act
                 var set = await service.GetSetAsync("LEA");

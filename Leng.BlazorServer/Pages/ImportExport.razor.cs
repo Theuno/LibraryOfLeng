@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using MudBlazor;
@@ -50,10 +51,9 @@ namespace Leng.BlazorServer.Pages
 
         public ImportExport(IDbContextFactory<LengDbContext> contextFactory)
         {
-            DbService = new MTGDbService(contextFactory);
+            DbService = new MTGDbService(contextFactory, LoggerFactory.CreateLogger<MTGDbService>());
             _handler = new MtgJsonToDbHandler(LoggerFactory.CreateLogger<MtgJsonToDbHandler>(), DbService);
         }
-
 
         protected async Task UploadFiles(IBrowserFile file)
         {

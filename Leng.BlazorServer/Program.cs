@@ -52,7 +52,8 @@ builder.Services.AddControllersWithViews()
 builder.Services.AddTransient<IMTGDbService>(sp =>
 {
     var contextFactory = sp.GetRequiredService<IDbContextFactory<LengDbContext>>();
-    return new MTGDbService(contextFactory);
+    var logger = sp.GetRequiredService<ILogger<MTGDbService>>();
+    return new MTGDbService(contextFactory, logger);
 });
 
 var app = builder.Build();
