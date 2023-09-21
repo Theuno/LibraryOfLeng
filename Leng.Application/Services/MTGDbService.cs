@@ -10,10 +10,10 @@ namespace Leng.Application.Services
     public interface IMTGDbService
     {
         Task AddSetAsync(MTGSets set);
-        Task<List<MTGSets>> GetAllSetsAsync();
+        Task<List<MTGSets>> GetAllSetsAsync(CancellationToken cancellationToken);
         Task<string?> GetSetCodeAsync(string setName);
         Task<MTGSets?> GetSetAsync(string? setCode);
-        Task<List<MTGSets>> SearchSetsContainingCardsAsync(string mtgset);
+        Task<List<MTGSets>> SearchSetsContainingCardsAsync(string mtgset, CancellationToken cancellationToken = default);
         Task<IEnumerable<MTGCards>> getCardsAsync(string cardName, CancellationToken cancellationToken);
         Task AddCardsAsync(List<MTGCards> setCards);
         Task<IEnumerable<string>> SearchForCardAsync(string cardName, CancellationToken cancellationToken);
@@ -69,9 +69,9 @@ namespace Leng.Application.Services
                 }
             }
         }
-        public async Task<List<MTGSets>> GetAllSetsAsync()
+        public async Task<List<MTGSets>> GetAllSetsAsync(CancellationToken cancellationToken)
         {
-            return await _dbContext.MTGSets.OrderBy(x => x.name).ToListAsync();
+            return await _dbContext.MTGSets.OrderBy(x => x.name).ToListAsync(cancellationToken);
         }
 
         // Get SetCode for set
@@ -107,18 +107,24 @@ namespace Leng.Application.Services
             return new MTGSets();
         }
 
-        public async Task<List<MTGSets>> SearchSetsContainingCardsAsync(string mtgset)
+        public async Task<List<MTGSets>> SearchSetsContainingCardsAsync(string mtgset, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // if text is null or empty, show complete list
             if (string.IsNullOrEmpty(mtgset))
             {
-                return await GetAllSetsAsync();
+                _logger.LogInformation("Search query is null or empty.");
+                return await GetAllSetsAsync(cancellationToken);
             }
             else
             {
                 List<MTGSets> list = await _dbContext.MTGSets
                         .Include(s => s.Cards)
-                        .Where(x => x.name.Contains(mtgset) && x.Cards.Count != 0).ToListAsync();
+                        .Where(x => x.name.Contains(mtgset) && x.Cards.Count != 0)
+                        .ToListAsync(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
                 return list;
             }
         }

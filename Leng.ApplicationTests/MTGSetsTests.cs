@@ -306,7 +306,7 @@ namespace Leng.Application.Tests
                 var service = new MTGDbService(context, StubLogger);
 
                 // Act
-                var sets = await service.SearchSetsContainingCardsAsync("");
+                var sets = await service.SearchSetsContainingCardsAsync("", CancellationToken.None);
 
                 // Assert
                 Assert.That(sets, Has.Count.EqualTo(context.MTGSets.Count()));
@@ -326,7 +326,7 @@ namespace Leng.Application.Tests
                 var service = new MTGDbService(context, StubLogger);
 
                 // Act
-                var sets = await service.SearchSetsContainingCardsAsync(setToSearch);
+                var sets = await service.SearchSetsContainingCardsAsync(setToSearch, CancellationToken.None);
 
                 // Assert
                 Assert.That(sets, Is.All.Matches<MTGSets>(s => s.name.Contains(setToSearch) && s.Cards.Count != 0));
@@ -338,19 +338,43 @@ namespace Leng.Application.Tests
         {
             // Arrange
             var options = MTGTestGenerics.CreateOptions("TestDatabase_ReturnsNoSetsWithNameContainingPassedString_AndSetHasNoCards");
-            MTGTestGenerics.SeedBasicTestData(options); // Make sure you seed data with at least one set containing cards.
-            var setToSearch = "Spark"; // Make sure "Alpha" appears in at least one of your seed sets with cards.
+            MTGTestGenerics.SeedBasicTestData(options);
+            var setToSearch = "Spark";
             using (var context = new LengDbContext(options))
             {
                 var service = new MTGDbService(context, StubLogger);
 
                 // Act
-                var sets = await service.SearchSetsContainingCardsAsync(setToSearch);
+                var sets = await service.SearchSetsContainingCardsAsync(setToSearch, CancellationToken.None);
 
                 // Assert
                 Assert.That(sets, Is.All.Matches<MTGSets>(s => s.name.Contains(setToSearch) && s.Cards.Count != 0));
             }
         }
+
+        [Test]
+        public async Task SearchSetsContainingCardsAsync_CancellationToken_CancelsOperation()
+        {
+            // Arrange
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_CancellationToken_CancelsOperation");
+            MTGTestGenerics.SeedBasicTestData(options);
+            using (var context = new LengDbContext(options))
+            {
+                var service = new MTGDbService(context, StubLogger);
+                var cts = new CancellationTokenSource();
+
+                // Delay task to simulate a long-running search
+                Task.Delay(400, cts.Token).ContinueWith(t => service.SearchSetsContainingCardsAsync("Spa", cts.Token));
+
+                // Act
+                // Cancel the token after a short delay to interrupt the above search
+                Task.Delay(10).ContinueWith(t => cts.Cancel());
+
+                // Assert
+                Assert.ThrowsAsync<OperationCanceledException>(() => service.SearchSetsContainingCardsAsync("Alpha", cts.Token));
+            }
+        }
+
     }
 
     [TestFixture]

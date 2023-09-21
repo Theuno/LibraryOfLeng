@@ -199,7 +199,7 @@ namespace Leng.BlazorServer.Pages
         {
             if (_lengUser != null)
             {
-                var sets = await DbService.GetAllSetsAsync();
+                var sets = await DbService.GetAllSetsAsync(CancellationToken.None);
 
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
                 using var package = new ExcelPackage();

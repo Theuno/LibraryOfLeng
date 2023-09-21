@@ -15,7 +15,11 @@ namespace Leng.BlazorServer.Pages {
         [Inject] IDbContextFactory<LengDbContext> cf { get; set; } = default!;
         [Inject]
         public IMTGDbService DbService { get; set; }
+        [Inject]
+        public ILogger<CardSheet> Logger { get; set; }
+
         [CascadingParameter] private Task<AuthenticationState>? authenticationState { get; set; }
+        private CancellationTokenSource _cts = new CancellationTokenSource();
 
 
         private async Task CommittedItemChanges(ShowSheet contextCard) {
@@ -28,9 +32,7 @@ namespace Leng.BlazorServer.Pages {
                 await DbService.updateCardOfUserAsync(card.number, card.name, card.setCode, card.count, card.countFoil, lengUser);
             }
 
-            Console.WriteLine(card.name);
-            Console.WriteLine(card.number);
-            Console.WriteLine(card.count);
+            Logger.LogInformation("CardSheet: {name} {number} {count}", card.name, card.number, card.count);
         }
 
         public string SortBySetNumber(MTGCards card) {
@@ -50,14 +52,36 @@ namespace Leng.BlazorServer.Pages {
                 }
             }
             catch (Exception ex) {
-                Console.WriteLine(ex.Message);
+                Logger.LogError("Error when sorting by set number: {message}", ex.Message);
                 return "0";
             }
         }
 
-        private async Task<IEnumerable<string>> SetSearch(string set) {
-            var sets = await DbService.SearchSetsContainingCardsAsync(set);
-            return await Task.FromResult(sets.Select(x => x.name).ToArray());
+        private async Task<IEnumerable<string>> SetSearch(string query)
+        {
+             // Cancel the previous task (if any)
+             _cts.Cancel();
+            _cts = new CancellationTokenSource();
+
+            try
+            {
+                // Call the search method, passing the CancellationToken
+                return await LoadDataForSearchQuery(query, _cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                Logger.LogInformation("Search operation cancelled");
+                return Enumerable.Empty<string>();
+                // TODO: actually returning the list from before the cancellation is better
+            }
+        }
+
+        private async Task<IEnumerable<string>> LoadDataForSearchQuery(string query, CancellationToken cancellationToken)
+        {
+            // Fetch sets based on the query, but frequently check for cancellation
+            List<MTGSets> setsList = await DbService.SearchSetsContainingCardsAsync(query, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            return setsList.Select(set => set.name);
         }
 
         public async Task OnSetSelected(string set) {
@@ -90,12 +114,10 @@ namespace Leng.BlazorServer.Pages {
                     else {
                         sheet.Add(new ShowSheet { setCode = card.MTGSets.setCode, cardImageUrl = imageUrl, name = card.name, number = card.number, count = usersCard.count, countFoil = usersCard.countFoil });
                     }
-                    Console.WriteLine(card.name);
-
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex);
+                    Logger.LogError("Error when adding card to sheet: {message}", ex.Message);
                 }
             }
         }
