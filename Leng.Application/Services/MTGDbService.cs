@@ -136,8 +136,8 @@ namespace Leng.Application.Services
             var cards = await _dbContext.MTGCard
                 .Where(c => c.name.StartsWith(cardName)) // Dereference of a possibly null reference.
                 .Include(cards => cards.LengUserMTGCards)
-                .Take(20) // Limit the results to a certain number
                 .OrderBy(c => c.name)
+                .Take(20) // Limit the results to a certain number
                 .ToListAsync(cancellationToken);
 
             // if no cards match, do a contains match.
@@ -146,8 +146,8 @@ namespace Leng.Application.Services
                 cards = await _dbContext.MTGCard
                     .Where(c => c.name.Contains(cardName))
                     .Include(cards => cards.LengUserMTGCards)  // Dereference of a possibly null reference.
-                    .Take(20) // Limit the results to a certain number
                     .OrderBy(c => c.name)
+                    .Take(20) // Limit the results to a certain number
                     .ToListAsync(cancellationToken);
             }
             return cards;
@@ -223,6 +223,7 @@ namespace Leng.Application.Services
                 _logger.LogInformation($"Searching for card: {cardName}");
 
                 var searchedCards = await getCardsAsync(cardName, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
 
                 _logger.LogInformation($"Found {searchedCards.Count()} cards for search term: {cardName}");
                 searchedCards = searchedCards.DistinctBy(c => c.name);

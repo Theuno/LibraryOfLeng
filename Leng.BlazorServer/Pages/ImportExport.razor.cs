@@ -31,11 +31,6 @@ namespace Leng.BlazorServer.Pages
         [Inject]
         public ILoggerFactory LoggerFactory { get; set; }
 
-        public ImportExport(ILoggerFactory loggerFactory, IMTGDbService dbService)
-        {
-            _logger = loggerFactory.CreateLogger<ImportExport>();
-            DbService = new MTGDbService(DbContextFactory, LoggerFactory.CreateLogger<MTGDbService>());
-        }
 
         protected override async Task OnInitializedAsync()
         {

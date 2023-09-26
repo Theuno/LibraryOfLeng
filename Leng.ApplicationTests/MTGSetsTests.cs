@@ -375,6 +375,34 @@ namespace Leng.Application.Tests
             }
         }
 
+        [Test]
+        public async Task GetAllSetsAsync_ReturnsExpectedSets()
+        {
+            // Arrange
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_GetAllSetsAsync_ReturnsExpectedSets");
+            MTGTestGenerics.SeedBasicTestData(options);
+
+            // Create the schema in the database
+            using (var context = new LengDbContext(options))
+            {
+                context.MTGSets.Add(new MTGSets { name = "Wilds of Eldraine", setCode = "WOE", baseSetSize = 95 });
+                context.MTGSets.Add(new MTGSets { name = "Party on Eldraine", setCode = "POE", baseSetSize = 10 });
+                await context.SaveChangesAsync();
+            }
+
+            // Act
+            IEnumerable<MTGSets> sets;
+            using (var context = new LengDbContext(options))
+            {
+                var service = new MTGDbService(context, StubLogger);
+                sets = await service.GetAllSetsAsync(CancellationToken.None);
+            }
+
+            // Assert
+            Assert.AreEqual(5, sets.Count());
+        }
+
+
     }
 
     [TestFixture]
