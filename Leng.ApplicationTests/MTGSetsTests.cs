@@ -500,7 +500,51 @@ namespace Leng.Application.Tests
                 Assert.That(firstCard.count, Is.EqualTo(1));
                 Assert.That(firstCard.countFoil, Is.EqualTo(0));
             }
+        }
 
+        [Test]
+        public async Task GetAllCardsFromUserCollectionAsync_MultipleUsersTest()
+        {
+            // Arrange
+            var user1 = new LengUser();
+            var user2 = new LengUser();
+
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_GetAllCardsFromUserCollectionAsync_MultipleUsersTest");
+            MTGTestGenerics.SeedBasicTestData(options);
+
+            using (var context = new LengDbContext(options))
+            {
+                context.LengUser.AddRange(user1, user2);
+                await context.SaveChangesAsync();  // Ensure the users are saved to the database
+
+                var service = new MTGDbService(context, StubLogger);
+
+                // Assigning different cards to different users
+                await service.updateCardOfUserAsync("83b", "Urza's Mine", "ATQ", 1, 0, user1);
+                await service.updateCardOfUserAsync("84a", "Urza's Power Plant", "ATQ", 1, 0, user1);
+                await service.updateCardOfUserAsync("85c", "Urza's Tower", "ATQ", 1, 0, user1);
+                await service.updateCardOfUserAsync("232", "Black Lotus", "LEA", 1, 0, user2);
+                await service.updateCardOfUserAsync("263", "Mox Pearl", "LEA", 1, 0, user2);
+                await service.updateCardOfUserAsync("265", "Mox Sapphire", "LEA", 1, 0, user2);
+
+                var collectionUser1 = await service.GetAllCardsFromUserCollectionAsync(user1);
+                var collectionUser2 = await service.GetAllCardsFromUserCollectionAsync(user2);
+
+                // Assert
+                // Verifying user1's collection
+                Assert.That(collectionUser1, Is.Not.Null);
+                Assert.That(collectionUser1, Has.Exactly(3).Items);
+                Assert.That(collectionUser1.Select(c => c.MTGCards.name), Does.Not.Contain("Black Lotus"));
+                Assert.That(collectionUser1.Select(c => c.MTGCards.name), Does.Not.Contain("Mox Pearl"));
+                Assert.That(collectionUser1.Select(c => c.MTGCards.name), Does.Not.Contain("Mox Sapphire"));
+
+                // Verifying user2's collection
+                Assert.That(collectionUser2, Is.Not.Null);
+                Assert.That(collectionUser2, Has.Exactly(3).Items);
+                Assert.That(collectionUser2.Select(c => c.MTGCards.name), Does.Not.Contain("Urza's Mine"));
+                Assert.That(collectionUser2.Select(c => c.MTGCards.name), Does.Not.Contain("Urza's Power Plant"));
+                Assert.That(collectionUser2.Select(c => c.MTGCards.name), Does.Not.Contain("Urza's Tower"));
+            }
         }
 
     }
