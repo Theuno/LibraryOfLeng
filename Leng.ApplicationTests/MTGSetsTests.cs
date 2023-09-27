@@ -1,3 +1,4 @@
+using Leng.Application.FunctionHandlers;
 using Leng.Application.Services;
 using Leng.Domain.Models;
 using Leng.Infrastructure;
@@ -5,10 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using System.Text;
-using Leng.Application.FunctionHandlers;
-using Microsoft.Extensions.Options;
-using Microsoft.Graph;
-using Microsoft.EntityFrameworkCore.Internal;
 
 namespace Leng.Application.Tests
 {
@@ -399,9 +396,112 @@ namespace Leng.Application.Tests
             }
 
             // Assert
-            Assert.AreEqual(5, sets.Count());
+            Assert.That(sets.Count(), Is.EqualTo(5));
         }
 
+
+        [Test]
+        public async Task GetUserCollectionSummaryAsync_NullUser_ReturnsZeroes()
+        {
+            // Arrange
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_GetUserCollectionSummaryAsync_NullUser_ReturnsZeroes");
+
+            // Act
+            using (var context = new LengDbContext(options))
+            {
+                var service = new MTGDbService(context, StubLogger);
+                var summary = await service.GetUserCollectionSummaryAsync(null);
+
+                // Assert
+                Assert.That(summary, Is.EqualTo((0, 0)));
+            }
+        }
+
+        [Test]
+        public async Task GetUserCollectionSummaryAsync_EmptyCollection_ReturnsZeroes()
+        {
+            // Arrange
+            var user = new LengUser();
+
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_GetUserCollectionSummaryAsync_EmptyCollection_ReturnsZeroes");
+            MTGTestGenerics.SeedBasicTestData(options);
+
+            using (var context = new LengDbContext(options))
+            {
+                context.LengUser.Add(user);
+                await context.SaveChangesAsync();
+
+                var service = new MTGDbService(context, StubLogger);
+
+                // Act
+                var summary = await service.GetUserCollectionSummaryAsync(user);
+
+                // Assert
+                Assert.That(summary, Is.EqualTo((0, 0)));
+            }
+        }
+
+        [Test]
+        public async Task GetUserCollectionSummaryAsync_PopulatedCollection_ReturnsExpectedSummary()
+        {
+            // Arrange
+            var user = new LengUser();
+
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_GetUserCollectionSummaryAsync_PopulatedCollection_ReturnsExpectedSummary");
+            MTGTestGenerics.SeedBasicTestData(options);
+
+            using (var context = new LengDbContext(options))
+            {
+                context.LengUser.Add(user);
+
+                var service = new MTGDbService(context, StubLogger);
+
+                await service.updateCardOfUserAsync("83b", "Urza's Mine", "ATQ", 1, 0, user);
+                await service.updateCardOfUserAsync("84a", "Urza's Power Plant", "ATQ", 1, 0, user);
+                await service.updateCardOfUserAsync("85c", "Urza's Tower", "ATQ", 1, 0, user);
+
+                var summary = await service.GetUserCollectionSummaryAsync(user);
+
+                // Assert
+                Assert.That(summary, Is.EqualTo((3, 0)));  // PlaysetCount is always 0 in the current implementation
+            }
+        }
+
+        [Test]
+        public async Task GetAllCardsFromUserCollectionAsync_SingleUserTest()
+        {
+            // Arrange
+            var user = new LengUser();
+
+            var options = MTGTestGenerics.CreateOptions("TestDatabase_GetAllCardsFromUserCollectionAsync_SingleUserTest");
+            MTGTestGenerics.SeedBasicTestData(options);
+
+            using (var context = new LengDbContext(options))
+            {
+                context.LengUser.Add(user);
+
+                var service = new MTGDbService(context, StubLogger);
+
+                await service.updateCardOfUserAsync("83b", "Urza's Mine", "ATQ", 1, 0, user);
+                await service.updateCardOfUserAsync("84a", "Urza's Power Plant", "ATQ", 1, 0, user);
+                await service.updateCardOfUserAsync("85c", "Urza's Tower", "ATQ", 1, 0, user);
+
+                var collection = await service.GetAllCardsFromUserCollectionAsync(user);
+
+                // Assert
+                Assert.That(collection, Is.Not.Null);
+                Assert.That(collection, Has.Exactly(3).Items);
+
+                // Verify the details of the first card as an example
+                var firstCard = collection.First();
+                Assert.That(firstCard.MTGCards.number, Is.EqualTo("83b"));
+                Assert.That(firstCard.MTGCards.name, Is.EqualTo("Urza's Mine"));
+                Assert.That(firstCard.MTGCards.MTGSets.setCode, Is.EqualTo("ATQ"));
+                Assert.That(firstCard.count, Is.EqualTo(1));
+                Assert.That(firstCard.countFoil, Is.EqualTo(0));
+            }
+
+        }
 
     }
 

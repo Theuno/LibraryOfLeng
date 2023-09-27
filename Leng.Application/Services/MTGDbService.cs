@@ -379,7 +379,6 @@ namespace Leng.Application.Services
         {
             if (user == null)
             {
-                //throw new ArgumentNullException(nameof(user));
                 return (0, 0);
             }
             else
