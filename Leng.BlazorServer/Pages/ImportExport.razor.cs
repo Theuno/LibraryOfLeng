@@ -51,45 +51,47 @@ namespace Leng.BlazorServer.Pages
             DbService = new MTGDbService(contextFactory, LoggerFactory.CreateLogger<MTGDbService>());
         }
 
+
+
         protected async Task UploadFiles(IBrowserFile file)
         {
-            if (file == null)
+            try
             {
-                // Handle null file error
-                return;
-            }
+                // Validate the file using DataUtility
+                DataUtility.ValidateImportFile(file);
 
-            if (file.Size > 10485760) // 10 MB limit
+                Stream stream = file.OpenReadStream();
+                var uploadDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                var path = Path.Combine(uploadDir, file.Name);
+
+                if (!Directory.Exists(uploadDir))
+                {
+                    Directory.CreateDirectory(uploadDir);
+                }
+
+                FileStream fs = File.Create(path);
+                await stream.CopyToAsync(fs);
+                stream.Close();
+                fs.Close();
+
+                // Read file, process data, and save to database
+                await ImportCardsAsync(path);
+
+                // Remove file
+                File.Delete(path);
+            }
+            catch (ArgumentNullException ex)
             {
-                // Handle file size exceeded error
-                return;
+                // Handle ArgumentNullExceptions (e.g., null file)
+                // You might want to log the error or notify the user
+                _logger.LogError(ex.Message);
             }
-
-            if (!file.Name.EndsWith(".xlsx"))
+            catch (ArgumentException ex)
             {
-                // Handle invalid file type error
-                return;
+                // Handle ArgumentExceptions (e.g., invalid file size or type)
+                // You might want to log the error or notify the user
+                _logger.LogError(ex.Message);
             }
-
-            Stream stream = file.OpenReadStream();
-            var uploadDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-            var path = Path.Combine(uploadDir, file.Name);
-
-            if (!Directory.Exists(uploadDir))
-            {
-                Directory.CreateDirectory(uploadDir);
-            }
-
-            FileStream fs = File.Create(path);
-            await stream.CopyToAsync(fs);
-            stream.Close();
-            fs.Close();
-
-            // Read file, process data, and save to database
-            await ImportCardsAsync(path);
-
-            // Remove file
-            File.Delete(path);
         }
 
         // Function to Import cards from an Excel file

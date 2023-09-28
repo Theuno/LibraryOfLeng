@@ -362,6 +362,9 @@ namespace Leng.Application.Tests
 
                 // Delay task to simulate a long-running search
                 Task.Delay(400, cts.Token).ContinueWith(t => service.SearchSetsContainingCardsAsync("Spa", cts.Token));
+                Task.Delay(400, cts.Token).ContinueWith(t => service.SearchSetsContainingCardsAsync("Spa", cts.Token));
+                Task.Delay(400, cts.Token).ContinueWith(t => service.SearchSetsContainingCardsAsync("Spa", cts.Token));
+                Task.Delay(400, cts.Token).ContinueWith(t => service.SearchSetsContainingCardsAsync("Spa", cts.Token));
 
                 // Act
                 // Cancel the token after a short delay to interrupt the above search

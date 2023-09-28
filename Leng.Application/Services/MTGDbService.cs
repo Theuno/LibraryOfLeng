@@ -13,7 +13,7 @@ namespace Leng.Application.Services
         Task<List<MTGSets>> GetAllSetsAsync(CancellationToken cancellationToken);
         Task<string?> GetSetCodeAsync(string setName);
         Task<MTGSets?> GetSetAsync(string? setCode);
-        Task<List<MTGSets>> SearchSetsContainingCardsAsync(string mtgset, CancellationToken cancellationToken = default);
+        Task<List<MTGSets>> SearchSetsContainingCardsAsync(string mtgset, CancellationToken cancellationToken);
         Task<IEnumerable<MTGCards>> getCardsAsync(string cardName, CancellationToken cancellationToken);
         Task AddCardsAsync(List<MTGCards> setCards);
         Task<IEnumerable<string>> SearchForCardAsync(string cardName, CancellationToken cancellationToken);
