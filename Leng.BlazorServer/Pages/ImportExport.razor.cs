@@ -7,13 +7,13 @@ using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
 using OfficeOpenXml; // EPPlus
+using Leng.Application.Dtos;
 
 namespace Leng.BlazorServer.Pages
 {
     public partial class ImportExport
     {
         private LengUser? _lengUser { get; set; }
-        private readonly ILogger<ImportExport> _logger;
         [CascadingParameter] private Task<AuthenticationState>? authenticationState { get; set; }
 
         [Inject]
@@ -29,8 +29,7 @@ namespace Leng.BlazorServer.Pages
         public IDbContextFactory<LengDbContext> DbContextFactory { get; set; }
 
         [Inject]
-        public ILoggerFactory LoggerFactory { get; set; }
-
+        public ILogger<CardSheet> Logger { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
@@ -45,13 +44,6 @@ namespace Leng.BlazorServer.Pages
                 _lengUser = null;
             }
         }
-
-        public ImportExport(IDbContextFactory<LengDbContext> contextFactory)
-        {
-            DbService = new MTGDbService(contextFactory, LoggerFactory.CreateLogger<MTGDbService>());
-        }
-
-
 
         protected async Task UploadFiles(IBrowserFile file)
         {
@@ -84,13 +76,13 @@ namespace Leng.BlazorServer.Pages
             {
                 // Handle ArgumentNullExceptions (e.g., null file)
                 // You might want to log the error or notify the user
-                _logger.LogError(ex.Message);
+                Logger.LogError(ex.Message);
             }
             catch (ArgumentException ex)
             {
                 // Handle ArgumentExceptions (e.g., invalid file size or type)
                 // You might want to log the error or notify the user
-                _logger.LogError(ex.Message);
+                Logger.LogError(ex.Message);
             }
         }
 
@@ -112,51 +104,29 @@ namespace Leng.BlazorServer.Pages
                 return;
             }
 
-            // Validate headers
-            var validHeaders1 = new[] { "Card Name", "Card Number", "Set Code", "Count", "Count Foil", "have", "have foil", "want", "want foil", "note" };
-            var validHeaders2 = new[] { "kaartnaam", "kaartnummer", "set_code", "c", "c_foil", "h", "h_foil", "w", "w_foil", "notitie" };
-            var validHeaders3 = new[] { "Card Name", "Card Number", "Set Code", "Count", "Count Foil", "", "", "", "", "" };
-            var validHeaders4 = new[] { "kaartnaam", "kaartnummer", "set_code", "c", "c_foil", "", "", "", "", "" };
-
             var headers = Enumerable.Range(1, 10).Select(col => worksheet.Cells[1, col].Text).ToArray();
-            if (!headers.SequenceEqual(validHeaders1) && 
-                !headers.SequenceEqual(validHeaders2) &&
-                !headers.SequenceEqual(validHeaders3) &&
-                !headers.SequenceEqual(validHeaders4))
+            bool validHeaders = DataUtility.ValidateHeaders(headers);
+            if (!validHeaders)
             {
                 // Handle invalid header error
                 return;
             }
 
-            // Start reading cards, after the first row in the database (which contains headers)
-            for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+            var cardsFromSheet = await DataUtility.ImportCardsAsync(file);
+
+            foreach(var card in cardsFromSheet)
             {
                 // Find card
-                MTGSets set = await DbService.GetSetAsync(worksheet.Cells[row, 3].Text);
-                MTGCards card = await DbService.getCardAsync(worksheet.Cells[row, 1].Text, set,  worksheet.Cells[row, 2].Text);
-                // TODO: Check if set and card are found, otherwise inform the user.
-
-                // Read card
-                var userCard = new LengUserMTGCards
-                {
-                    count = int.Parse(worksheet.Cells[row, 4].Text),
-                    countFoil = int.Parse(worksheet.Cells[row, 5].Text),
-                    //have = int.Parse(worksheet.Cells[row, 6].Text),
-                    //haveFoil = int.Parse(worksheet.Cells[row, 7].Text),
-                    //want = int.Parse(worksheet.Cells[row, 8].Text),
-                    //wantFoil = int.Parse(worksheet.Cells[row, 9].Text),
-                    //note = worksheet.Cells[row, 10].Text
-                };
+                MTGSets set = await DbService.GetSetAsync(card.SetCode);
+                MTGCards dbCard = await DbService.getCardAsync(card.CardName, set, card.CardNumber);
 
                 // Print card information in a single line
-                _logger.LogInformation($"Adding card for user: {card.name} {card.number} {card.setCode} {userCard.count} {userCard.countFoil}");
+                Logger.LogInformation($"Adding card for user: {dbCard.name} {dbCard.number} {dbCard.setCode} {card.Count} {card.CountFoil}");
 
                 // Add card to database
-                await DbService.updateCardOfUserAsync(card.number, card.name, set.setCode, userCard.count, userCard.countFoil, _lengUser);
+                await DbService.updateCardOfUserAsync(dbCard.number, dbCard.name, set.setCode, card.Count, card.CountFoil, _lengUser);
             }
         }
-
-
 
         // Function to export all cards on a single sheet
         public async Task ExportAllCardsAsync()

@@ -1,9 +1,6 @@
-﻿using Microsoft.AspNetCore.Components.Forms;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Leng.Application.Dtos;
+using Microsoft.AspNetCore.Components.Forms;
+using OfficeOpenXml; // EPPlus
 
 namespace Leng.Application.Services
 {
@@ -27,6 +24,72 @@ namespace Leng.Application.Services
             }
 
             return true;
+        }
+
+        public static bool ValidateHeaders(string[] headers)
+        {
+            if (headers == null || headers.Length != 10) return false;
+
+            var validHeaders1 = new[] { "Card Name", "Card Number", "Set Code", "Count", "Count Foil", "have", "have foil", "want", "want foil", "note" };
+            var validHeaders2 = new[] { "kaartnaam", "kaartnummer", "set_code", "c", "c_foil", "h", "h_foil", "w", "w_foil", "notitie" };
+            var validHeaders3 = new[] { "Card Name", "Card Number", "Set Code", "Count", "Count Foil", "", "", "", "", "" };
+            var validHeaders4 = new[] { "kaartnaam", "kaartnummer", "set_code", "c", "c_foil", "", "", "", "", "" };
+
+            return headers.SequenceEqual(validHeaders1) ||
+                   headers.SequenceEqual(validHeaders2) ||
+                   headers.SequenceEqual(validHeaders3) ||
+                   headers.SequenceEqual(validHeaders4);
+        }
+
+
+        private static async Task<List<UserCardInfo>> ReadCardsAsync(ExcelWorksheet worksheet)
+        {
+            var cards = new List<UserCardInfo>();
+
+            for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+            {
+                var userCardInfo = new UserCardInfo
+                {
+                    CardName = worksheet.Cells[row, 1].Text,
+                    CardNumber = worksheet.Cells[row, 2].Text,
+                    SetCode = worksheet.Cells[row, 3].Text,
+                    Count = int.Parse(worksheet.Cells[row, 4].Text),
+                    CountFoil = int.Parse(worksheet.Cells[row, 5].Text)
+                };
+
+                cards.Add(userCardInfo);
+            }
+
+            return cards;
+        }
+
+        public static async Task<List<UserCardInfo>> ImportCardsAsync(string file)
+        {
+            // Open file
+            var fileInfo = new FileInfo(file);
+            using var package = new ExcelPackage(fileInfo);
+
+            // Using the non commercial license of EPPlus
+            ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+
+            // Validate file
+            var worksheet = package.Workbook.Worksheets[0];
+            if (worksheet == null)
+            {
+                // Handle invalid file error
+                return null;
+            }
+
+            var headers = Enumerable.Range(1, 10).Select(col => worksheet.Cells[1, col].Text).ToArray();
+            bool validHeaders = ValidateHeaders(headers);
+            if (!validHeaders)
+            {
+                // Handle invalid header error
+                throw new ArgumentException("Invalid headers in file", nameof(file));
+            }
+            var cards = await ReadCardsAsync(worksheet);
+
+            return cards;
         }
     }
 }

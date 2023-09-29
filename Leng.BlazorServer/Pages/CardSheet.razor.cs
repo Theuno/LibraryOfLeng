@@ -12,7 +12,6 @@ namespace Leng.BlazorServer.Pages {
         private IEnumerable<MTGCards>? cards = new List<MTGCards>();
         private List<ShowSheet>? sheet = new List<ShowSheet>();
 
-        [Inject] IDbContextFactory<LengDbContext> cf { get; set; } = default!;
         [Inject]
         public IMTGDbService DbService { get; set; }
         [Inject]

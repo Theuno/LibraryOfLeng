@@ -5,8 +5,14 @@ using NSubstitute;
 namespace BlazorServer.Tests
 {
     [TestFixture]
-    public class DataUtilityTests
+    public class ImportExportUtilityTests
     {
+        // The valid headers as per your specified arrays
+        private readonly string[] validHeaders1 = { "Card Name", "Card Number", "Set Code", "Count", "Count Foil", "have", "have foil", "want", "want foil", "note" };
+        private readonly string[] validHeaders2 = { "kaartnaam", "kaartnummer", "set_code", "c", "c_foil", "h", "h_foil", "w", "w_foil", "notitie" };
+        private readonly string[] validHeaders3 = { "Card Name", "Card Number", "Set Code", "Count", "Count Foil", "", "", "", "", "" };
+        private readonly string[] validHeaders4 = { "kaartnaam", "kaartnummer", "set_code", "c", "c_foil", "", "", "", "", "" };
+
         [Test]
         public void ValidateImportFile_NullFile_ThrowsArgumentNullException()
         {
@@ -55,6 +61,22 @@ namespace BlazorServer.Tests
 
             // Assert
             Assert.That(result, Is.True);
+        }
+
+        [Test]
+        public void ValidateHeaders_ValidHeaders_ReturnsTrue()
+        {
+            // Arrange & Act
+            bool result1 = DataUtility.ValidateHeaders(validHeaders1);
+            bool result2 = DataUtility.ValidateHeaders(validHeaders2);
+            bool result3 = DataUtility.ValidateHeaders(validHeaders3);
+            bool result4 = DataUtility.ValidateHeaders(validHeaders4);
+
+            // Assert
+            Assert.That(result1, Is.True, "Failed for validHeaders1");
+            Assert.That(result2, Is.True, "Failed for validHeaders2");
+            Assert.That(result3, Is.True, "Failed for validHeaders3");
+            Assert.That(result4, Is.True, "Failed for validHeaders4");
         }
     }
 }

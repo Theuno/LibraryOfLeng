@@ -20,7 +20,6 @@ namespace Leng.BlazorServer.Pages
         private string _resultList = "";
         private readonly List<ShowSheet>? _resultSheet = new List<ShowSheet>();
 
-        [Inject] IDbContextFactory<LengDbContext> cf { get; set; } = default!;
         [Inject]
         public IMTGDbService DbService { get; set; }
 
