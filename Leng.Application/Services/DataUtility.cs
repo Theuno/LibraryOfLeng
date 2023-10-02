@@ -28,7 +28,10 @@ namespace Leng.Application.Services
 
         public static bool ValidateHeaders(string[] headers)
         {
-            if (headers == null || headers.Length != 10) return false;
+            if (headers == null || headers.Length != 10)
+            {
+                return false;
+            }
 
             var validHeaders1 = new[] { "Card Name", "Card Number", "Set Code", "Count", "Count Foil", "have", "have foil", "want", "want foil", "note" };
             var validHeaders2 = new[] { "kaartnaam", "kaartnummer", "set_code", "c", "c_foil", "h", "h_foil", "w", "w_foil", "notitie" };
@@ -63,29 +66,35 @@ namespace Leng.Application.Services
             return cards;
         }
 
-        public static async Task<List<UserCardInfo>> ImportCardsAsync(string file)
+        public static ExcelWorksheet OpenWorksheet(string file)
         {
             // Open file
             var fileInfo = new FileInfo(file);
-            using var package = new ExcelPackage(fileInfo);
+            var package = new ExcelPackage(fileInfo);
 
             // Using the non commercial license of EPPlus
             ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
 
             // Validate file
             var worksheet = package.Workbook.Worksheets[0];
+
             if (worksheet == null)
             {
                 // Handle invalid file error
                 return null;
             }
 
+            return worksheet;
+        }
+
+        public static async Task<List<UserCardInfo>> ImportCardsAsync(ExcelWorksheet worksheet)
+        {
             var headers = Enumerable.Range(1, 10).Select(col => worksheet.Cells[1, col].Text).ToArray();
             bool validHeaders = ValidateHeaders(headers);
             if (!validHeaders)
             {
                 // Handle invalid header error
-                throw new ArgumentException("Invalid headers in file", nameof(file));
+                throw new ArgumentException("Invalid headers in worksheet", worksheet.Name);
             }
             var cards = await ReadCardsAsync(worksheet);
 

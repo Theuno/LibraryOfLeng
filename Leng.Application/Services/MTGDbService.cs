@@ -1,4 +1,5 @@
-﻿using Leng.Domain.Models;
+﻿using Leng.Application.Dtos;
+using Leng.Domain.Models;
 using Leng.Infrastructure;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,7 @@ namespace Leng.Application.Services
         Task<IEnumerable<MTGCards>> GetCardsInSetForUserAsync(LengUser user, string setCode);
         Task updateCardOfUserAsync(string number, string name, string setCode, int count, int countFoil, LengUser user);
         Task<(int cards, int playsets)> GetUserCollectionSummaryAsync(LengUser user);
+        Task ProcessBatchAsync(List<UserCardInfo> cardsFromSheet, LengUser user);
     }
 
     public class MTGDbService : IMTGDbService
@@ -372,6 +374,49 @@ namespace Leng.Application.Services
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
+            }
+        }
+
+        public async Task ProcessBatchAsync(List<UserCardInfo> cardBatch, LengUser user)
+        {
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();
+
+            try
+            {
+                var setCodes = cardBatch.Select(c => c.SetCode).Distinct();
+                var sets = await _dbContext.MTGSets
+                                           .Where(s => setCodes.Contains(s.setCode))
+                                           .ToDictionaryAsync(s => s.setCode);
+
+                foreach (var card in cardBatch)
+                {
+                    // Get card and set information (optimally with a single query if possible)
+                    var set = sets[card.SetCode];
+                    var dbCard = await getCardAsync(card.CardName, set, card.CardNumber);
+
+                    // Prepare card data for database insertion
+                    var userCard = new LengUserMTGCards
+                    {
+                        LengUserId = user.LengUserID,
+                        LengUser = user,
+                        MTGCardsId = dbCard.MTGCardsID,
+                        MTGCards = dbCard,
+                        count = card.Count,
+                        countFoil = card.CountFoil
+                        // TODO: Want and wantfoil not implemented
+                    };
+
+                    Console.WriteLine($"Adding card {set.name} - {card.CardName} to user collection");
+                    _dbContext.LengUserMTGCards.Add(userCard);
+                }
+
+                await _dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Failed to process card batch", ex.ToString());
+                await transaction.RollbackAsync();
             }
         }
 

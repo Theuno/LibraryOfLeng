@@ -89,20 +89,7 @@ namespace Leng.BlazorServer.Pages
         // Function to Import cards from an Excel file
         public async Task ImportCardsAsync(string file)
         {
-            // Open file
-            var fileInfo = new FileInfo(file);
-            using var package = new ExcelPackage(fileInfo);
-
-            // Using the non commercial license of EPPlus
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-
-            // Validate file
-            var worksheet = package.Workbook.Worksheets[0];
-            if (worksheet == null)
-            {
-                // Handle invalid file error
-                return;
-            }
+            using var worksheet = DataUtility.OpenWorksheet(file);
 
             var headers = Enumerable.Range(1, 10).Select(col => worksheet.Cells[1, col].Text).ToArray();
             bool validHeaders = DataUtility.ValidateHeaders(headers);
@@ -112,20 +99,8 @@ namespace Leng.BlazorServer.Pages
                 return;
             }
 
-            var cardsFromSheet = await DataUtility.ImportCardsAsync(file);
-
-            foreach(var card in cardsFromSheet)
-            {
-                // Find card
-                MTGSets set = await DbService.GetSetAsync(card.SetCode);
-                MTGCards dbCard = await DbService.getCardAsync(card.CardName, set, card.CardNumber);
-
-                // Print card information in a single line
-                Logger.LogInformation($"Adding card for user: {dbCard.name} {dbCard.number} {dbCard.setCode} {card.Count} {card.CountFoil}");
-
-                // Add card to database
-                await DbService.updateCardOfUserAsync(dbCard.number, dbCard.name, set.setCode, card.Count, card.CountFoil, _lengUser);
-            }
+            var cardsFromSheet = await DataUtility.ImportCardsAsync(worksheet);
+            await DbService.ProcessBatchAsync(cardsFromSheet, _lengUser);
         }
 
         // Function to export all cards on a single sheet
