@@ -20,6 +20,10 @@ namespace Leng.BlazorServer.Pages {
         [CascadingParameter] private Task<AuthenticationState>? authenticationState { get; set; }
         private CancellationTokenSource _cts = new CancellationTokenSource();
 
+        public void Dispose()
+        {
+            _cts?.Dispose();
+        }
 
         private async Task CommittedItemChanges(ShowSheet contextCard) {
             var card = contextCard;

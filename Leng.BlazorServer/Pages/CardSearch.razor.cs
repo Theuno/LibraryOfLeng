@@ -38,6 +38,11 @@ namespace Leng.BlazorServer.Pages
                 _lengUser = await DbService.GetLengUserAsync(msalId);
             }
         }
+        
+        public void Dispose()
+        {
+            _searchCancellationTokenSource?.Dispose();
+        }
 
         private async Task<IEnumerable<string>> SearchForCard(string card)
         {
