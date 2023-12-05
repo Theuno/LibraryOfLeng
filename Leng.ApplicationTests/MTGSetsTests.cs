@@ -683,6 +683,46 @@ namespace Leng.Application.Tests
                 _mockLogger.Received().LogInformation("Skipping partial preview set: The Lost Caverns of Ixalan");
             }
         }
+
+        [Test]
+        public async Task ClearUserCardsAsync_ValidUser_RemovesUserCards()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<LengDbContext>()
+                .UseInMemoryDatabase(databaseName: "TestDb_ClearUserCardsAsync")
+                .Options;
+
+            var user = new LengUser { LengUserID = "user-id" };
+
+            MTGTestGenerics.SeedBasicTestData(options);
+
+            using (var context = new LengDbContext(options))
+            {
+                var userCards = new List<LengUserMTGCards>
+                {
+                    new LengUserMTGCards { LengUserId = user.LengUserID, MTGCardsId = 1, count = 1, countFoil = 0 },
+                    new LengUserMTGCards { LengUserId = user.LengUserID, MTGCardsId = 2, count = 1, countFoil = 0 },
+                };
+
+                context.LengUserMTGCards.AddRange(userCards);
+                context.SaveChanges();
+
+                // Assert
+                var remainingCards = context.LengUserMTGCards.Where(uc => uc.LengUserId == user.LengUserID);
+                Assert.IsNotEmpty(remainingCards);
+            }
+
+            // Act
+            using (var context = new LengDbContext(options))
+            {
+                var service = new MTGDbService(context, Substitute.For<ILogger<MTGDbService>>());
+                await service.ClearUserCardsAsync(user);
+
+                // Assert
+                var remainingCards = context.LengUserMTGCards.Where(uc => uc.LengUserId == user.LengUserID);
+                Assert.That(remainingCards, Is.Empty);
+            }
+        }
     }
 
 

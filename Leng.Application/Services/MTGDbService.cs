@@ -25,10 +25,11 @@ namespace Leng.Application.Services
         Task<IEnumerable<LengUserMTGCards>> GetAllCardsFromUserCollectionAsync(LengUser user);
         Task<IEnumerable<LengUserMTGCards>> GetCardFromUserCollectionAsync(LengUser user, string cardName);
         Task<IEnumerable<MTGCards>> GetCardsForUserAsync(LengUser user, string cardName);
-        Task<IEnumerable<MTGCards>> GetCardsInSetForUserAsync(LengUser user, string setCode);
+        Task<IEnumerable<(MTGCards card, int count, int countFoil, int want, int wantFoil)>> GetCardsInSetForUserAsync(LengUser user, string setCode);
         Task updateCardOfUserAsync(string number, string name, string setCode, int count, int countFoil, LengUser user);
         Task<(int cards, int playsets)> GetUserCollectionSummaryAsync(LengUser user);
         Task ProcessBatchAsync(List<UserCardInfo> cardsFromSheet, LengUser user);
+        Task ClearUserCardsAsync(LengUser user);
     }
 
     public class MTGDbService : IMTGDbService
@@ -325,22 +326,41 @@ namespace Leng.Application.Services
             return cardsList;
         }
 
-        public async Task<IEnumerable<MTGCards>> GetCardsInSetForUserAsync(LengUser user, string setCode)
+        public async Task<IEnumerable<(MTGCards card, int count, int countFoil, int want, int wantFoil)>> GetCardsInSetForUserAsync(LengUser user, string setCode)
         {
-            var set = await _dbContext.MTGSets.FirstOrDefaultAsync(set => set.setCode == setCode);
-
-            if (set != null)
+            // Ensure the set exists
+            var setExists = await _dbContext.MTGSets.AnyAsync(s => s.setCode == setCode);
+            if (!setExists)
             {
-                List<MTGCards> cardsList = await _dbContext.MTGCard
-                    .Where(cards => cards.setCode == setCode)
-                    .Include(cards => cards.LengUserMTGCards)
-                    .ToListAsync();
-
-                cardsList.Sort();
-                return cardsList;
+                return Enumerable.Empty<(MTGCards card, int count, int countFoil, int want, int wantFoil)>();
             }
 
-            return null;
+            // Retrieve all cards from the set
+            var allCardsInSetQuery = _dbContext.MTGCard
+                .Where(card => card.setCode == setCode);
+
+            // Retrieve all the user's cards from that set
+            var userCardsInSetQuery = _dbContext.LengUserMTGCards
+                .Where(uc => uc.LengUser == user && uc.MTGCards.setCode == setCode);
+
+            // Perform a left join to get all cards with user counts, including those not owned by the user
+            var query = from card in allCardsInSetQuery
+                        join userCard in userCardsInSetQuery
+                        on card.MTGCardsID equals userCard.MTGCardsId into cardGroup
+                        from userCard in cardGroup.DefaultIfEmpty()
+                        select new
+                        {
+                            card,
+                            count = (int?)userCard.count ?? 0,
+                            countFoil = (int?)userCard.countFoil ?? 0,
+                            want = (int?)userCard.want ?? 0,
+                            wantFoil = (int?)userCard.wantFoil ?? 0
+                        };
+
+            var result = await query.ToListAsync();
+
+            // Convert the result to the desired tuple format
+            return result.Select(r => (r.card, r.count, r.countFoil, r.want, r.wantFoil));
         }
 
         public async Task updateCardOfUserAsync(string number, string name, string setCode, int count, int countFoil, LengUser user)
@@ -443,6 +463,14 @@ namespace Leng.Application.Services
                 int playsets = results.Sum(r => r.PlaysetCount);
                 return (cards, playsets);
             }
+        }
+
+        public async Task ClearUserCardsAsync(LengUser user)
+        {
+            var userCards = _dbContext.LengUserMTGCards.Where(uc => uc.LengUserId == user.LengUserID);
+
+            _dbContext.LengUserMTGCards.RemoveRange(userCards);
+            await _dbContext.SaveChangesAsync();
         }
     }
 }

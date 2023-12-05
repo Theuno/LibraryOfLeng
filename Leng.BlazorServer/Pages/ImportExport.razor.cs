@@ -99,6 +99,9 @@ namespace Leng.BlazorServer.Pages
                 return;
             }
 
+            // Clear existing cards for the user
+            await DbService.ClearUserCardsAsync(_lengUser);
+
             var cardsFromSheet = await DataUtility.ImportCardsAsync(worksheet);
             await DbService.ProcessBatchAsync(cardsFromSheet, _lengUser);
         }

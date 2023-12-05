@@ -7,12 +7,12 @@
 	<SonarQubeTestProject>false</SonarQubeTestProject>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="EPPlus" Version="6.2.8" />
-    <PackageReference Include="Microsoft.AspNetCore.Components" Version="7.0.10" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="7.0.10" />
-    <PackageReference Include="Microsoft.Identity.Web" Version="2.13.3" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="7.0.10" />
-    <PackageReference Include="NSubstitute" Version="5.0.0" />
+    <PackageReference Include="EPPlus" Version="6.2.11" />
+    <PackageReference Include="Microsoft.AspNetCore.Components" Version="7.0.13" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="7.0.13" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="2.15.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="7.0.13" />
+    <PackageReference Include="NSubstitute" Version="5.1.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Leng.Infrastructure\Leng.Infrastructure.csproj" />
