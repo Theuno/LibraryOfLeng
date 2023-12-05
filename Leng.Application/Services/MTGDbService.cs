@@ -1,5 +1,4 @@
-﻿using Castle.Core.Logging;
-using Leng.Application.Dtos;
+﻿using Leng.Application.Dtos;
 using Leng.Domain.Models;
 using Leng.Infrastructure;
 using Microsoft.Data.SqlClient;
