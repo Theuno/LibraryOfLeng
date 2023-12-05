@@ -10,7 +10,7 @@ namespace Leng.Domain.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
-        
+
         public string LengUserId { get; set; }  // Foreign key for LengUser
         [ForeignKey("LengUserId")]
         public LengUser LengUser { get; set; }

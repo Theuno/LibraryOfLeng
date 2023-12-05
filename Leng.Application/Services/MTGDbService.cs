@@ -1,4 +1,5 @@
-﻿using Leng.Application.Dtos;
+﻿using Castle.Core.Logging;
+using Leng.Application.Dtos;
 using Leng.Domain.Models;
 using Leng.Infrastructure;
 using Microsoft.Data.SqlClient;
@@ -351,10 +352,10 @@ namespace Leng.Application.Services
                         select new
                         {
                             card,
-                            count = (int?)userCard.count ?? 0,
-                            countFoil = (int?)userCard.countFoil ?? 0,
-                            want = (int?)userCard.want ?? 0,
-                            wantFoil = (int?)userCard.wantFoil ?? 0
+                            count = userCard != null ? userCard.count : 0,
+                            countFoil = userCard != null ? userCard.countFoil : 0,
+                            want = userCard != null ? userCard.want : 0,
+                            wantFoil = userCard != null ? userCard.wantFoil : 0
                         };
 
             var result = await query.ToListAsync();
@@ -426,7 +427,7 @@ namespace Leng.Application.Services
                         // TODO: Want and wantfoil not implemented
                     };
 
-                    Console.WriteLine($"Adding card {set.name} - {card.CardName} to user collection");
+                    _logger.LogInformation($"Adding card {set.name} - {card.CardName} to user collection");
                     _dbContext.LengUserMTGCards.Add(userCard);
                 }
 
@@ -435,7 +436,7 @@ namespace Leng.Application.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Failed to process card batch", ex.ToString());
+                _logger.LogError(ex, "Failed to process card batch: ", ex.ToString());
                 await transaction.RollbackAsync();
             }
         }
