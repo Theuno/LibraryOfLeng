@@ -1,17 +1,12 @@
-﻿using Leng.Application.FunctionHandlers;
-using Leng.Application.Services;
+﻿using Leng.Application.Services;
 using Leng.BlazorServer.Shared;
 using Leng.Domain.Models;
-using Leng.Infrastructure;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using System.Reflection.Metadata;
 
 namespace Leng.BlazorServer.Pages
 {
-    public partial class CardSearch 
+    public partial class CardSearch
     {
         [Inject]
         public IMTGDbService DbService { get; set; }
@@ -21,12 +16,12 @@ namespace Leng.BlazorServer.Pages
         private string? _selectedCard = string.Empty;
         private readonly List<ShowSheet>? sheet = new List<ShowSheet>();
         private IEnumerable<MTGCards>? cards = new List<MTGCards>();
-        
+
         private CancellationTokenSource _searchCancellationTokenSource = new CancellationTokenSource();
 
         private LengUser? _lengUser { get; set; }
 
- 
+
         protected override async Task OnInitializedAsync()
         {
             var msalId = LengAuthenticationService.getMsalId(await authenticationState);
@@ -38,7 +33,7 @@ namespace Leng.BlazorServer.Pages
                 _lengUser = await DbService.GetLengUserAsync(msalId);
             }
         }
-        
+
         public void Dispose()
         {
             _searchCancellationTokenSource?.Dispose();
@@ -74,7 +69,7 @@ namespace Leng.BlazorServer.Pages
             }
 
             cards = await DbService.GetCardsForUserAsync(_lengUser, _selectedCard);
-           
+
             foreach (var card in cards)
             {
                 //var usersCard = card.LengUserMTGCards

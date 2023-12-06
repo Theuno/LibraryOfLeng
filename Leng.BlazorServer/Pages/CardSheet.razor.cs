@@ -1,13 +1,13 @@
-﻿using Leng.Domain.Models;
-using Leng.Application.Services;
-using Leng.Infrastructure;
-using Microsoft.AspNetCore.Components;
-using Microsoft.EntityFrameworkCore;
+﻿using Leng.Application.Services;
 using Leng.BlazorServer.Shared;
+using Leng.Domain.Models;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 
-namespace Leng.BlazorServer.Pages {
-    public partial class CardSheet {
+namespace Leng.BlazorServer.Pages
+{
+    public partial class CardSheet
+    {
         private string? selectedSet;
         private IEnumerable<MTGCards>? cards = new List<MTGCards>();
         private List<ShowSheet>? sheet = new List<ShowSheet>();
@@ -25,36 +25,45 @@ namespace Leng.BlazorServer.Pages {
             _cts?.Dispose();
         }
 
-        private async Task CommittedItemChanges(ShowSheet contextCard) {
+        private async Task CommittedItemChanges(ShowSheet contextCard)
+        {
             var card = contextCard;
 
             var msalId = LengAuthenticationService.getMsalId(await authenticationState);
             var lengUser = await DbService.GetLengUserAsync(msalId);
 
-            if (selectedSet != null) {
+            if (selectedSet != null)
+            {
                 await DbService.updateCardOfUserAsync(card.number, card.name, card.setCode, card.count, card.countFoil, lengUser);
             }
 
             Logger.LogInformation("CardSheet: {name} {number} {count}", card.name, card.number, card.count);
         }
 
-        public string SortBySetNumber(MTGCards card) {
-            try {
-                if (card.number == null) {
+        public string SortBySetNumber(MTGCards card)
+        {
+            try
+            {
+                if (card.number == null)
+                {
                     return "0";
                 }
-                else {
+                else
+                {
                     int parseResult = 0;
-                    if (int.TryParse(card.number, out parseResult)) {
+                    if (int.TryParse(card.number, out parseResult))
+                    {
                         return parseResult.ToString();
                     }
-                    else {
+                    else
+                    {
                         char[] trimChars = { ' ', '★', '†', 'a', 'b', 'c' };
                         return card.number.Trim(trimChars);
                     }
                 }
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 Logger.LogError("Error when sorting by set number: {message}", ex.Message);
                 return "0";
             }
@@ -62,8 +71,8 @@ namespace Leng.BlazorServer.Pages {
 
         private async Task<IEnumerable<string>> SetSearch(string query)
         {
-             // Cancel the previous task (if any)
-             _cts.Cancel();
+            // Cancel the previous task (if any)
+            _cts.Cancel();
             _cts = new CancellationTokenSource();
 
             try
@@ -87,12 +96,15 @@ namespace Leng.BlazorServer.Pages {
             return setsList.Select(set => set.name);
         }
 
-        public async Task OnSetSelected(string set) {
+        public async Task OnSetSelected(string set)
+        {
             selectedSet = set;
-            if (selectedSet == null) {
+            if (selectedSet == null)
+            {
                 return;
             }
-            else {
+            else
+            {
                 sheet.Clear();
             }
 
@@ -102,7 +114,8 @@ namespace Leng.BlazorServer.Pages {
             var setCode = await DbService.GetSetCodeAsync(set);
             var cardTuples = await DbService.GetCardsInSetForUserAsync(LengUser, setCode);
 
-            foreach (var card in cardTuples) {
+            foreach (var card in cardTuples)
+            {
                 try
                 {
                     var imageUrl = $"https://api.scryfall.com/cards/{card.card.scryfallId}?format=image&version=small";
@@ -115,10 +128,12 @@ namespace Leng.BlazorServer.Pages {
             }
         }
 
-        protected override async Task OnInitializedAsync() {
+        protected override async Task OnInitializedAsync()
+        {
             var msalId = LengAuthenticationService.getMsalId(await authenticationState);
             var LengUser = await DbService.GetLengUserAsync(msalId);
-            if (LengUser == null) {
+            if (LengUser == null) 
+            {
                 await DbService.AddLengUserAsync(msalId);
                 _ = await DbService.GetLengUserAsync(msalId);
             }
