@@ -14,7 +14,7 @@ namespace Leng.BlazorServer.Pages
     public partial class ImportExport
     {
         private LengUser? _lengUser { get; set; }
-        [CascadingParameter] private Task<AuthenticationState>? authenticationState { get; set; }
+        [CascadingParameter] public Task<AuthenticationState>? authenticationState { get; set; }
 
         [Inject]
         public IJSRuntime JS { get; set; } = default!;
@@ -45,7 +45,7 @@ namespace Leng.BlazorServer.Pages
             }
         }
 
-        protected async Task UploadFiles(IBrowserFile file)
+        public async Task UploadFiles(IBrowserFile file)
         {
             try
             {
@@ -67,7 +67,7 @@ namespace Leng.BlazorServer.Pages
                 fs.Close();
 
                 // Read file, process data, and save to database
-                await ImportCardsAsync(path);
+                await DbService.ImportCardsAsync(path, _lengUser);
 
                 // Remove file
                 File.Delete(path);
@@ -84,26 +84,6 @@ namespace Leng.BlazorServer.Pages
                 // You might want to log the error or notify the user
                 Logger.LogError(ex.Message);
             }
-        }
-
-        // Function to Import cards from an Excel file
-        public async Task ImportCardsAsync(string file)
-        {
-            using var worksheet = DataUtility.OpenWorksheet(file);
-
-            var headers = Enumerable.Range(1, 10).Select(col => worksheet.Cells[1, col].Text).ToArray();
-            bool validHeaders = DataUtility.ValidateHeaders(headers);
-            if (!validHeaders)
-            {
-                // Handle invalid header error
-                return;
-            }
-
-            // Clear existing cards for the user
-            await DbService.ClearUserCardsAsync(_lengUser);
-
-            var cardsFromSheet = await DataUtility.ImportCardsAsync(worksheet);
-            await DbService.ProcessBatchAsync(cardsFromSheet, _lengUser);
         }
 
         // Function to export all cards on a single sheet

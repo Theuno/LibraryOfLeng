@@ -70,21 +70,22 @@ namespace Leng.Application.Services
         {
             // Open file
             var fileInfo = new FileInfo(file);
-            var package = new ExcelPackage(fileInfo);
-
-            // Using the non commercial license of EPPlus
-            ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
-
-            // Validate file
-            var worksheet = package.Workbook.Worksheets[0];
-
-            if (worksheet == null)
+            using (var package = new ExcelPackage(fileInfo))
             {
-                // Handle invalid file error
-                return null;
-            }
+                // Using the non commercial license of EPPlus
+                ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
 
-            return worksheet;
+                // Validate file
+                var worksheet = package.Workbook.Worksheets[0];
+
+                if (worksheet == null)
+                {
+                    // Handle invalid file error
+                    return null;
+                }
+
+                return worksheet;
+            }
         }
 
         public static async Task<List<UserCardInfo>> ImportCardsAsync(ExcelWorksheet worksheet)

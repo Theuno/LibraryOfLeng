@@ -372,6 +372,8 @@ namespace Leng.Application.Tests
 
                 // Assert
                 Assert.ThrowsAsync<OperationCanceledException>(() => service.SearchSetsContainingCardsAsync("Alpha", cts.Token));
+
+                cts.Dispose();
             }
         }
 
@@ -608,19 +610,21 @@ namespace Leng.Application.Tests
         public async Task ImportMTGSet_ValidFile_AddsSetAndCardsToDatabase()
         {
             // Arrange
-            var mockFile = new MemoryStream(Encoding.UTF8.GetBytes(_sampleFile));
-            var mockDbService = Substitute.For<IMTGDbService>();
-            mockDbService.AddSetAsync(Arg.Any<MTGSets>()).Returns(Task.CompletedTask);
-            mockDbService.AddCardsAsync(Arg.Any<List<MTGCards>>()).Returns(Task.CompletedTask);
+            using (var mockFile = new MemoryStream(Encoding.UTF8.GetBytes(_sampleFile)))
+            {
+                var mockDbService = Substitute.For<IMTGDbService>();
+                mockDbService.AddSetAsync(Arg.Any<MTGSets>()).Returns(Task.CompletedTask);
+                mockDbService.AddCardsAsync(Arg.Any<List<MTGCards>>()).Returns(Task.CompletedTask);
 
-            var _mtgJsonToDbHandler = new MtgJsonToDbHandler(_mockLogger, mockDbService);
+                var _mtgJsonToDbHandler = new MtgJsonToDbHandler(_mockLogger, mockDbService);
 
-            // Act
-            await _mtgJsonToDbHandler.ImportMTGSet(mockFile);
+                // Act
+                await _mtgJsonToDbHandler.ImportMTGSet(mockFile);
 
-            // Assert
-            await mockDbService.Received(1).AddSetAsync(Arg.Any<MTGSets>());
-            await mockDbService.Received(1).AddCardsAsync(Arg.Any<List<MTGCards>>());
+                // Assert
+                await mockDbService.Received(1).AddSetAsync(Arg.Any<MTGSets>());
+                await mockDbService.Received(1).AddCardsAsync(Arg.Any<List<MTGCards>>());
+            }
         }
 
         [Test]
@@ -1110,6 +1114,8 @@ namespace Leng.Application.Tests
                 // Assert
                 Assert.That(result, Is.Null);
                 StubLogger.Received(1).LogDebug("Search for card cancelled.");
+
+                cts.Dispose();
             }
         }
 

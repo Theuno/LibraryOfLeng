@@ -28,8 +28,9 @@ namespace Leng.Application.Services
         Task<IEnumerable<(MTGCards card, int count, int countFoil, int want, int wantFoil)>> GetCardsInSetForUserAsync(LengUser user, string setCode);
         Task updateCardOfUserAsync(string number, string name, string setCode, int count, int countFoil, LengUser user);
         Task<(int cards, int playsets)> GetUserCollectionSummaryAsync(LengUser user);
-        Task ProcessBatchAsync(List<UserCardInfo> cardsFromSheet, LengUser user);
+        Task ProcessBatchAsync(List<UserCardInfo> cardBatch, LengUser user);
         Task ClearUserCardsAsync(LengUser user);
+        Task ImportCardsAsync(string file, LengUser user);
     }
 
     public class MTGDbService : IMTGDbService
@@ -471,6 +472,26 @@ namespace Leng.Application.Services
 
             _dbContext.LengUserMTGCards.RemoveRange(userCards);
             await _dbContext.SaveChangesAsync();
+        }
+
+        // Function to Import cards from an Excel file
+        public async Task ImportCardsAsync(string file, LengUser user)
+        {
+            using var worksheet = DataUtility.OpenWorksheet(file);
+
+            var headers = Enumerable.Range(1, 10).Select(col => worksheet.Cells[1, col].Text).ToArray();
+            bool validHeaders = DataUtility.ValidateHeaders(headers);
+            if (!validHeaders)
+            {
+                // Handle invalid header error
+                return;
+            }
+
+            // Clear existing cards for the user
+            await ClearUserCardsAsync(user);
+
+            var cardsFromSheet = await DataUtility.ImportCardsAsync(worksheet);
+            await ProcessBatchAsync(cardsFromSheet, user);
         }
     }
 }
