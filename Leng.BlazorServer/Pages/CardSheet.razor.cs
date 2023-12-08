@@ -3,6 +3,7 @@ using Leng.BlazorServer.Shared;
 using Leng.Domain.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using System.Text.RegularExpressions;
 using static MudBlazor.CategoryTypes;
 
 namespace Leng.BlazorServer.Pages
@@ -51,9 +52,19 @@ namespace Leng.BlazorServer.Pages
                 if (x == null) return -1;
                 if (y == null) return 1;
 
-                // Split the card numbers into parts (numeric and non-numeric)
-                var xParts = SplitCardNumber(x);
-                var yParts = SplitCardNumber(y);
+                string[] xParts;
+                string[] yParts;
+
+                try
+                {
+                    xParts = SplitCardNumber(x);
+                    yParts = SplitCardNumber(y);
+                }
+                catch (RegexMatchTimeoutException e)
+                {
+                    // If the regex takes too long, just compare the strings
+                    return string.Compare(x, y, StringComparison.Ordinal);
+                }
 
                 for (int i = 0; i < Math.Min(xParts.Length, yParts.Length); i++)
                 {
@@ -77,9 +88,8 @@ namespace Leng.BlazorServer.Pages
 
             private string[] SplitCardNumber(string cardNumber)
             {
-                // Split the card number into numeric and non-numeric parts
-                // This can be adjusted based on the exact format of your card numbers
-                return System.Text.RegularExpressions.Regex.Split(cardNumber, "([^0-9]+)");
+                var timeout = TimeSpan.FromMilliseconds(250);
+                return Regex.Split(cardNumber, "([^0-9]+)", RegexOptions.None, timeout);
             }
         }
 

@@ -1,4 +1,6 @@
 ﻿using Leng.BlazorServer.Pages;
+using static Leng.BlazorServer.Pages.CardSheet;
+using System.Text.RegularExpressions;
 
 namespace Leng.BlazorServer.Tests.Pages
 {
