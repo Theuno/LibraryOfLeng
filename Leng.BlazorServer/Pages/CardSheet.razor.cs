@@ -60,7 +60,7 @@ namespace Leng.BlazorServer.Pages
                     xParts = SplitCardNumber(x);
                     yParts = SplitCardNumber(y);
                 }
-                catch (RegexMatchTimeoutException e)
+                catch (RegexMatchTimeoutException)
                 {
                     // If the regex takes too long, just compare the strings
                     return string.Compare(x, y, StringComparison.Ordinal);
@@ -86,7 +86,7 @@ namespace Leng.BlazorServer.Pages
                 return xParts.Length.CompareTo(yParts.Length);
             }
 
-            private string[] SplitCardNumber(string cardNumber)
+            private static string[] SplitCardNumber(string cardNumber)
             {
                 var timeout = TimeSpan.FromMilliseconds(250);
                 return Regex.Split(cardNumber, "([^0-9]+)", RegexOptions.None, timeout);

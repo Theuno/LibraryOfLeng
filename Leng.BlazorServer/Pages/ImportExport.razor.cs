@@ -109,7 +109,6 @@ namespace Leng.BlazorServer.Pages
                     worksheet.Cells[row, 1].Value = card.MTGCards.name;
                     worksheet.Cells[row, 2].Value = card.MTGCards.number;
                     worksheet.Cells[row, 3].Value = card.MTGCards.setCode;
-                    //worksheet.Cells[row, 4].Value = card.LengUserMTGCards.Sum(c => c.count);
                     worksheet.Cells[row, 4].Value = card.count;
                     worksheet.Cells[row, 5].Value = card.countFoil;
                     row++;

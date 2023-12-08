@@ -42,11 +42,7 @@ namespace Leng.BlazorServer.Pages
         {
             _loadingValue = 0;
 
-            // The cards we have in our collection
-
             /*
-            var cards = await dbService.GetCollectionAsync(_lengUser!.Id);
-            
             // The cards we have in our collection, grouped by name
             var cardsByName = cards.GroupBy(c => c.Name).ToDictionary(g => g.Key, g => g.ToList());
             // The cards we have in our collection, grouped by name and set
@@ -123,7 +119,7 @@ namespace Leng.BlazorServer.Pages
                     continue;
                 }
 
-                var collectedCards = await DbService.GetCardFromUserCollectionAsync(_lengUser, name); // .GetCardFromUserCollectionAsync(name);
+                var collectedCards = await DbService.GetCardFromUserCollectionAsync(_lengUser, name);
                 if (collectedCards == null)
                 {
                     missingCards.AppendLine(name);
