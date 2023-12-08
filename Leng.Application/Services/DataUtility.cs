@@ -47,23 +47,26 @@ namespace Leng.Application.Services
 
         private static async Task<List<UserCardInfo>> ReadCardsAsync(ExcelWorksheet worksheet)
         {
-            var cards = new List<UserCardInfo>();
-
-            for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+            return await Task.Run(() =>
             {
-                var userCardInfo = new UserCardInfo
+                var cards = new List<UserCardInfo>();
+
+                for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
                 {
-                    CardName = worksheet.Cells[row, 1].Text,
-                    CardNumber = worksheet.Cells[row, 2].Text,
-                    SetCode = worksheet.Cells[row, 3].Text,
-                    Count = int.Parse(worksheet.Cells[row, 4].Text),
-                    CountFoil = int.Parse(worksheet.Cells[row, 5].Text)
-                };
+                    var userCardInfo = new UserCardInfo
+                    {
+                        CardName = worksheet.Cells[row, 1].Text,
+                        CardNumber = worksheet.Cells[row, 2].Text,
+                        SetCode = worksheet.Cells[row, 3].Text,
+                        Count = int.Parse(worksheet.Cells[row, 4].Text),
+                        CountFoil = int.Parse(worksheet.Cells[row, 5].Text)
+                    };
 
-                cards.Add(userCardInfo);
-            }
+                    cards.Add(userCardInfo);
+                }
 
-            return cards;
+                return cards;
+            });
         }
 
         public static ExcelWorksheet OpenWorksheet(string file)

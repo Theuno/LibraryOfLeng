@@ -126,7 +126,7 @@ namespace Leng.Application.FunctionHandlers
                         }
                         catch (JsonException je)
                         {
-                            Console.WriteLine($"Error when deserializing card! Exception: {je.Message}");
+                            _logger.LogError($"Error when deserializing card! Exception: {je.Message}");
                             return;
                         }
 

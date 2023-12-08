@@ -3,6 +3,7 @@ using Leng.BlazorServer.Shared;
 using Leng.Domain.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using static MudBlazor.CategoryTypes;
 
 namespace Leng.BlazorServer.Pages
 {
@@ -40,32 +41,45 @@ namespace Leng.BlazorServer.Pages
             Logger.LogInformation("CardSheet: {name} {number} {count}", card.name, card.number, card.count);
         }
 
-        public string SortBySetNumber(MTGCards card)
+        // Custom comparer to handle special characters in cardNumber
+        public class CustomCardNumberComparer : IComparer<string>
         {
-            try
+            public int Compare(string x, string y)
             {
-                if (card.number == null)
+                // Handle nulls
+                if (x == null && y == null) return 0;
+                if (x == null) return -1;
+                if (y == null) return 1;
+
+                // Split the card numbers into parts (numeric and non-numeric)
+                var xParts = SplitCardNumber(x);
+                var yParts = SplitCardNumber(y);
+
+                for (int i = 0; i < Math.Min(xParts.Length, yParts.Length); i++)
                 {
-                    return "0";
-                }
-                else
-                {
-                    int parseResult = 0;
-                    if (int.TryParse(card.number, out parseResult))
+                    if (int.TryParse(xParts[i], out int xPartNum) && int.TryParse(yParts[i], out int yPartNum))
                     {
-                        return parseResult.ToString();
+                        // Compare numeric parts
+                        int comparison = xPartNum.CompareTo(yPartNum);
+                        if (comparison != 0) return comparison;
                     }
                     else
                     {
-                        char[] trimChars = { ' ', '★', '†', 'a', 'b', 'c' };
-                        return card.number.Trim(trimChars);
+                        // Compare non-numeric parts
+                        int comparison = string.Compare(xParts[i], yParts[i], StringComparison.Ordinal);
+                        if (comparison != 0) return comparison;
                     }
                 }
+
+                // If one number is longer than the other, it should come after
+                return xParts.Length.CompareTo(yParts.Length);
             }
-            catch (Exception ex)
+
+            private string[] SplitCardNumber(string cardNumber)
             {
-                Logger.LogError("Error when sorting by set number: {message}", ex.Message);
-                return "0";
+                // Split the card number into numeric and non-numeric parts
+                // This can be adjusted based on the exact format of your card numbers
+                return System.Text.RegularExpressions.Regex.Split(cardNumber, "([^0-9]+)");
             }
         }
 
@@ -113,6 +127,10 @@ namespace Leng.BlazorServer.Pages
 
             var setCode = await DbService.GetSetCodeAsync(set);
             var cardTuples = await DbService.GetCardsInSetForUserAsync(LengUser, setCode);
+
+            // Sort the cards using the CustomCardNumberComparer
+            var comparer = new CustomCardNumberComparer();
+            cardTuples = cardTuples.OrderBy(card => card.card.number, comparer).ToList();
 
             foreach (var card in cardTuples)
             {
