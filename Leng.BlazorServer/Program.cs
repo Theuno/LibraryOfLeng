@@ -1,3 +1,4 @@
+using Leng.Application.Services;
 using Leng.Infrastructure;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
@@ -47,6 +48,13 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddControllersWithViews()
     .AddMicrosoftIdentityUI();
+
+builder.Services.AddTransient<IMTGDbService>(sp =>
+{
+    var contextFactory = sp.GetRequiredService<IDbContextFactory<LengDbContext>>();
+    var logger = sp.GetRequiredService<ILogger<MTGDbService>>();
+    return new MTGDbService(contextFactory, logger);
+});
 
 var app = builder.Build();
 

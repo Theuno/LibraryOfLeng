@@ -17,7 +17,7 @@ namespace Leng.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.4")
+                .HasAnnotation("ProductVersion", "7.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -57,10 +57,11 @@ namespace Leng.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("Id.LengUserID")
+                    b.Property<string>("LengUserId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("Id.MTGCardsID")
+                    b.Property<int>("MTGCardsId")
                         .HasColumnType("int");
 
                     b.Property<int>("count")
@@ -77,9 +78,9 @@ namespace Leng.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Id.LengUserID");
+                    b.HasIndex("LengUserId");
 
-                    b.HasIndex("Id.MTGCardsID");
+                    b.HasIndex("MTGCardsId");
 
                     b.ToTable("LengUserMTGCards");
                 });
@@ -113,10 +114,19 @@ namespace Leng.Infrastructure.Migrations
                     b.Property<string>("faceName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("frameVersion")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool?>("hasAlternativeDeckLimit")
+                        .HasColumnType("bit");
+
                     b.Property<bool?>("hasFoil")
                         .HasColumnType("bit");
 
                     b.Property<bool?>("hasNonFoil")
+                        .HasColumnType("bit");
+
+                    b.Property<bool?>("isAlternative")
                         .HasColumnType("bit");
 
                     b.Property<bool>("isOnlineOnly")
@@ -126,6 +136,7 @@ namespace Leng.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("name")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("number")
@@ -162,7 +173,7 @@ namespace Leng.Infrastructure.Migrations
 
                     b.HasIndex("name", "setCode", "number")
                         .IsUnique()
-                        .HasFilter("[name] IS NOT NULL AND [setCode] IS NOT NULL AND [number] IS NOT NULL");
+                        .HasFilter("[setCode] IS NOT NULL AND [number] IS NOT NULL");
 
                     b.ToTable("MTGCard");
                 });
@@ -317,11 +328,13 @@ namespace Leng.Infrastructure.Migrations
                 {
                     b.HasOne("Leng.Domain.Models.LengUser", "LengUser")
                         .WithMany("LengUserMTGCards")
-                        .HasForeignKey("Id.LengUserID");
+                        .HasForeignKey("LengUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Leng.Domain.Models.MTGCards", "MTGCards")
                         .WithMany("LengUserMTGCards")
-                        .HasForeignKey("Id.MTGCardsID")
+                        .HasForeignKey("MTGCardsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

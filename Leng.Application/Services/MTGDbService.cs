@@ -1,16 +1,57 @@
-﻿using Leng.Domain.Models;
+﻿using Leng.Application.Dtos;
+using Leng.Domain.Models;
 using Leng.Infrastructure;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Leng.Application.Services
 {
-    public class MTGDbService
+    public interface IMTGDbService
+    {
+        Task AddSetAsync(MTGSets set);
+        Task<List<MTGSets>> GetAllSetsAsync(CancellationToken cancellationToken);
+        Task<string?> GetSetCodeAsync(string setName);
+        Task<MTGSets?> GetSetAsync(string? setCode);
+        Task<List<MTGSets>> SearchSetsContainingCardsAsync(string mtgset, CancellationToken cancellationToken);
+        Task<IEnumerable<MTGCards>> getCardsAsync(string cardName, CancellationToken cancellationToken);
+        Task AddCardsAsync(List<MTGCards> setCards);
+        Task<IEnumerable<string>> SearchForCardAsync(string cardName, CancellationToken cancellationToken);
+        Task<MTGCards?> getCardAsync(string cardName, MTGSets set, string cardNumber);
+        Task<MTGCards?> getCardAsync(string cardName, MTGSets set, int cardNumber);
+        Task AddLengUserAsync(string aduuid);
+        Task<LengUser?> GetLengUserAsync(string aduuid);
+        Task<IEnumerable<LengUserMTGCards>> GetAllCardsFromUserCollectionAsync(LengUser user);
+        Task<IEnumerable<LengUserMTGCards>> GetCardFromUserCollectionAsync(LengUser user, string cardName);
+        Task<IEnumerable<MTGCards>> GetCardsForUserAsync(LengUser user, string cardName);
+        Task<IEnumerable<(MTGCards card, int count, int countFoil, int want, int wantFoil)>> GetCardsInSetForUserAsync(LengUser user, string setCode);
+        Task updateCardOfUserAsync(string number, string name, string setCode, int count, int countFoil, LengUser user);
+        Task<(int cards, int playsets)> GetUserCollectionSummaryAsync(LengUser user);
+        Task ProcessBatchAsync(List<UserCardInfo> cardBatch, LengUser user);
+        Task ClearUserCardsAsync(LengUser user);
+        Task ImportCardsAsync(string file, LengUser user);
+    }
+
+    public class MTGDbService : IMTGDbService
     {
         private readonly LengDbContext _dbContext;
-        public MTGDbService(LengDbContext dbContext)
+        private readonly ILogger<MTGDbService> _logger;
+
+        [ActivatorUtilitiesConstructor]
+        public MTGDbService(IDbContextFactory<LengDbContext> contextFactory, ILogger<MTGDbService> logger)
         {
-            _dbContext = dbContext;
+            _dbContext = contextFactory.CreateDbContext();
+            _logger = logger;
         }
+
+        // Constructor used for testing
+        public MTGDbService(LengDbContext dbContext, ILogger<MTGDbService> logger)
+        {
+            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            _logger = logger;
+        }
+
 
         public async Task AddSetAsync(MTGSets set)
         {
@@ -20,14 +61,21 @@ namespace Leng.Application.Services
 
                 if (dbSetWhere == null)
                 {
-                    await _dbContext.MTGSets.AddAsync(set);
-                    await _dbContext.SaveChangesAsync();
+                    try
+                    {
+                        await _dbContext.MTGSets.AddAsync(set);
+                        await _dbContext.SaveChangesAsync();
+                    }
+                    catch (SqlException)
+                    {
+                        throw;
+                    }
                 }
             }
         }
-        public async Task<List<MTGSets>> GetAllSetsAsync()
+        public async Task<List<MTGSets>> GetAllSetsAsync(CancellationToken cancellationToken)
         {
-            return await _dbContext.MTGSets.OrderBy(x => x.name).ToListAsync();
+            return await _dbContext.MTGSets.OrderBy(x => x.name).ToListAsync(cancellationToken);
         }
 
         // Get SetCode for set
@@ -47,7 +95,7 @@ namespace Leng.Application.Services
         {
             if (!string.IsNullOrEmpty(setCode) && _dbContext.MTGSets != null)
             {
-                if (setCode.Length >= 3 && setCode.Length <= 5)
+                if (setCode.Length >= 3 && setCode.Length <= 6)
                 {
                     var set = await _dbContext.MTGSets
                         .Include(s => s.Cards).
@@ -56,25 +104,31 @@ namespace Leng.Application.Services
                 }
                 else
                 {
-                    throw new ArgumentException("Value must be between 3 and 5 characters.", nameof(setCode));
+                    throw new ArgumentException("Value must be between 3 and 6 characters.", nameof(setCode));
                 }
             }
 
             return new MTGSets();
         }
 
-        public async Task<List<MTGSets>> SearchSetsContainingCardsAsync(string mtgset)
+        public async Task<List<MTGSets>> SearchSetsContainingCardsAsync(string mtgset, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // if text is null or empty, show complete list
             if (string.IsNullOrEmpty(mtgset))
             {
-                return await GetAllSetsAsync();
+                _logger.LogInformation("Search query is null or empty.");
+                return await GetAllSetsAsync(cancellationToken);
             }
             else
             {
                 List<MTGSets> list = await _dbContext.MTGSets
                         .Include(s => s.Cards)
-                        .Where(x => x.name.Contains(mtgset) && x.Cards.Count != 0).ToListAsync();
+                        .Where(x => x.name.Contains(mtgset) && x.Cards.Count != 0)
+                        .ToListAsync(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
                 return list;
             }
         }
@@ -86,8 +140,8 @@ namespace Leng.Application.Services
             var cards = await _dbContext.MTGCard
                 .Where(c => c.name.StartsWith(cardName)) // Dereference of a possibly null reference.
                 .Include(cards => cards.LengUserMTGCards)
-                .Take(20) // Limit the results to a certain number
                 .OrderBy(c => c.name)
+                .Take(20) // Limit the results to a certain number
                 .ToListAsync(cancellationToken);
 
             // if no cards match, do a contains match.
@@ -96,8 +150,8 @@ namespace Leng.Application.Services
                 cards = await _dbContext.MTGCard
                     .Where(c => c.name.Contains(cardName))
                     .Include(cards => cards.LengUserMTGCards)  // Dereference of a possibly null reference.
-                    .Take(20) // Limit the results to a certain number
                     .OrderBy(c => c.name)
+                    .Take(20) // Limit the results to a certain number
                     .ToListAsync(cancellationToken);
             }
             return cards;
@@ -166,6 +220,32 @@ namespace Leng.Application.Services
             await _dbContext.SaveChangesAsync();
         }
 
+        public async Task<IEnumerable<string>> SearchForCardAsync(string cardName, CancellationToken cancellationToken)
+        {
+            try
+            {
+                _logger.LogInformation($"Searching for card: {cardName}");
+
+                var searchedCards = await getCardsAsync(cardName, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                _logger.LogInformation($"Found {searchedCards.Count()} cards for search term: {cardName}");
+                searchedCards = searchedCards.DistinctBy(c => c.name);
+                return await Task.FromResult(searchedCards.Select(x => x.name).ToArray());
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogDebug("Search for card cancelled.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occurred while searching for cards: {ex.Message}");
+            }
+
+            return null;
+        }
+
+
         public async Task<MTGCards?> getCardAsync(string cardName, MTGSets set, string cardNumber)
         {
             return await _dbContext.MTGCard
@@ -207,8 +287,8 @@ namespace Leng.Application.Services
             var cards = await _dbContext.LengUserMTGCards
                 .Include(c => c.MTGCards)
                 .Include(s => s.MTGCards.MTGSets)
+                .Where(c => c.LengUser.LengUserID == user.LengUserID)
                 .ToListAsync();
-            // What, no where for the user check? Is this then also not required in the functions after this?
 
             return cards;
         }
@@ -247,22 +327,41 @@ namespace Leng.Application.Services
             return cardsList;
         }
 
-        public async Task<IEnumerable<MTGCards>> GetCardsInSetForUserAsync(LengUser user, string setCode)
+        public async Task<IEnumerable<(MTGCards card, int count, int countFoil, int want, int wantFoil)>> GetCardsInSetForUserAsync(LengUser user, string setCode)
         {
-            var set = await _dbContext.MTGSets.FirstOrDefaultAsync(set => set.setCode == setCode);
-
-            if (set != null)
+            // Ensure the set exists
+            var setExists = await _dbContext.MTGSets.AnyAsync(s => s.setCode == setCode);
+            if (!setExists)
             {
-                List<MTGCards> cardsList = await _dbContext.MTGCard
-                    .Where(cards => cards.setCode == setCode)
-                    .Include(cards => cards.LengUserMTGCards)
-                    .ToListAsync();
-
-                cardsList.Sort();
-                return cardsList;
+                return Enumerable.Empty<(MTGCards card, int count, int countFoil, int want, int wantFoil)>();
             }
 
-            return null;
+            // Retrieve all cards from the set
+            var allCardsInSetQuery = _dbContext.MTGCard
+                .Where(card => card.setCode == setCode);
+
+            // Retrieve all the user's cards from that set
+            var userCardsInSetQuery = _dbContext.LengUserMTGCards
+                .Where(uc => uc.LengUser == user && uc.MTGCards.setCode == setCode);
+
+            // Perform a left join to get all cards with user counts, including those not owned by the user
+            var query = from card in allCardsInSetQuery
+                        join userCard in userCardsInSetQuery
+                        on card.MTGCardsID equals userCard.MTGCardsId into cardGroup
+                        from userCard in cardGroup.DefaultIfEmpty()
+                        select new
+                        {
+                            card,
+                            count = userCard != null ? userCard.count : 0,
+                            countFoil = userCard != null ? userCard.countFoil : 0,
+                            want = userCard != null ? userCard.want : 0,
+                            wantFoil = userCard != null ? userCard.wantFoil : 0
+                        };
+
+            var result = await query.ToListAsync();
+
+            // Convert the result to the desired tuple format
+            return result.Select(r => (r.card, r.count, r.countFoil, r.want, r.wantFoil));
         }
 
         public async Task updateCardOfUserAsync(string number, string name, string setCode, int count, int countFoil, LengUser user)
@@ -270,7 +369,9 @@ namespace Leng.Application.Services
             var set = await GetSetAsync(setCode);
             var card = await getCardAsync(name, set, number);
 
-            var dbCard = _dbContext.LengUserMTGCards.Where(c => c.LengUser == user && c.MTGCards == card).SingleOrDefault();
+            var dbCard = _dbContext.LengUserMTGCards
+                           .Where(c => c.LengUserId == user.LengUserID && c.MTGCardsId == card.MTGCardsID)
+                           .SingleOrDefault();
             if (dbCard != null)
             {
                 dbCard.count = count;
@@ -278,7 +379,13 @@ namespace Leng.Application.Services
             }
             else
             {
-                await _dbContext.LengUserMTGCards.AddAsync(new LengUserMTGCards { LengUser = user, MTGCards = card, count = count, countFoil = countFoil });
+                await _dbContext.LengUserMTGCards.AddAsync(new LengUserMTGCards
+                {
+                    LengUserId = user.LengUserID,
+                    MTGCardsId = card.MTGCardsID,
+                    count = count,
+                    countFoil = countFoil
+                });
             }
 
             try
@@ -291,22 +398,100 @@ namespace Leng.Application.Services
             }
         }
 
+        public async Task ProcessBatchAsync(List<UserCardInfo> cardBatch, LengUser user)
+        {
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();
+
+            try
+            {
+                var setCodes = cardBatch.Select(c => c.SetCode).Distinct();
+                var sets = await _dbContext.MTGSets
+                                           .Where(s => setCodes.Contains(s.setCode))
+                                           .ToDictionaryAsync(s => s.setCode);
+
+                foreach (var card in cardBatch)
+                {
+                    // Get card and set information (optimally with a single query if possible)
+                    var set = sets[card.SetCode];
+                    var dbCard = await getCardAsync(card.CardName, set, card.CardNumber);
+
+                    // Prepare card data for database insertion
+                    var userCard = new LengUserMTGCards
+                    {
+                        LengUserId = user.LengUserID,
+                        LengUser = user,
+                        MTGCardsId = dbCard.MTGCardsID,
+                        MTGCards = dbCard,
+                        count = card.Count,
+                        countFoil = card.CountFoil
+                        // TODO: Want and wantfoil not implemented
+                    };
+
+                    _logger.LogInformation($"Adding card {set.name} - {card.CardName} to user collection");
+                    _dbContext.LengUserMTGCards.Add(userCard);
+                }
+
+                await _dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to process card batch: ", ex.ToString());
+                await transaction.RollbackAsync();
+            }
+        }
+
         public async Task<(int cards, int playsets)> GetUserCollectionSummaryAsync(LengUser user)
         {
-            // TODO: Fix playset information
-            var query = _dbContext.LengUserMTGCards
-                .Where(lumc => lumc.LengUser.LengUserID == user.LengUserID)
-                .GroupBy(lumc => lumc.MTGCards.MTGCardsID)
-                .Select(g => new
-                {
-                    Count = g.Sum(lumc => lumc.count + lumc.countFoil),
-                    PlaysetCount = 0
-                });
+            if (user == null)
+            {
+                return (0, 0);
+            }
+            else
+            {
+                // TODO: Fix playset information
+                var query = _dbContext.LengUserMTGCards
+                    .Where(lumc => lumc.LengUser.LengUserID == user.LengUserID)
+                    .GroupBy(lumc => lumc.MTGCards.MTGCardsID)
+                    .Select(g => new
+                    {
+                        Count = g.Sum(lumc => lumc.count + lumc.countFoil),
+                        PlaysetCount = 0
+                    });
 
-            var results = await query.ToListAsync();
-            int cards = results.Sum(r => r.Count);
-            int playsets = results.Sum(r => r.PlaysetCount);
-            return (cards, playsets);
+                var results = await query.ToListAsync();
+                int cards = results.Sum(r => r.Count);
+                int playsets = results.Sum(r => r.PlaysetCount);
+                return (cards, playsets);
+            }
+        }
+
+        public async Task ClearUserCardsAsync(LengUser user)
+        {
+            var userCards = _dbContext.LengUserMTGCards.Where(uc => uc.LengUserId == user.LengUserID);
+
+            _dbContext.LengUserMTGCards.RemoveRange(userCards);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        // Function to Import cards from an Excel file
+        public async Task ImportCardsAsync(string file, LengUser user)
+        {
+            using var worksheet = DataUtility.OpenWorksheet(file);
+
+            var headers = Enumerable.Range(1, 10).Select(col => worksheet.Cells[1, col].Text).ToArray();
+            bool validHeaders = DataUtility.ValidateHeaders(headers);
+            if (!validHeaders)
+            {
+                // Handle invalid header error
+                return;
+            }
+
+            // Clear existing cards for the user
+            await ClearUserCardsAsync(user);
+
+            var cardsFromSheet = await DataUtility.ImportCardsAsync(worksheet);
+            await ProcessBatchAsync(cardsFromSheet, user);
         }
     }
 }

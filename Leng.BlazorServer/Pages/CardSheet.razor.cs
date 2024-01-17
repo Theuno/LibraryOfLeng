@@ -1,117 +1,169 @@
-﻿using Leng.Domain.Models;
-using Leng.Application.Services;
-using Leng.Infrastructure;
-using Microsoft.AspNetCore.Components;
-using Microsoft.EntityFrameworkCore;
+﻿using Leng.Application.Services;
 using Leng.BlazorServer.Shared;
+using Leng.Domain.Models;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using System.Text.RegularExpressions;
+using static MudBlazor.CategoryTypes;
 
-namespace Leng.BlazorServer.Pages {
-    public partial class CardSheet {
+namespace Leng.BlazorServer.Pages
+{
+    public partial class CardSheet
+    {
         private string? selectedSet;
         private IEnumerable<MTGCards>? cards = new List<MTGCards>();
         private List<ShowSheet>? sheet = new List<ShowSheet>();
 
-        [Inject] IDbContextFactory<LengDbContext> cf { get; set; } = default!;
+        [Inject]
+        public IMTGDbService DbService { get; set; }
+        [Inject]
+        public ILogger<CardSheet> Logger { get; set; }
+
         [CascadingParameter] private Task<AuthenticationState>? authenticationState { get; set; }
+        private CancellationTokenSource _cts = new CancellationTokenSource();
 
+        public void Dispose()
+        {
+            _cts?.Dispose();
+        }
 
-
-        private async Task CommittedItemChanges(ShowSheet contextCard) {
-            var dbService = new MTGDbService(cf.CreateDbContext());
+        private async Task CommittedItemChanges(ShowSheet contextCard)
+        {
             var card = contextCard;
 
             var msalId = LengAuthenticationService.getMsalId(await authenticationState);
-            var lengUser = await dbService.GetLengUserAsync(msalId);
+            var lengUser = await DbService.GetLengUserAsync(msalId);
 
-            if (selectedSet != null) {
-                await dbService.updateCardOfUserAsync(card.number, card.name, card.setCode, card.count, card.countFoil, lengUser);
+            if (selectedSet != null)
+            {
+                await DbService.updateCardOfUserAsync(card.number, card.name, card.setCode, card.count, card.countFoil, lengUser);
             }
 
-            Console.WriteLine(card.name);
-            Console.WriteLine(card.number);
-            Console.WriteLine(card.count);
+            Logger.LogInformation("CardSheet: {name} {number} {count}", card.name, card.number, card.count);
         }
 
-        public string SortBySetNumber(MTGCards card) {
-            try {
-                if (card.number == null) {
-                    return "0";
+        // Custom comparer to handle special characters in cardNumber
+        public class CustomCardNumberComparer : IComparer<string>
+        {
+            public int Compare(string x, string y)
+            {
+                // Handle nulls
+                if (x == null && y == null) return 0;
+                if (x == null) return -1;
+                if (y == null) return 1;
+
+                string[] xParts;
+                string[] yParts;
+
+                try
+                {
+                    xParts = SplitCardNumber(x);
+                    yParts = SplitCardNumber(y);
                 }
-                else {
-                    int parseResult = 0;
-                    if (int.TryParse(card.number, out parseResult)) {
-                        return parseResult.ToString();
+                catch (RegexMatchTimeoutException)
+                {
+                    // If the regex takes too long, just compare the strings
+                    return string.Compare(x, y, StringComparison.Ordinal);
+                }
+
+                for (int i = 0; i < Math.Min(xParts.Length, yParts.Length); i++)
+                {
+                    if (int.TryParse(xParts[i], out int xPartNum) && int.TryParse(yParts[i], out int yPartNum))
+                    {
+                        // Compare numeric parts
+                        int comparison = xPartNum.CompareTo(yPartNum);
+                        if (comparison != 0) return comparison;
                     }
-                    else {
-                        char[] trimChars = { ' ', '★', '†', 'a', 'b', 'c' };
-                        return card.number.Trim(trimChars);
+                    else
+                    {
+                        // Compare non-numeric parts
+                        int comparison = string.Compare(xParts[i], yParts[i], StringComparison.Ordinal);
+                        if (comparison != 0) return comparison;
                     }
                 }
+
+                // If one number is longer than the other, it should come after
+                return xParts.Length.CompareTo(yParts.Length);
             }
-            catch (Exception ex) {
-                Console.WriteLine(ex.Message);
-                return "0";
+
+            private static string[] SplitCardNumber(string cardNumber)
+            {
+                var timeout = TimeSpan.FromMilliseconds(250);
+                return Regex.Split(cardNumber, "([^0-9]+)", RegexOptions.None, timeout);
             }
         }
 
-        private async Task<IEnumerable<string>> SetSearch(string set) {
-            var dbService = new MTGDbService(cf.CreateDbContext());
+        private async Task<IEnumerable<string>> SetSearch(string query)
+        {
+            // Cancel the previous task (if any)
+            _cts.Cancel();
+            _cts = new CancellationTokenSource();
 
-            var sets = await dbService.SearchSetsContainingCardsAsync(set);
-            return await Task.FromResult(sets.Select(x => x.name).ToArray());
+            try
+            {
+                // Call the search method, passing the CancellationToken
+                return await LoadDataForSearchQuery(query, _cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                Logger.LogInformation("Search operation cancelled");
+                return Enumerable.Empty<string>();
+                // TODO: actually returning the list from before the cancellation is better
+            }
         }
 
-        public async Task OnSetSelected(string set) {
+        private async Task<IEnumerable<string>> LoadDataForSearchQuery(string query, CancellationToken cancellationToken)
+        {
+            // Fetch sets based on the query, but frequently check for cancellation
+            List<MTGSets> setsList = await DbService.SearchSetsContainingCardsAsync(query, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            return setsList.Select(set => set.name);
+        }
+
+        public async Task OnSetSelected(string set)
+        {
             selectedSet = set;
-            if (selectedSet == null) {
+            if (selectedSet == null)
+            {
                 return;
             }
-            else {
+            else
+            {
                 sheet.Clear();
             }
 
-            var dbService = new MTGDbService(cf.CreateDbContext());
-
             var msalId = LengAuthenticationService.getMsalId(await authenticationState);
-            var LengUser = await dbService.GetLengUserAsync(msalId);
+            var LengUser = await DbService.GetLengUserAsync(msalId);
 
-            var setCode = await dbService.GetSetCodeAsync(set);
-            cards = await dbService.GetCardsInSetForUserAsync(LengUser, setCode);
+            var setCode = await DbService.GetSetCodeAsync(set);
+            var cardTuples = await DbService.GetCardsInSetForUserAsync(LengUser, setCode);
 
-            foreach (var card in cards) {
+            // Sort the cards using the CustomCardNumberComparer
+            var comparer = new CustomCardNumberComparer();
+            cardTuples = cardTuples.OrderBy(card => card.card.number, comparer).ToList();
+
+            foreach (var card in cardTuples)
+            {
                 try
                 {
-                    var usersCard = card.LengUserMTGCards
-                        .Where(u => u.LengUser == LengUser && u.MTGCards == card).SingleOrDefault();
-
-
-                    var imageUrl = $"https://api.scryfall.com/cards/{card.scryfallId}?format=image&version=small";
-
-                    if (usersCard == null) {
-                        sheet.Add(new ShowSheet { setCode = card.MTGSets.setCode, cardImageUrl = imageUrl, name = card.name, number = card.number, count = 0, countFoil = 0 });
-                    }
-                    else {
-                        sheet.Add(new ShowSheet { setCode = card.MTGSets.setCode, cardImageUrl = imageUrl, name = card.name, number = card.number, count = usersCard.count, countFoil = usersCard.countFoil });
-                    }
-                    Console.WriteLine(card.name);
-
+                    var imageUrl = $"https://api.scryfall.com/cards/{card.card.scryfallId}?format=image&version=small";
+                    sheet.Add(new ShowSheet { setCode = card.card.setCode, cardImageUrl = imageUrl, name = card.card.name, number = card.card.number, count = card.count, countFoil = card.countFoil });
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex);
+                    Logger.LogError("Error when adding card to sheet: {message}", ex.Message);
                 }
             }
         }
 
-        protected override async Task OnInitializedAsync() {
-            var dbService = new MTGDbService(cf.CreateDbContext());
-
+        protected override async Task OnInitializedAsync()
+        {
             var msalId = LengAuthenticationService.getMsalId(await authenticationState);
-            var LengUser = await dbService.GetLengUserAsync(msalId);
-            if (LengUser == null) {
-                await dbService.AddLengUserAsync(msalId);
-                _ = await dbService.GetLengUserAsync(msalId);
+            var LengUser = await DbService.GetLengUserAsync(msalId);
+            if (LengUser == null) 
+            {
+                await DbService.AddLengUserAsync(msalId);
+                _ = await DbService.GetLengUserAsync(msalId);
             }
         }
     }

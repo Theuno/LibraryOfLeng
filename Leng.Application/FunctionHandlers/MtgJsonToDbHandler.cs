@@ -1,29 +1,25 @@
 ﻿using Leng.Application.Services;
 using Leng.Domain.Models;
+using Microsoft.Extensions.Logging;
 using System.ComponentModel;
 using System.IO.Compression;
 using System.Net;
-using System.Text.Json.Nodes;
 using System.Text.Json;
-using Leng.Infrastructure;
-using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using System.Text.Json.Serialization;
+using System.Text.Json.Nodes;
 
 namespace Leng.Application.FunctionHandlers
 {
     public class MtgJsonToDbHandler
     {
-        readonly MTGDbService dbService;
-        string fileName = "AllSetFiles.zip";
-        private readonly ILogger _logger;
+        private readonly ILogger<MtgJsonToDbHandler> _logger;
+        private readonly IMTGDbService _dbService;
 
-        public MtgJsonToDbHandler(ILogger logger, LengDbContext lengDbContext)
+        readonly string fileName = "AllSetFiles.zip";
+
+        public MtgJsonToDbHandler(ILogger<MtgJsonToDbHandler> logger, IMTGDbService dbService)
         {
-            _logger = logger;
-
-            dbService = new MTGDbService(lengDbContext);
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _dbService = dbService ?? throw new ArgumentNullException(nameof(dbService));
         }
 
         public async Task Handle()
@@ -33,6 +29,7 @@ namespace Leng.Application.FunctionHandlers
             ExtractDownloadedJson();
             await ImportFiles();
         }
+
         private async Task DownloadFileFromURLAsync()
         {
             string url = "https://mtgjson.com/api/v5/" + fileName;
@@ -65,8 +62,9 @@ namespace Leng.Application.FunctionHandlers
             foreach (var file in filesToImport)
             {
                 _logger.LogInformation("Importing file: " + file);
+                using FileStream importStream = File.OpenRead(file);
 
-                await ImportMTGSet(file);
+                await ImportMTGSet(importStream);
             }
         }
 
@@ -88,10 +86,8 @@ namespace Leng.Application.FunctionHandlers
             }
         }
 
-        private async Task ImportMTGSet(string file)
+        public async Task ImportMTGSet(Stream openStream)
         {
-            using FileStream openStream = File.OpenRead(file);
-
             JsonNode mtgNodes = JsonNode.Parse(openStream);
             JsonObject mtgData = mtgNodes["data"]!.AsObject();
 
@@ -99,9 +95,20 @@ namespace Leng.Application.FunctionHandlers
             {
                 MTGSets set = JsonSerializer.Deserialize<MTGSets>(mtgData.ToString());
 
+                if (set.isOnlineOnly)
+                {
+                    _logger.LogInformation("Skipping online only set: " + set.name);
+                    return;
+                }
+                else if (set.isPartialPreview)
+                {
+                    _logger.LogInformation("Skipping partial preview set: " + set.name);
+                    return;
+                }
+
                 if (!set.isOnlineOnly && !set.isPartialPreview)
                 {
-                    await dbService.AddSetAsync(set);
+                    await _dbService.AddSetAsync(set);
 
                     // Add cards
                     JsonArray mtgCards = mtgNodes["data"]["cards"]!.AsArray();
@@ -112,32 +119,28 @@ namespace Leng.Application.FunctionHandlers
                         // Foils? Forest317★
                         // Dead?  El-Hajjâj134†
 
-                        MTGCards card = JsonSerializer.Deserialize<MTGCards>(mtgCards[i].ToString());
-                        if (!card.isOnlineOnly)
+                        MTGCards card = null;
+                        try
                         {
-                            // Set the colors property to a list of MTGColor objects
-                            JsonArray colorArray = mtgCards[i]["colors"].AsArray();
+                            card = JsonSerializer.Deserialize<MTGCards>(mtgCards[i].ToString());
+                        }
+                        catch (JsonException je)
+                        {
+                            _logger.LogError($"Error when deserializing card! Exception: {je.Message}");
+                            return;
+                        }
 
-                            if (colorArray.Count > 0)
-                            {
-                                card.color = "";
-                                // For each color, add the value to the string
-                                foreach (var color in colorArray)
-                                {
-                                    card.color += color;
-                                }
-                            }
-
-                            var identifiers = mtgCards[i]["identifiers"].AsObject();
-                            card.scryfallId = identifiers["scryfallId"].ToString();
-
+                        if (card != null)
+                        {
+                            SetCardProperties(card, mtgCards[i]);
                             setCards.Add(card);
                         }
                     }
 
                     if (setCards.Count > 0)
                     {
-                        await dbService.AddCardsAsync(setCards);
+                        _logger.LogInformation("Adding " + setCards.Count + " cards for set: " + set.name);
+                        await _dbService.AddCardsAsync(setCards);
                     }
                 }
 
@@ -145,6 +148,32 @@ namespace Leng.Application.FunctionHandlers
             catch (Exception ex)
             {
                 _logger.LogInformation("Error: " + ex.Message);
+            }
+        }
+
+        private void SetCardProperties(MTGCards card, JsonNode cardNode)
+        {
+            if (!card.isOnlineOnly)
+            {
+                // Set the colors property to a list of MTGColor objects
+                JsonArray colorArray = cardNode["colors"].AsArray();
+
+                if (colorArray.Count > 0)
+                {
+                    card.color = "";
+                    // For each color, add the value to the string
+                    foreach (var color in colorArray)
+                    {
+                        card.color += color;
+                    }
+                }
+
+                var identifiers = cardNode["identifiers"].AsObject();
+                card.scryfallId = identifiers["scryfallId"].ToString();
+            }
+            else
+            {
+                _logger.LogInformation("Skipping onlineOnly card: " + card.name);
             }
         }
     }

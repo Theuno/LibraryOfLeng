@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using System.Collections;
 
 namespace Leng.Domain.Models
-{ 
+{
     [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
     [Index(nameof(name), nameof(setCode), nameof(number), IsUnique = true)]
     public class MTGCards : IComparable
@@ -136,13 +136,15 @@ namespace Leng.Domain.Models
         //flavorName TEXT,
         //flavorText TEXT,
         //frameEffects TEXT,
-        //frameVersion ENUM('2003', '1993', '2015', '1997', 'future'),
+        public string? frameVersion { get; set; }
+
         //hand TEXT,
-        //hasAlternativeDeckLimit TINYINT(1) NOT NULL DEFAULT 0,
+        public bool? hasAlternativeDeckLimit { get; set; }
         //hasContentWarning TINYINT(1) NOT NULL DEFAULT 0,
         public bool? hasFoil { get; set; }
         public bool? hasNonFoil { get; set; }
-        //isAlternative TINYINT(1) NOT NULL DEFAULT 0,
+        public bool? isAlternative { get; set; }
+
         //isFullArt TINYINT(1) NOT NULL DEFAULT 0,
         //isFunny TINYINT(1) NOT NULL DEFAULT 0,
         public bool isOnlineOnly { get; set; }

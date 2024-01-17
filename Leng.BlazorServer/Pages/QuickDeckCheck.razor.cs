@@ -20,17 +20,17 @@ namespace Leng.BlazorServer.Pages
         private string _resultList = "";
         private readonly List<ShowSheet>? _resultSheet = new List<ShowSheet>();
 
-        [Inject] IDbContextFactory<LengDbContext> cf { get; set; } = default!;
+        [Inject]
+        public IMTGDbService DbService { get; set; }
 
         private readonly Regex arenaCardLineRegex = new Regex(@"^(?<count>\d+)\s+(?<name>[\w\s',!\?\.-]+(?:\s*//\s*[\w\s',!\?\.]+)?)\s*(?<isFoil>\(Foil\))?");
         private readonly Regex mtgoCardLineRegex = new Regex(@"^(?<count>\d+)\s+(?<name>[\w\s',!\?\.-]+)\s+\[(?<setCode>[A-Za-z0-9]+)\]\s+\[(?<cardNumber>\d+)\]");
 
+
         protected override async Task OnInitializedAsync()
         {
             var msalId = LengAuthenticationService.getMsalId(await authenticationState);
-            var dbService = new MTGDbService(cf.CreateDbContext());
-
-            _lengUser = await dbService.GetLengUserAsync(msalId);
+            _lengUser = await DbService.GetLengUserAsync(msalId);
         }
 
         private async Task CommittedItemChanges(ShowSheet contextCard)
@@ -42,12 +42,7 @@ namespace Leng.BlazorServer.Pages
         {
             _loadingValue = 0;
 
-            // The cards we have in our collection
-            var dbService = new MTGDbService(cf.CreateDbContext());
-
             /*
-            var cards = await dbService.GetCollectionAsync(_lengUser!.Id);
-            
             // The cards we have in our collection, grouped by name
             var cardsByName = cards.GroupBy(c => c.Name).ToDictionary(g => g.Key, g => g.ToList());
             // The cards we have in our collection, grouped by name and set
@@ -124,7 +119,7 @@ namespace Leng.BlazorServer.Pages
                     continue;
                 }
 
-                var collectedCards = await dbService.GetCardFromUserCollectionAsync(_lengUser, name); // .GetCardFromUserCollectionAsync(name);
+                var collectedCards = await DbService.GetCardFromUserCollectionAsync(_lengUser, name);
                 if (collectedCards == null)
                 {
                     missingCards.AppendLine(name);

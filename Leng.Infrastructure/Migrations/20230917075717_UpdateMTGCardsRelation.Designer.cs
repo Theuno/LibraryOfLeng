@@ -12,15 +12,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Leng.Infrastructure.Migrations
 {
     [DbContext(typeof(LengDbContext))]
-    [Migration("20230413213419_add color to mtgcard update")]
-    partial class addcolortomtgcardupdate
+    [Migration("20230917075717_UpdateMTGCardsRelation")]
+    partial class UpdateMTGCardsRelation
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.4")
+                .HasAnnotation("ProductVersion", "7.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -60,10 +60,11 @@ namespace Leng.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("Id.LengUserID")
+                    b.Property<string>("LengUserId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("Id.MTGCardsID")
+                    b.Property<int>("MTGCardsId")
                         .HasColumnType("int");
 
                     b.Property<int>("count")
@@ -80,9 +81,9 @@ namespace Leng.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Id.LengUserID");
+                    b.HasIndex("LengUserId");
 
-                    b.HasIndex("Id.MTGCardsID");
+                    b.HasIndex("MTGCardsId");
 
                     b.ToTable("LengUserMTGCards");
                 });
@@ -104,16 +105,31 @@ namespace Leng.Infrastructure.Migrations
                     b.Property<string>("asciiName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("color")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("edhrecRank")
                         .HasColumnType("int");
 
                     b.Property<float>("edhrecSaltiness")
                         .HasColumnType("real");
 
+                    b.Property<string>("faceName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("frameVersion")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool?>("hasAlternativeDeckLimit")
+                        .HasColumnType("bit");
+
                     b.Property<bool?>("hasFoil")
                         .HasColumnType("bit");
 
                     b.Property<bool?>("hasNonFoil")
+                        .HasColumnType("bit");
+
+                    b.Property<bool?>("isAlternative")
                         .HasColumnType("bit");
 
                     b.Property<bool>("isOnlineOnly")
@@ -123,6 +139,7 @@ namespace Leng.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("name")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("number")
@@ -159,26 +176,9 @@ namespace Leng.Infrastructure.Migrations
 
                     b.HasIndex("name", "setCode", "number")
                         .IsUnique()
-                        .HasFilter("[name] IS NOT NULL AND [setCode] IS NOT NULL AND [number] IS NOT NULL");
+                        .HasFilter("[setCode] IS NOT NULL AND [number] IS NOT NULL");
 
                     b.ToTable("MTGCard");
-                });
-
-            modelBuilder.Entity("Leng.Domain.Models.MTGColor", b =>
-                {
-                    b.Property<int>("MTGColorID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MTGColorID"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("MTGColorID");
-
-                    b.ToTable("MTGColor");
                 });
 
             modelBuilder.Entity("Leng.Domain.Models.MTGDeck", b =>
@@ -308,21 +308,6 @@ namespace Leng.Infrastructure.Migrations
                     b.ToTable("MTGTranslations");
                 });
 
-            modelBuilder.Entity("MTGCardsMTGColor", b =>
-                {
-                    b.Property<int>("CardsMTGCardsID")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ColorsMTGColorID")
-                        .HasColumnType("int");
-
-                    b.HasKey("CardsMTGCardsID", "ColorsMTGColorID");
-
-                    b.HasIndex("ColorsMTGColorID");
-
-                    b.ToTable("MTGCards_MTGColor", (string)null);
-                });
-
             modelBuilder.Entity("Leng.Domain.Models.LengUserDeck", b =>
                 {
                     b.HasOne("Leng.Domain.Models.LengUser", "LengUser")
@@ -346,11 +331,13 @@ namespace Leng.Infrastructure.Migrations
                 {
                     b.HasOne("Leng.Domain.Models.LengUser", "LengUser")
                         .WithMany("LengUserMTGCards")
-                        .HasForeignKey("Id.LengUserID");
+                        .HasForeignKey("LengUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Leng.Domain.Models.MTGCards", "MTGCards")
                         .WithMany("LengUserMTGCards")
-                        .HasForeignKey("Id.MTGCardsID")
+                        .HasForeignKey("MTGCardsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -377,21 +364,6 @@ namespace Leng.Infrastructure.Migrations
                         .HasForeignKey("translationsMTGTranslationsID");
 
                     b.Navigation("translations");
-                });
-
-            modelBuilder.Entity("MTGCardsMTGColor", b =>
-                {
-                    b.HasOne("Leng.Domain.Models.MTGCards", null)
-                        .WithMany()
-                        .HasForeignKey("CardsMTGCardsID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Leng.Domain.Models.MTGColor", null)
-                        .WithMany()
-                        .HasForeignKey("ColorsMTGColorID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Leng.Domain.Models.LengUser", b =>

@@ -5,7 +5,7 @@
 namespace Leng.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class NewInitialMigration : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -121,13 +121,18 @@ namespace Leng.Infrastructure.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     artist = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     setCode = table.Column<string>(type: "varchar(8)", nullable: true),
-                    name = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    name = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     MTGSetsID = table.Column<int>(type: "int", nullable: false),
                     asciiName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    color = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     edhrecRank = table.Column<int>(type: "int", nullable: false),
                     edhrecSaltiness = table.Column<float>(type: "real", nullable: false),
+                    faceName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    frameVersion = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    hasAlternativeDeckLimit = table.Column<bool>(type: "bit", nullable: true),
                     hasFoil = table.Column<bool>(type: "bit", nullable: true),
                     hasNonFoil = table.Column<bool>(type: "bit", nullable: true),
+                    isAlternative = table.Column<bool>(type: "bit", nullable: true),
                     isOnlineOnly = table.Column<bool>(type: "bit", nullable: false),
                     mcmId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     number = table.Column<string>(type: "nvarchar(450)", nullable: true),
@@ -203,7 +208,7 @@ namespace Leng.Infrastructure.Migrations
                 table: "MTGCard",
                 columns: new[] { "name", "setCode", "number" },
                 unique: true,
-                filter: "[name] IS NOT NULL AND [setCode] IS NOT NULL AND [number] IS NOT NULL");
+                filter: "[setCode] IS NOT NULL AND [number] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MTGSets_setCode",

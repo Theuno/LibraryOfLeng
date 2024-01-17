@@ -1,0 +1,22 @@
+﻿@page "/importexport"
+
+<PageTitle>Import/Export</PageTitle>
+@using MudBlazor
+
+<h3>Import / Export</h3>
+
+<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(()=>ExportAllCardsAsync())">
+    Export all cards on a single sheet
+</MudButton>
+
+<MudFileUpload T="IBrowserFile" FilesChanged="@UploadFiles">
+    <ButtonTemplate>
+        <MudButton HtmlTag="label"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.CloudUpload"
+                   for="@context">
+            Upload Files
+        </MudButton>
+    </ButtonTemplate>
+</MudFileUpload>
