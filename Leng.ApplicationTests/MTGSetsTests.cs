@@ -5,6 +5,7 @@ using Leng.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using NUnit.Framework.Legacy;
 using System.Text;
 
 namespace Leng.Application.Tests
@@ -713,7 +714,7 @@ namespace Leng.Application.Tests
 
                 // Assert
                 var remainingCards = context.LengUserMTGCards.Where(uc => uc.LengUserId == user.LengUserID);
-                Assert.IsNotEmpty(remainingCards);
+                Assert.That(remainingCards, Has.Exactly(2).Items);
             }
 
             // Act
