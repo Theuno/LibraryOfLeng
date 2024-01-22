@@ -5,6 +5,7 @@ using Leng.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using NUnit.Framework.Legacy;
 using System.Text;
 
 namespace Leng.Application.Tests
@@ -713,7 +714,7 @@ namespace Leng.Application.Tests
 
                 // Assert
                 var remainingCards = context.LengUserMTGCards.Where(uc => uc.LengUserId == user.LengUserID);
-                Assert.IsNotEmpty(remainingCards);
+                Assert.That(remainingCards, Has.Exactly(2).Items);
             }
 
             // Act
@@ -837,7 +838,7 @@ namespace Leng.Application.Tests
                 var updatedCardInDatabase = await context.MTGCard.FirstOrDefaultAsync(c => c.name == "Urza's Mine" && c.number == "83b");
 
                 Assert.That(updatedCardInDatabase, Is.Not.Null);
-                if(updatedCardInDatabase != null)
+                if (updatedCardInDatabase != null)
                 {
                     Assert.Multiple(() =>
                     {
@@ -1018,7 +1019,7 @@ namespace Leng.Application.Tests
                     new MTGSets { setCode = "LEA", name = "Limited Edition Alpha" },
                     new MTGSets { setCode = "WAR", name = "War of the Spark" }
                 };
-                    
+
                 context.MTGSets.AddRange(sets);
                 context.SaveChanges();
 
