@@ -6,10 +6,10 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace Leng.BlazorServer.Pages {
-
-
-    public class UserClaimsBase : ComponentBase {
+namespace Leng.BlazorServer.Pages
+{
+    public class UserClaimsBase : ComponentBase
+    {
         // AuthenticationStateProvider service provides the current user's ClaimsPrincipal data.
         [Inject]
         private AuthenticationStateProvider AuthenticationStateProvider { get; set; }
@@ -24,7 +24,8 @@ namespace Leng.BlazorServer.Pages {
 
         private string[] printClaims = { "name", "preferred_username", "tid", "oid" };
 
-        protected override async Task OnInitializedAsync() {
+        protected override async Task OnInitializedAsync()
+        {
             await GetClaimsPrincipalData();
         }
 
@@ -32,24 +33,27 @@ namespace Leng.BlazorServer.Pages {
         /// Retrieves user claims for the signed-in user.
         /// </summary>
         /// <returns></returns>
-        private async Task GetClaimsPrincipalData() {
+        private async Task GetClaimsPrincipalData()
+        {
             // Gets an AuthenticationState that describes the current user.
             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
 
             var user = authState.User;
 
             // Checks if the user has been authenticated.
-            if (user.Identity.IsAuthenticated) {
+            if (user.Identity != null && user.Identity.IsAuthenticated)
+            {
                 _msalId = user.GetMsalAccountId();
                 var displayName = user.GetDisplayName();
 
-                _authMessage = $"{_msalId} is authenticated.";
+                _authMessage = $"{displayName} ({_msalId}) is authenticated.";
 
                 // Sets the claims value in _claims variable.
                 // The claims mentioned in printClaims variable are selected only.
                 _claims = user.Claims.Where(x => printClaims.Contains(x.Type));
             }
-            else {
+            else
+            {
                 _authMessage = "The user is NOT authenticated.";
             }
         }
