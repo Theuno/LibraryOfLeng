@@ -17,15 +17,19 @@ namespace Leng.BlazorServer.Pages
         [CascadingParameter] private Task<AuthenticationState>? authenticationState { get; set; }
 
         public int _loadingValue { get; set; }
-        private string _resultList = "";
-        private readonly List<ShowSheet>? _resultSheet = new List<ShowSheet>();
+        private StringBuilder _resultList;
+        private readonly List<ShowSheet> _resultSheet = new List<ShowSheet>();
 
         [Inject]
-        public IMTGDbService DbService { get; set; }
+        public IMTGDbService? DbService { get; set; }
 
         private readonly Regex arenaCardLineRegex = new Regex(@"^(?<count>\d+)\s+(?<name>[\w\s',!\?\.-]+(?:\s*//\s*[\w\s',!\?\.]+)?)\s*(?<isFoil>\(Foil\))?");
         private readonly Regex mtgoCardLineRegex = new Regex(@"^(?<count>\d+)\s+(?<name>[\w\s',!\?\.-]+)\s+\[(?<setCode>[A-Za-z0-9]+)\]\s+\[(?<cardNumber>\d+)\]");
 
+        public QuickDeckCheck()
+        {
+            _resultList = new StringBuilder();
+        }
 
         protected override async Task OnInitializedAsync()
         {
@@ -59,9 +63,8 @@ namespace Leng.BlazorServer.Pages
             StringBuilder errorList = new StringBuilder();
             errorList.Append("Problems found: \r");
 
-
-            _resultList = "";
-            _resultList += missingCards;
+            _resultList = new StringBuilder();
+            _resultList.Append(missingCards);
 
             _resultSheet.Clear();
 
@@ -143,15 +146,15 @@ namespace Leng.BlazorServer.Pages
 
                 if (missingCount > 0)
                 {
-                    _resultList += $"{missingCount} x {name}\r";
+                    _resultList.Append($"{missingCount} x {name}\r");
                     _ = InvokeAsync(StateHasChanged);
                 }
             }
 
             _loadingValue = 100;
 
-            _resultList += "\r";
-            _resultList += errorList;
+            _resultList.Append("\r");
+            _resultList.Append(errorList);
 
             await InvokeAsync(StateHasChanged);
         }

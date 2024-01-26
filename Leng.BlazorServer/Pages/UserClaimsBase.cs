@@ -43,7 +43,7 @@ namespace Leng.BlazorServer.Pages {
                 _msalId = user.GetMsalAccountId();
                 var displayName = user.GetDisplayName();
 
-                _authMessage = $"{_msalId} is authenticated.";
+                _authMessage = $"{displayName} ({_msalId}) is authenticated.";
 
                 // Sets the claims value in _claims variable.
                 // The claims mentioned in printClaims variable are selected only.
