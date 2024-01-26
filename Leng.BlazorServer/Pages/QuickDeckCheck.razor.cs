@@ -33,8 +33,11 @@ namespace Leng.BlazorServer.Pages
 
         protected override async Task OnInitializedAsync()
         {
-            var msalId = LengAuthenticationService.getMsalId(await authenticationState);
-            _lengUser = await DbService.GetLengUserAsync(msalId);
+            if(authenticationState != null || DbService != null)
+            {
+                var msalId = LengAuthenticationService.getMsalId(await authenticationState);
+                _lengUser = await DbService.GetLengUserAsync(msalId);
+            }
         }
 
         private async Task CommittedItemChanges(ShowSheet contextCard)
@@ -45,6 +48,12 @@ namespace Leng.BlazorServer.Pages
         private async Task HandleDeckListChangeAsync(string deckList)
         {
             _loadingValue = 0;
+
+            if(DbService == null)
+            {
+                _resultList.Append("No database connection");
+                return;
+            }
 
             /*
             // The cards we have in our collection, grouped by name
@@ -153,11 +162,10 @@ namespace Leng.BlazorServer.Pages
 
             _loadingValue = 100;
 
-            _resultList.Append("\r");
+            _resultList.Append('\r');
             _resultList.Append(errorList);
 
             await InvokeAsync(StateHasChanged);
         }
     }
-
 }
