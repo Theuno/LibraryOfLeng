@@ -6,7 +6,8 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace Leng.BlazorServer.Pages {
+namespace Leng.BlazorServer.Pages
+{
     public class UserClaimsBase : ComponentBase
     {
         // AuthenticationStateProvider service provides the current user's ClaimsPrincipal data.

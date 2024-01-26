@@ -33,7 +33,7 @@ namespace Leng.BlazorServer.Pages
 
         protected override async Task OnInitializedAsync()
         {
-            if(authenticationState != null && DbService != null)
+            if (authenticationState != null && DbService != null)
             {
                 var msalId = LengAuthenticationService.getMsalId(await authenticationState);
                 _lengUser = await DbService.GetLengUserAsync(msalId);
@@ -49,7 +49,7 @@ namespace Leng.BlazorServer.Pages
         {
             _loadingValue = 0;
 
-            if(DbService == null)
+            if (DbService == null)
             {
                 _resultList.Append("No database connection");
                 return;
