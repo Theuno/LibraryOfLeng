@@ -41,7 +41,7 @@ namespace Leng.BlazorServer.Pages
             var user = authState.User;
 
             // Checks if the user has been authenticated.
-            if (user != null && user.Identity.IsAuthenticated)
+            if (user.Identity != null && user.Identity.IsAuthenticated)
             {
                 _msalId = user.GetMsalAccountId();
                 var displayName = user.GetDisplayName();
