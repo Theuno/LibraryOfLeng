@@ -5,6 +5,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using OfficeOpenXml;
 
 namespace Leng.Application.Services
 {
@@ -477,21 +478,29 @@ namespace Leng.Application.Services
         // Function to Import cards from an Excel file
         public async Task ImportCardsAsync(string file, LengUser user)
         {
-            using var worksheet = DataUtility.OpenWorksheet(file);
+            (ExcelPackage package, ExcelWorksheet worksheet) = DataUtility.OpenWorksheet(file);
 
-            var headers = Enumerable.Range(1, 10).Select(col => worksheet.Cells[1, col].Text).ToArray();
-            bool validHeaders = DataUtility.ValidateHeaders(headers);
-            if (!validHeaders)
+            try
             {
-                // Handle invalid header error
-                return;
+                var headers = Enumerable.Range(1, 10).Select(col => worksheet.Cells[1, col].Text).ToArray();
+                bool validHeaders = DataUtility.ValidateHeaders(headers);
+                if (!validHeaders)
+                {
+                    // Handle invalid header error
+                    return;
+                }
+
+                // Clear existing cards for the user
+                await ClearUserCardsAsync(user);
+
+                var cardsFromSheet = await DataUtility.ImportCardsAsync(worksheet);
+                await ProcessBatchAsync(cardsFromSheet, user);
             }
-
-            // Clear existing cards for the user
-            await ClearUserCardsAsync(user);
-
-            var cardsFromSheet = await DataUtility.ImportCardsAsync(worksheet);
-            await ProcessBatchAsync(cardsFromSheet, user);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to import cards from Excel file: ", ex.ToString());
+                throw;
+            }
         }
     }
 }

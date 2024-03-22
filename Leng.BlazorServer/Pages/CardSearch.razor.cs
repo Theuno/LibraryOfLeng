@@ -17,7 +17,7 @@ namespace Leng.BlazorServer.Pages
         private readonly List<ShowSheet>? sheet = new List<ShowSheet>();
         private IEnumerable<MTGCards>? cards = new List<MTGCards>();
 
-        private CancellationTokenSource _searchCancellationTokenSource = new CancellationTokenSource();
+        readonly private CancellationTokenSource _searchCancellationTokenSource = new CancellationTokenSource();
 
         private LengUser? _lengUser { get; set; }
 
