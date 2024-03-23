@@ -84,7 +84,7 @@ namespace Leng.Application.Services
             if (worksheet == null)
             {
                 // Handle invalid file error
-                throw new Exception("Worksheet could not be opened.");
+                throw new InvalidOperationException("Worksheet could not be opened.");
             }
 
             return (package, worksheet);
