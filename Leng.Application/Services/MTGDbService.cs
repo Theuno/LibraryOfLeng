@@ -29,9 +29,9 @@ namespace Leng.Application.Services
         Task<IEnumerable<(MTGCards card, int count, int countFoil, int want, int wantFoil)>> GetCardsInSetForUserAsync(LengUser user, string setCode);
         Task updateCardOfUserAsync(string number, string name, string setCode, int count, int countFoil, LengUser user);
         Task<(int cards, int playsets)> GetUserCollectionSummaryAsync(LengUser user);
-        Task ProcessBatchAsync(List<UserCardInfo> cardBatch, LengUser user);
+        Task ProcessBatchAsync(List<UserCardInfo> cardBatch, LengUser user, Action<string> updateProgress);
         Task ClearUserCardsAsync(LengUser user);
-        Task ImportCardsAsync(string file, LengUser user);
+        Task ImportCardsAsync(string file, LengUser user, Action<string> updateProgress);
     }
 
     public class MTGDbService : IMTGDbService
@@ -399,7 +399,7 @@ namespace Leng.Application.Services
             }
         }
 
-        public async Task ProcessBatchAsync(List<UserCardInfo> cardBatch, LengUser user)
+        public async Task ProcessBatchAsync(List<UserCardInfo> cardBatch, LengUser user, Action<string> updateProgress)
         {
             using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
@@ -410,8 +410,15 @@ namespace Leng.Application.Services
                                            .Where(s => setCodes.Contains(s.setCode))
                                            .ToDictionaryAsync(s => s.setCode);
 
-                foreach (var card in cardBatch)
+                updateProgress("Processing card batch");
+                updateProgress($"Found {sets.Count} sets in batch");
+                updateProgress($"Found {cardBatch.Count} cards in batch");
+                int totalCards = cardBatch.Count;
+
+                for (int i = 0; i < totalCards; i++)
                 {
+                    var card = cardBatch[i];
+
                     // Get card and set information (optimally with a single query if possible)
                     var set = sets[card.SetCode];
                     var dbCard = await getCardAsync(card.CardName, set, card.CardNumber);
@@ -428,7 +435,10 @@ namespace Leng.Application.Services
                         // TODO: Want and wantfoil not implemented
                     };
 
-                    _logger.LogInformation($"Adding card {set.name} - {card.CardName} to user collection");
+                    // Add progress to updateProgress, what is the percentage of the cards imported?
+                    int progress = (i + 1) * 100 / totalCards;
+                    updateProgress($"Processed card {set.name} - {card.CardName}. Progress: {progress}% ({i} of {totalCards})");
+                    _logger.LogInformation($"Processed card {set.name} - {card.CardName}. Progress: {progress}% ({i} of {totalCards})");
                     _dbContext.LengUserMTGCards.Add(userCard);
                 }
 
@@ -437,7 +447,8 @@ namespace Leng.Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to process card batch: ", ex.ToString());
+                updateProgress($"Failed to process card batch. For debugging, cards are sorted by set before being imported. Card data can't be logged when problems occur.");
+                _logger.LogError($"Failed to process card batch: {ex.ToString()}");
                 await transaction.RollbackAsync();
             }
         }
@@ -476,7 +487,7 @@ namespace Leng.Application.Services
         }
 
         // Function to Import cards from an Excel file
-        public async Task ImportCardsAsync(string file, LengUser user)
+        public async Task ImportCardsAsync(string file, LengUser user, Action<string> updateProgress)
         {
             (_, ExcelWorksheet worksheet) = DataUtility.OpenWorksheet(file);
 
@@ -494,11 +505,11 @@ namespace Leng.Application.Services
                 await ClearUserCardsAsync(user);
 
                 var cardsFromSheet = await DataUtility.ImportCardsAsync(worksheet);
-                await ProcessBatchAsync(cardsFromSheet, user);
+                await ProcessBatchAsync(cardsFromSheet, user, updateProgress);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to import cards from Excel file: ", ex.ToString());
+                _logger.LogError($"Failed to import cards from Excel file: {ex.ToString()}");
                 throw;
             }
         }

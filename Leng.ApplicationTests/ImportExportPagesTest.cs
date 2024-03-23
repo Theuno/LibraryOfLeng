@@ -62,7 +62,8 @@ namespace Leng.BlazorServer.Tests.Pages
             await _importExport.UploadFiles(file);
 
             // Assert
-            await _dbService.Received(1).ImportCardsAsync(Arg.Any<string>(), null);
+            await _dbService.Received(1).ImportCardsAsync(Arg.Any<string>(), null, Arg.Is<Action<string>>(_ => true));
+
 
             // Cleanup
             stream.Dispose();
