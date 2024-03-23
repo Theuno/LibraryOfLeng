@@ -11,8 +11,7 @@ namespace Leng.BlazorServer.Pages
     public class UserClaimsBase : ComponentBase
     {
         // AuthenticationStateProvider service provides the current user's ClaimsPrincipal data.
-        [Inject]
-        private AuthenticationStateProvider AuthenticationStateProvider { get; set; }
+        [Inject] private AuthenticationStateProvider AuthenticationStateProvider { get; set; }
 
         protected string _authMessage;
         protected IEnumerable<Claim> _claims = Enumerable.Empty<Claim>();

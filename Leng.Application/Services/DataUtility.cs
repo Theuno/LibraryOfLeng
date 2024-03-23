@@ -69,26 +69,25 @@ namespace Leng.Application.Services
             });
         }
 
-        public static ExcelWorksheet OpenWorksheet(string file)
+        public static (ExcelPackage, ExcelWorksheet) OpenWorksheet(string file)
         {
             // Open file
             var fileInfo = new FileInfo(file);
-            using (var package = new ExcelPackage(fileInfo))
+            var package = new ExcelPackage(fileInfo);
+
+            // Using the non commercial license of EPPlus
+            ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+
+            // Validate file
+            var worksheet = package.Workbook.Worksheets[0];
+
+            if (worksheet == null)
             {
-                // Using the non commercial license of EPPlus
-                ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
-
-                // Validate file
-                var worksheet = package.Workbook.Worksheets[0];
-
-                if (worksheet == null)
-                {
-                    // Handle invalid file error
-                    return null;
-                }
-
-                return worksheet;
+                // Handle invalid file error
+                throw new InvalidOperationException("Worksheet could not be opened.");
             }
+
+            return (package, worksheet);
         }
 
         public static async Task<List<UserCardInfo>> ImportCardsAsync(ExcelWorksheet worksheet)
