@@ -478,7 +478,7 @@ namespace Leng.Application.Services
         // Function to Import cards from an Excel file
         public async Task ImportCardsAsync(string file, LengUser user)
         {
-            (ExcelPackage package, ExcelWorksheet worksheet) = DataUtility.OpenWorksheet(file);
+            (_, ExcelWorksheet worksheet) = DataUtility.OpenWorksheet(file);
 
             try
             {
