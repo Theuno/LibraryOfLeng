@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
 using OfficeOpenXml; // EPPlus
 using Leng.Application.Dtos;
+using System.Text;
 
 namespace Leng.BlazorServer.Pages
 {
@@ -31,6 +32,9 @@ namespace Leng.BlazorServer.Pages
         [Inject]
         public ILogger<CardSheet> Logger { get; set; }
 
+        private readonly StringBuilder _importLogs;
+
+
         protected override async Task OnInitializedAsync()
         {
             var authState = await authenticationState;
@@ -43,6 +47,10 @@ namespace Leng.BlazorServer.Pages
             {
                 _lengUser = null;
             }
+        }
+        public ImportExport()
+        {
+            _importLogs = new StringBuilder();
         }
 
         public async Task UploadFiles(IBrowserFile file)
@@ -67,7 +75,11 @@ namespace Leng.BlazorServer.Pages
                 fs.Close();
 
                 // Read file, process data, and save to database
-                await DbService.ImportCardsAsync(path, _lengUser);
+                await DbService.ImportCardsAsync(path, _lengUser, importLog =>
+                {
+                    _importLogs.AppendLine(importLog);
+                    StateHasChanged();
+                });
 
                 // Remove file
                 File.Delete(path);
