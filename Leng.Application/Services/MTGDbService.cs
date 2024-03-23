@@ -437,8 +437,8 @@ namespace Leng.Application.Services
 
                     // Add progress to updateProgress, what is the percentage of the cards imported?
                     int progress = (i + 1) * 100 / totalCards;
-                    updateProgress($"Processed card {set.name} - {card.CardName}. Progress: {progress}% ({i} of {totalCards})");
-                    _logger.LogInformation("Processed card {0} - {1}. Progress: {2}% ({3} of {4})", set.name, card.CardName, progress, i, totalCards);
+                    updateProgress($"Processed card {set.name} - {card.CardName}. Progress: {progress}% ({i + 1} of {totalCards})");
+                    _logger.LogInformation("Processed card {SetName} - {CardName}. Progress: {Progress}% ({i} of {totalCards})", set.name, card.CardName, progress, i + 1, totalCards);
                     _dbContext.LengUserMTGCards.Add(userCard);
                 }
 
@@ -448,7 +448,7 @@ namespace Leng.Application.Services
             catch (Exception ex)
             {
                 updateProgress($"Failed to process card batch. For debugging, cards are sorted by set before being imported. Card data can't be logged when problems occur.");
-                _logger.LogError("Failed to process card batch: {0}", ex.ToString());
+                _logger.LogError(ex, "Failed to process card batch");
                 await transaction.RollbackAsync();
             }
         }
@@ -509,7 +509,7 @@ namespace Leng.Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Failed to import cards from Excel file: {ex.ToString()}");
+                _logger.LogError(ex, "Failed to import cards from Excel file.");
                 throw;
             }
         }

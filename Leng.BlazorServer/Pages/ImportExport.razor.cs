@@ -32,7 +32,7 @@ namespace Leng.BlazorServer.Pages
         [Inject]
         public ILogger<CardSheet> Logger { get; set; }
 
-        private StringBuilder _importLogs;
+        private readonly StringBuilder _importLogs;
 
 
         protected override async Task OnInitializedAsync()
